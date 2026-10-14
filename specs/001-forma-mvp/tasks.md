@@ -123,7 +123,7 @@ export both supported formats, reopen each output, and verify overwrite and inte
 - [x] T044 [US3] Implement export and job status/cancellation handlers in `app/engine/forma_engine/ipc/export_handlers.py` and `app/engine/forma_engine/ipc/job_handlers.py`, then register them in `app/engine/forma_engine/ipc/router.py`.
 - [x] T045 [P] [US3] Build before/after comparison and export controls in `app/frontend/desktop/src/features/cleaning/BeforeAfterComparison.tsx`, `app/frontend/desktop/src/features/export/ExportDialog.tsx`, and `app/frontend/desktop/src/features/jobs/JobStatus.tsx` with explicit overwrite confirmation and accessible status text.
 - [x] T046 [US3] Connect comparison, export, job polling/events, and cancellation to frontend services and stores in `app/frontend/desktop/src/features/export/useExportJob.ts`, `app/frontend/desktop/src/services/jobService.ts`, and `app/frontend/desktop/src/stores/exportStore.ts`.
-- [ ] T047 [US3] Add the full desktop end-to-end scenario in `app/frontend/desktop/tests/e2e/import-clean-export.spec.ts` covering CSV and Parquet output reopen, source preservation, invalid conversion, overwrite rejection, and cancelled export.
+- [x] T047 [US3] Add the full desktop end-to-end scenario in `app/frontend/desktop/tests/e2e/import-clean-export.spec.ts` covering CSV and Parquet output reopen, source preservation, invalid conversion, overwrite rejection, and cancelled export.
 
 **Checkpoint**: User Story 3 is independently demonstrable when a cleaned result can be compared,
 exported safely in both formats, reopened successfully, and never misreported after interruption.
