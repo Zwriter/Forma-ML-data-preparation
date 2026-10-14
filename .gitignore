@@ -1,8 +1,27 @@
-// GitHub configuration files
+# GitHub configuration files
 .github/src
 
-// Visual Studio Code configuration files
+# Visual Studio Code configuration files
 .vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+dist/
+*.egg-info/
+.pytest_cache/
+.coverage
+
+# JavaScript and Rust
+node_modules/
+build/
+*.log
+.env*
+target/
+.DS_Store
+Thumbs.db
 
 
 

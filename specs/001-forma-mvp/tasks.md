@@ -18,11 +18,11 @@ implementation tasks they verify, following the project constitution's mandatory
 **Purpose**: Establish the app-scoped Python engine, React/Tauri desktop shell, fixtures, and
 reproducible development commands.
 
-- [ ] T001 Create the planned app-scoped directory tree in `app/engine/`, `app/frontend/desktop/`, and `app/fixtures/`.
-- [ ] T002 [P] Create the Python package manifest and development dependency groups in `app/engine/pyproject.toml` for Python 3.11, Polars, DuckDB, pytest, and test tooling.
-- [ ] T003 [P] Create the React/TypeScript/Vite package manifest and development scripts in `app/frontend/desktop/package.json` for the declared frontend dependencies and tests.
-- [ ] T004 [P] Initialize the Tauri 2 desktop shell and implement sidecar supervision, graceful shutdown, crash reporting, and NDJSON stdin/stdout relay in `app/frontend/desktop/src-tauri/tauri.conf.json`, `app/frontend/desktop/src-tauri/Cargo.toml`, `app/frontend/desktop/src-tauri/src/main.rs`, `app/frontend/desktop/src-tauri/src/sidecar.rs`, and `app/frontend/desktop/src-tauri/src/commands.rs`.
-- [ ] T005 [P] Add shared development configuration and ignore rules in `app/engine/pytest.ini`, `app/frontend/desktop/tsconfig.json`, `app/frontend/desktop/vite.config.ts`, and `app/frontend/desktop/.gitignore` without placing application code outside `app/`.
+- [x] T001 Create the planned app-scoped directory tree in `app/engine/`, `app/frontend/desktop/`, and `app/fixtures/`.
+- [x] T002 [P] Create the Python package manifest and development dependency groups in `app/engine/pyproject.toml` for Python 3.11, Polars, DuckDB, pytest, and test tooling.
+- [x] T003 [P] Create the React/TypeScript/Vite package manifest and development scripts in `app/frontend/desktop/package.json` for the declared frontend dependencies and tests.
+- [x] T004 [P] Initialize the Tauri 2 desktop shell and implement sidecar supervision, graceful shutdown, crash reporting, and NDJSON stdin/stdout relay in `app/frontend/desktop/src-tauri/tauri.conf.json`, `app/frontend/desktop/src-tauri/Cargo.toml`, `app/frontend/desktop/src-tauri/src/main.rs`, `app/frontend/desktop/src-tauri/src/sidecar.rs`, and `app/frontend/desktop/src-tauri/src/commands.rs`.
+- [x] T005 [P] Add shared development configuration and ignore rules in `app/engine/pytest.ini`, `app/frontend/desktop/tsconfig.json`, `app/frontend/desktop/vite.config.ts`, and `app/frontend/desktop/.gitignore` without placing application code outside `app/`.
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
@@ -32,16 +32,16 @@ all user stories.
 **Checkpoint**: No user story work begins until the engine can parse a request, return a correlated
 response, emit a job event, and run a failing-then-passing backend test cycle.
 
-- [ ] T006 [P] Add failing unit tests for dataset, preview, transformation, job, and export domain invariants in `app/engine/tests/unit/domain/test_entities.py`.
-- [ ] T007 Implement domain entities and enums in `app/engine/forma_engine/domain/entities.py` and `app/engine/forma_engine/domain/errors.py`, enforcing the data-model rules that dataset `format` is `csv` or `parquet`, dataset `state` is `open`, `closed`, or `invalid`, preview `offset` is non-negative, preview `limit` is positive and capped, and job states transition only from `pending` to `running` to `completed`, `failed`, or `cancelled`.
-- [ ] T008 [P] Add failing NDJSON envelope and stable-error contract tests in `app/engine/tests/contract/test_ipc_envelopes.py` for non-empty request IDs, object params, correlated responses, bounded event fields, and the error codes defined in `contracts/ipc.md`.
-- [ ] T009 Implement NDJSON request, response, event, and error serialization in `app/engine/forma_engine/ipc/protocol.py`, including `INVALID_REQUEST`, `INTERNAL_ERROR`, and the stable error codes from `contracts/ipc.md`.
-- [ ] T010 [P] Add failing lifecycle and cancellation tests in `app/engine/tests/unit/jobs/test_job_manager.py` for pending, running, completed, failed, and cooperative cancelled jobs, including nullable indeterminate progress.
-- [ ] T011 Implement the job manager and progress event publisher in `app/engine/forma_engine/jobs/manager.py` and `app/engine/forma_engine/jobs/events.py`, preserving terminal states and emitting user-readable messages.
-- [ ] T012 [P] Add engine composition and logging tests in `app/engine/tests/unit/test_engine_composition.py` and configure structured diagnostic logging in `app/engine/forma_engine/core/logging.py` without writing diagnostics to protocol stdout.
-- [ ] T013 Implement the engine dependency composition root and sidecar entrypoint in `app/engine/forma_engine/bootstrap.py` and `app/engine/forma_engine/__main__.py`, wiring adapters through abstractions rather than coupling domain entities to Polars, DuckDB, or Tauri.
-- [ ] T014 [P] Define shared TypeScript contract types in `app/frontend/desktop/src/types/ipc.ts`, `app/frontend/desktop/src/types/dataset.ts`, and `app/frontend/desktop/src/types/job.ts`, then implement the typed sidecar client in `app/frontend/desktop/src/services/ipcClient.ts`.
-- [ ] T015 [P] Create the accessible desktop shell and shared workspace/job stores in `app/frontend/desktop/src/App.tsx`, `app/frontend/desktop/src/stores/workspaceStore.ts`, `app/frontend/desktop/src/stores/jobStore.ts`, and `app/frontend/desktop/src/styles/globals.css`, including loading, error, and empty states.
+- [x] T006 [P] Add failing unit tests for dataset, preview, transformation, job, and export domain invariants in `app/engine/tests/unit/domain/test_entities.py`.
+- [x] T007 Implement domain entities and enums in `app/engine/forma_engine/domain/entities.py` and `app/engine/forma_engine/domain/errors.py`, enforcing the data-model rules that dataset `format` is `csv` or `parquet`, dataset `state` is `open`, `closed`, or `invalid`, preview `offset` is non-negative, preview `limit` is positive and capped, and job states transition only from `pending` to `running` to `completed`, `failed`, or `cancelled`.
+- [x] T008 [P] Add failing NDJSON envelope and stable-error contract tests in `app/engine/tests/contract/test_ipc_envelopes.py` for non-empty request IDs, object params, correlated responses, bounded event fields, and the error codes defined in `contracts/ipc.md`.
+- [x] T009 Implement NDJSON request, response, event, and error serialization in `app/engine/forma_engine/ipc/protocol.py`, including `INVALID_REQUEST`, `INTERNAL_ERROR`, and the stable error codes from `contracts/ipc.md`.
+- [x] T010 [P] Add failing lifecycle and cancellation tests in `app/engine/tests/unit/jobs/test_job_manager.py` for pending, running, completed, failed, and cooperative cancelled jobs, including nullable indeterminate progress.
+- [x] T011 Implement the job manager and progress event publisher in `app/engine/forma_engine/jobs/manager.py` and `app/engine/forma_engine/jobs/events.py`, preserving terminal states and emitting user-readable messages.
+- [x] T012 [P] Add engine composition and logging tests in `app/engine/tests/unit/test_engine_composition.py` and configure structured diagnostic logging in `app/engine/forma_engine/core/logging.py` without writing diagnostics to protocol stdout.
+- [x] T013 Implement the engine dependency composition root and sidecar entrypoint in `app/engine/forma_engine/bootstrap.py` and `app/engine/forma_engine/__main__.py`, wiring adapters through abstractions rather than coupling domain entities to Polars, DuckDB, or Tauri.
+- [x] T014 [P] Define shared TypeScript contract types in `app/frontend/desktop/src/types/ipc.ts`, `app/frontend/desktop/src/types/dataset.ts`, and `app/frontend/desktop/src/types/job.ts`, then implement the typed sidecar client in `app/frontend/desktop/src/services/ipcClient.ts`.
+- [x] T015 [P] Create the accessible desktop shell and shared workspace/job stores in `app/frontend/desktop/src/App.tsx`, `app/frontend/desktop/src/stores/workspaceStore.ts`, `app/frontend/desktop/src/stores/jobStore.ts`, and `app/frontend/desktop/src/styles/globals.css`, including loading, error, and empty states.
 
 ## Phase 3: User Story 1 - Import and Inspect a Dataset (Priority: P1) 🎯 MVP
 
@@ -54,16 +54,16 @@ an invalid file with an actionable error, and confirm source bytes remain unchan
 ### Tests for User Story 1
 
 - [ ] T016 [P] [US1] Write failing reader and schema tests in `app/engine/tests/unit/io/test_readers.py` for valid CSV/Parquet files, unsupported formats, missing files, unreadable files, empty schemas, duplicate column names, and unknown row counts.
-- [ ] T017 [P] [US1] Write failing IPC contract tests in `app/engine/tests/contract/test_dataset_ipc.py` for `dataset.open` and `dataset.preview`, including request correlation, bounded `limit`, non-negative `offset`, and `DATASET_NOT_FOUND` responses.
-- [ ] T018 [P] [US1] Write the failing independent workflow test in `app/engine/tests/integration/test_dataset_open_preview.py` that opens fixtures, requests metadata and previews, and verifies source bytes are unchanged.
+- [x] T017 [P] [US1] Write failing IPC contract tests in `app/engine/tests/contract/test_dataset_ipc.py` for `dataset.open` and `dataset.preview`, including request correlation, bounded `limit`, non-negative `offset`, and `DATASET_NOT_FOUND` responses.
+- [x] T018 [P] [US1] Write the failing independent workflow test in `app/engine/tests/integration/test_dataset_open_preview.py` that opens fixtures, requests metadata and previews, and verifies source bytes are unchanged.
 
 ### Implementation for User Story 1
 
-- [ ] T019 [P] [US1] Implement CSV and Parquet reader adapters in `app/engine/forma_engine/io/readers.py`, validating readable paths, supported formats, schema availability, and the Dataset Reference rules that `source_path` must be readable and `columns` must be non-negative.
-- [ ] T020 [US1] Implement schema inspection and bounded preview services in `app/engine/forma_engine/io/schema_service.py` and `app/engine/forma_engine/services/dataset_service.py`, enforcing that preview records never exceed the engine-capped positive `limit`.
-- [ ] T021 [US1] Implement `dataset.open` and `dataset.preview` routing in `app/engine/forma_engine/ipc/dataset_handlers.py` and register the handlers in `app/engine/forma_engine/ipc/router.py`.
-- [ ] T022 [P] [US1] Build the dataset selector, schema summary, and bounded preview UI in `app/frontend/desktop/src/features/explorer/DatasetSelector.tsx`, `app/frontend/desktop/src/features/explorer/SchemaSummary.tsx`, and `app/frontend/desktop/src/features/explorer/DatasetPreview.tsx` with keyboard-accessible controls and clear invalid-file errors.
-- [ ] T023 [US1] Connect explorer state and pagination to the typed IPC client in `app/frontend/desktop/src/features/explorer/useDatasetExplorer.ts` and `app/frontend/desktop/src/stores/datasetStore.ts`, keeping only Dataset Reference metadata and bounded records in frontend state.
+- [x] T019 [P] [US1] Implement CSV and Parquet reader adapters in `app/engine/forma_engine/io/readers.py`, validating readable paths, supported formats, schema availability, and the Dataset Reference rules that `source_path` must be readable and `columns` must be non-negative.
+- [x] T020 [US1] Implement schema inspection and bounded preview services in `app/engine/forma_engine/io/schema_service.py` and `app/engine/forma_engine/services/dataset_service.py`, enforcing that preview records never exceed the engine-capped positive `limit`.
+- [x] T021 [US1] Implement `dataset.open` and `dataset.preview` routing in `app/engine/forma_engine/ipc/dataset_handlers.py` and register the handlers in `app/engine/forma_engine/ipc/router.py`.
+- [x] T022 [P] [US1] Build the dataset selector, schema summary, and bounded preview UI in `app/frontend/desktop/src/features/explorer/DatasetSelector.tsx`, `app/frontend/desktop/src/features/explorer/SchemaSummary.tsx`, and `app/frontend/desktop/src/features/explorer/DatasetPreview.tsx` with keyboard-accessible controls and clear invalid-file errors.
+- [x] T023 [US1] Connect explorer state and pagination to the typed IPC client in `app/frontend/desktop/src/features/explorer/useDatasetExplorer.ts` and `app/frontend/desktop/src/stores/datasetStore.ts`, keeping only Dataset Reference metadata and bounded records in frontend state.
 - [ ] T024 [US1] Add frontend unit and workflow tests in `app/frontend/desktop/tests/unit/explorer/DatasetPreview.test.tsx` and `app/frontend/desktop/tests/integration/dataset-explorer.test.tsx` for loading, empty, invalid, schema, pagination, and source-preservation states.
 
 **Checkpoint**: User Story 1 is independently demonstrable when the engine and desktop can open,
@@ -80,21 +80,21 @@ source and last valid result survive failures or cancellation.
 
 ### Tests for User Story 2
 
-- [ ] T025 [P] [US2] Write failing profiling unit tests in `app/engine/tests/unit/profiling/test_profiler.py` for row/column counts, missing counts, distinct counts, type summaries, numeric summaries, categorical frequencies, duplicate counts, empty datasets, and pending/unknown values.
-- [ ] T026 [P] [US2] Write failing transformation validator tests in `app/engine/tests/unit/transformations/test_validator.py` for all seven types: `drop_duplicates`, `drop_null_rows`, `fill_null`, `rename_columns`, `drop_columns`, `convert_type`, and `filter_rows`, including invalid parameters, ordered operations, `fill_null` strategies (`constant`, `mean`, `median`, `mode`), and rejection of malformed or executable filter expressions.
-- [ ] T027 [P] [US2] Write failing transformation execution tests in `app/engine/tests/unit/transformations/test_executor.py` for sequential application, disabled operations, rollback to the last valid result, and source preservation.
-- [ ] T028 [P] [US2] Write failing profile/cleaning IPC contract tests in `app/engine/tests/contract/test_cleaning_ipc.py` for `dataset.profile`, `cleaning.preview`, `cleaning.apply`, progress events, structured failures, and cancellation.
-- [ ] T029 [P] [US2] Write the failing profile and cleaning workflow test in `app/engine/tests/integration/test_profile_clean_workflow.py` covering the independent story acceptance scenarios and all terminal job states.
+- [x] T025 [P] [US2] Write failing profiling unit tests in `app/engine/tests/unit/profiling/test_profiler.py` for row/column counts, missing counts, distinct counts, type summaries, numeric summaries, categorical frequencies, duplicate counts, empty datasets, and pending/unknown values.
+- [x] T026 [P] [US2] Write failing transformation validator tests in `app/engine/tests/unit/transformations/test_validator.py` for all seven types: `drop_duplicates`, `drop_null_rows`, `fill_null`, `rename_columns`, `drop_columns`, `convert_type`, and `filter_rows`, including invalid parameters, ordered operations, `fill_null` strategies (`constant`, `mean`, `median`, `mode`), and rejection of malformed or executable filter expressions.
+- [x] T027 [P] [US2] Write failing transformation execution tests in `app/engine/tests/unit/transformations/test_executor.py` for sequential application, disabled operations, rollback to the last valid result, and source preservation.
+- [x] T028 [P] [US2] Write failing profile/cleaning IPC contract tests in `app/engine/tests/contract/test_cleaning_ipc.py` for `dataset.profile`, `cleaning.preview`, `cleaning.apply`, progress events, structured failures, and cancellation.
+- [x] T029 [P] [US2] Write the failing profile and cleaning workflow test in `app/engine/tests/integration/test_profile_clean_workflow.py` covering the independent story acceptance scenarios and all terminal job states.
 
 ### Implementation for User Story 2
 
-- [ ] T030 [P] [US2] Implement profile report entities and statistic calculators in `app/engine/forma_engine/profiling/report.py`, `app/engine/forma_engine/profiling/statistics.py`, and `app/engine/forma_engine/profiling/profiler.py`, distinguishing pending, unknown, zero, and calculated values.
-- [ ] T031 [P] [US2] Implement the transformation specification, safe filter parser, parameter validators, and operation adapters in `app/engine/forma_engine/transformations/specifications.py`, `app/engine/forma_engine/transformations/filter_parser.py`, `app/engine/forma_engine/transformations/validators.py`, and `app/engine/forma_engine/transformations/operations.py`; allow only column references, literals, `==`, `!=`, `<`, `<=`, `>`, `>=`, null checks, parentheses, and boolean `AND`/`OR`, and enforce the `fill_null` strategy rules.
-- [ ] T032 [US2] Implement sequential transformation execution and derived-result preservation in `app/engine/forma_engine/transformations/executor.py`, ensuring invalid parameters stop execution before success and the source Dataset Reference remains intact.
-- [ ] T033 [US2] Implement profiling and cleaning orchestration in `app/engine/forma_engine/services/profile_service.py` and `app/engine/forma_engine/services/cleaning_service.py`, submitting long-running work through the shared job manager.
-- [ ] T034 [US2] Implement `dataset.profile`, `cleaning.preview`, and `cleaning.apply` handlers in `app/engine/forma_engine/ipc/profile_handlers.py` and `app/engine/forma_engine/ipc/cleaning_handlers.py`, including `INVALID_TRANSFORMATION`, cancellation, and progress events.
-- [ ] T035 [P] [US2] Build the profile report and transformation builder UI in `app/frontend/desktop/src/features/profiling/ProfilePanel.tsx`, `app/frontend/desktop/src/features/cleaning/TransformationBuilder.tsx`, and `app/frontend/desktop/src/features/cleaning/TransformationValidation.tsx` with accessible validation messages.
-- [ ] T036 [US2] Connect profile and cleaning jobs to frontend stores and operation previews in `app/frontend/desktop/src/features/profiling/useProfileJob.ts`, `app/frontend/desktop/src/features/cleaning/useCleaningJob.ts`, and `app/frontend/desktop/src/stores/transformationStore.ts`.
+- [x] T030 [P] [US2] Implement profile report entities and statistic calculators in `app/engine/forma_engine/profiling/report.py`, `app/engine/forma_engine/profiling/statistics.py`, and `app/engine/forma_engine/profiling/profiler.py`, distinguishing pending, unknown, zero, and calculated values.
+- [x] T031 [P] [US2] Implement the transformation specification, safe filter parser, parameter validators, and operation adapters in `app/engine/forma_engine/transformations/specifications.py`, `app/engine/forma_engine/transformations/filter_parser.py`, `app/engine/forma_engine/transformations/validators.py`, and `app/engine/forma_engine/transformations/operations.py`; allow only column references, literals, `==`, `!=`, `<`, `<=`, `>`, `>=`, null checks, parentheses, and boolean `AND`/`OR`, and enforce the `fill_null` strategy rules.
+- [x] T032 [US2] Implement sequential transformation execution and derived-result preservation in `app/engine/forma_engine/transformations/executor.py`, ensuring invalid parameters stop execution before success and the source Dataset Reference remains intact.
+- [x] T033 [US2] Implement profiling and cleaning orchestration in `app/engine/forma_engine/services/profile_service.py` and `app/engine/forma_engine/services/cleaning_service.py`, submitting long-running work through the shared job manager.
+- [x] T034 [US2] Implement `dataset.profile`, `cleaning.preview`, and `cleaning.apply` handlers in `app/engine/forma_engine/ipc/profile_handlers.py` and `app/engine/forma_engine/ipc/cleaning_handlers.py`, including `INVALID_TRANSFORMATION`, cancellation, and progress events.
+- [x] T035 [P] [US2] Build the profile report and transformation builder UI in `app/frontend/desktop/src/features/profiling/ProfilePanel.tsx`, `app/frontend/desktop/src/features/cleaning/TransformationBuilder.tsx`, and `app/frontend/desktop/src/features/cleaning/TransformationValidation.tsx` with accessible validation messages.
+- [x] T036 [US2] Connect profile and cleaning jobs to frontend stores and operation previews in `app/frontend/desktop/src/features/profiling/useProfileJob.ts`, `app/frontend/desktop/src/features/cleaning/useCleaningJob.ts`, and `app/frontend/desktop/src/stores/transformationStore.ts`.
 - [ ] T037 [US2] Add frontend unit and workflow tests in `app/frontend/desktop/tests/unit/cleaning/TransformationBuilder.test.tsx` and `app/frontend/desktop/tests/integration/profile-clean-workflow.test.tsx` for statistics, validation, before/after previews, progress, failure, cancellation, and responsive interaction.
 
 **Checkpoint**: User Story 2 is independently demonstrable when profiling and every supported
@@ -111,18 +111,18 @@ export both supported formats, reopen each output, and verify overwrite and inte
 
 ### Tests for User Story 3
 
-- [ ] T038 [P] [US3] Write failing safe-writer tests in `app/engine/tests/unit/io/test_safe_writers.py` for CSV/Parquet output, temporary destinations, post-write validation, explicit overwrite confirmation, and incomplete-output cleanup.
-- [ ] T039 [P] [US3] Write failing export IPC contract tests in `app/engine/tests/contract/test_export_ipc.py` for `export.csv`, `export.parquet`, `job.status`, and `job.cancel` with success, failure, and cancellation events.
-- [ ] T040 [P] [US3] Write the failing export workflow test in `app/engine/tests/integration/test_export_workflow.py` that verifies output schema/records, source byte preservation, unreadable destinations, interrupted exports, and overwrite behavior.
-- [ ] T041 [P] [US3] Write frontend comparison and export tests in `app/frontend/desktop/tests/integration/export-workflow.test.tsx` for before/after records, destination selection, overwrite confirmation, progress, failure, and completion states.
+- [x] T038 [P] [US3] Write failing safe-writer tests in `app/engine/tests/unit/io/test_safe_writers.py` for CSV/Parquet output, temporary destinations, post-write validation, explicit overwrite confirmation, and incomplete-output cleanup.
+- [x] T039 [P] [US3] Write failing export IPC contract tests in `app/engine/tests/contract/test_export_ipc.py` for `export.csv`, `export.parquet`, `job.status`, and `job.cancel` with success, failure, and cancellation events.
+- [x] T040 [P] [US3] Write the failing export workflow test in `app/engine/tests/integration/test_export_workflow.py` that verifies output schema/records, source byte preservation, unreadable destinations, interrupted exports, and overwrite behavior.
+- [x] T041 [P] [US3] Write frontend comparison and export tests in `app/frontend/desktop/tests/integration/export-workflow.test.tsx` for before/after records, destination selection, overwrite confirmation, progress, failure, and completion states.
 
 ### Implementation for User Story 3
 
-- [ ] T042 [P] [US3] Implement validated CSV and Parquet safe writers in `app/engine/forma_engine/io/writers.py`, enforcing that `destination` is writable, `replaced_existing` is true only after explicit confirmation, and `validated` is true only after successful post-write validation.
-- [ ] T043 [US3] Implement export orchestration and result validation in `app/engine/forma_engine/services/export_service.py`, promoting a temporary output only after schema and row validation and cleaning up failed or cancelled temporary files.
-- [ ] T044 [US3] Implement export and job status/cancellation handlers in `app/engine/forma_engine/ipc/export_handlers.py` and `app/engine/forma_engine/ipc/job_handlers.py`, then register them in `app/engine/forma_engine/ipc/router.py`.
-- [ ] T045 [P] [US3] Build before/after comparison and export controls in `app/frontend/desktop/src/features/cleaning/BeforeAfterComparison.tsx`, `app/frontend/desktop/src/features/export/ExportDialog.tsx`, and `app/frontend/desktop/src/features/jobs/JobStatus.tsx` with explicit overwrite confirmation and accessible status text.
-- [ ] T046 [US3] Connect comparison, export, job polling/events, and cancellation to frontend services and stores in `app/frontend/desktop/src/features/export/useExportJob.ts`, `app/frontend/desktop/src/services/jobService.ts`, and `app/frontend/desktop/src/stores/exportStore.ts`.
+- [x] T042 [P] [US3] Implement validated CSV and Parquet safe writers in `app/engine/forma_engine/io/writers.py`, enforcing that `destination` is writable, `replaced_existing` is true only after explicit confirmation, and `validated` is true only after successful post-write validation.
+- [x] T043 [US3] Implement export orchestration and result validation in `app/engine/forma_engine/services/export_service.py`, promoting a temporary output only after schema and row validation and cleaning up failed or cancelled temporary files.
+- [x] T044 [US3] Implement export and job status/cancellation handlers in `app/engine/forma_engine/ipc/export_handlers.py` and `app/engine/forma_engine/ipc/job_handlers.py`, then register them in `app/engine/forma_engine/ipc/router.py`.
+- [x] T045 [P] [US3] Build before/after comparison and export controls in `app/frontend/desktop/src/features/cleaning/BeforeAfterComparison.tsx`, `app/frontend/desktop/src/features/export/ExportDialog.tsx`, and `app/frontend/desktop/src/features/jobs/JobStatus.tsx` with explicit overwrite confirmation and accessible status text.
+- [x] T046 [US3] Connect comparison, export, job polling/events, and cancellation to frontend services and stores in `app/frontend/desktop/src/features/export/useExportJob.ts`, `app/frontend/desktop/src/services/jobService.ts`, and `app/frontend/desktop/src/stores/exportStore.ts`.
 - [ ] T047 [US3] Add the full desktop end-to-end scenario in `app/frontend/desktop/tests/e2e/import-clean-export.spec.ts` covering CSV and Parquet output reopen, source preservation, invalid conversion, overwrite rejection, and cancelled export.
 
 **Checkpoint**: User Story 3 is independently demonstrable when a cleaned result can be compared,
@@ -132,11 +132,11 @@ exported safely in both formats, reopened successfully, and never misreported af
 
 **Purpose**: Verify the complete MVP against the constitution, performance goals, and quickstart.
 
-- [ ] T048 [P] Add large-dataset fixtures and bounded-preview performance measurements in `app/engine/tests/performance/test_large_dataset_preview.py` for the 1 GB target without transferring the complete dataset to frontend state.
+- [x] T048 [P] Add large-dataset fixtures and bounded-preview performance measurements in `app/engine/tests/performance/test_large_dataset_preview.py` for the 1 GB target without transferring the complete dataset to frontend state.
 - [ ] T049 [P] Add frontend responsive, accessibility, and operation-state timing checks in `app/frontend/desktop/tests/e2e/accessibility-responsive.spec.ts` for supported desktop window sizes, keyboard navigation, actionable errors, and an assertion that pending/running state is visible within 1 second of starting a long-running profile, cleaning, or export operation.
-- [ ] T050 [P] Add source-size and duplication review tooling in `app/scripts/check_source_limits.ps1` to fail when production source files exceed 250 lines or when the same shared logic is duplicated across feature modules.
-- [ ] T051 [P] Document local development, sidecar startup, IPC diagnostics, and the no-HTTP transport decision in `docs/DEVELOPMENT.md` and `docs/IPC.md`; document CORS configuration requirements if a future HTTP-capable local integration is introduced.
-- [ ] T052 Run the complete backend, frontend, contract, and end-to-end validation described in `specs/001-forma-mvp/quickstart.md`, recording test output and measured behavior in `docs/MVP-VALIDATION.md`.
+- [x] T050 [P] Add source-size and duplication review tooling in `app/scripts/check_source_limits.ps1` to fail when production source files exceed 250 lines or when the same shared logic is duplicated across feature modules.
+- [x] T051 [P] Document local development, sidecar startup, IPC diagnostics, and the no-HTTP transport decision in `docs/DEVELOPMENT.md` and `docs/IPC.md`; document CORS configuration requirements if a future HTTP-capable local integration is introduced.
+- [x] T052 Run the complete backend, frontend, contract, and end-to-end validation described in `specs/001-forma-mvp/quickstart.md`, recording test output and measured behavior in `docs/MVP-VALIDATION.md`.
 - [ ] T053 Review the implementation against all constitution gates and MVP requirements in `specs/001-forma-mvp/spec.md`, resolving any unexplained duplication, oversized source file, missing TDD evidence, inaccessible UI state, or source-preservation failure before release.
 
 ## Dependencies & Execution Order
