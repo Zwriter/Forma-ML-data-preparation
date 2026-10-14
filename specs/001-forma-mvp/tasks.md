@@ -53,7 +53,7 @@ an invalid file with an actionable error, and confirm source bytes remain unchan
 
 ### Tests for User Story 1
 
-- [ ] T016 [P] [US1] Write failing reader and schema tests in `app/engine/tests/unit/io/test_readers.py` for valid CSV/Parquet files, unsupported formats, missing files, unreadable files, empty schemas, duplicate column names, and unknown row counts.
+- [x] T016 [P] [US1] Write failing reader and schema tests in `app/engine/tests/unit/io/test_readers.py` for valid CSV/Parquet files, unsupported formats, missing files, unreadable files, empty schemas, duplicate column names, and unknown row counts.
 - [x] T017 [P] [US1] Write failing IPC contract tests in `app/engine/tests/contract/test_dataset_ipc.py` for `dataset.open` and `dataset.preview`, including request correlation, bounded `limit`, non-negative `offset`, and `DATASET_NOT_FOUND` responses.
 - [x] T018 [P] [US1] Write the failing independent workflow test in `app/engine/tests/integration/test_dataset_open_preview.py` that opens fixtures, requests metadata and previews, and verifies source bytes are unchanged.
 
@@ -64,7 +64,7 @@ an invalid file with an actionable error, and confirm source bytes remain unchan
 - [x] T021 [US1] Implement `dataset.open` and `dataset.preview` routing in `app/engine/forma_engine/ipc/dataset_handlers.py` and register the handlers in `app/engine/forma_engine/ipc/router.py`.
 - [x] T022 [P] [US1] Build the dataset selector, schema summary, and bounded preview UI in `app/frontend/desktop/src/features/explorer/DatasetSelector.tsx`, `app/frontend/desktop/src/features/explorer/SchemaSummary.tsx`, and `app/frontend/desktop/src/features/explorer/DatasetPreview.tsx` with keyboard-accessible controls and clear invalid-file errors.
 - [x] T023 [US1] Connect explorer state and pagination to the typed IPC client in `app/frontend/desktop/src/features/explorer/useDatasetExplorer.ts` and `app/frontend/desktop/src/stores/datasetStore.ts`, keeping only Dataset Reference metadata and bounded records in frontend state.
-- [ ] T024 [US1] Add frontend unit and workflow tests in `app/frontend/desktop/tests/unit/explorer/DatasetPreview.test.tsx` and `app/frontend/desktop/tests/integration/dataset-explorer.test.tsx` for loading, empty, invalid, schema, pagination, and source-preservation states.
+- [x] T024 [US1] Add frontend unit and workflow tests in `app/frontend/desktop/tests/unit/explorer/DatasetPreview.test.tsx` and `app/frontend/desktop/tests/integration/dataset-explorer.test.tsx` for loading, empty, invalid, schema, pagination, and source-preservation states.
 
 **Checkpoint**: User Story 1 is independently demonstrable when the engine and desktop can open,
 inspect, paginate, and reject datasets without modifying source files.
