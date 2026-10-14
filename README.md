@@ -132,16 +132,6 @@ Large datasets remain in the processing layer rather than being transferred into
 6. **Modular** — The processing engine remains independent of the UI.
 7. **Transparent** — Users can inspect transformations and their results.
 
-## Project Status
-
-**Status:** Planning / Early Development
-
-See [ROADMAP.md](src/ROADMAP.md) for the development plan.
-
-See [ARCHITECTURE.md](src/ARCHITECTURE.md) for technical details.
-
-See [REQUIREMENTS.md](src/REQUIREMENTS.md) for functional and non-functional requirements.
-
 ## License
 
 To be determined.
