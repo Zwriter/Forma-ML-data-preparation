@@ -10,10 +10,10 @@ Use Python 3.11 or newer:
 
 ```powershell
 Set-Location app/engine
-python -m venv .venv
+py -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install -e ".[dev]"
-python -m forma_engine
+py -m pip install -e ".[dev]"
+py -m forma_engine
 ```
 
 The engine reads one newline-delimited JSON request per stdin line. It writes correlated

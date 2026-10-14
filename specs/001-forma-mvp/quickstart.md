@@ -18,9 +18,9 @@ From the repository root:
 
 ```powershell
 Set-Location app/engine
-python -m venv .venv
+py -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install -e ".[dev]"
+py -m pip install -e ".[dev]"
 
 Set-Location ..\frontend\desktop
 npm install
@@ -34,7 +34,7 @@ runnable engine test environment and a runnable desktop development environment.
 From `app/engine`:
 
 ```powershell
-python -m pytest tests/unit tests/contract tests/integration
+py -m pytest tests/unit tests/contract tests/integration
 ```
 
 Expected outcomes:
