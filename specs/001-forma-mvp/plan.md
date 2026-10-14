@@ -29,8 +29,10 @@ Apache ECharts, Zustand, and Tailwind CSS/shadcn/ui as documented by the project
 **Storage**: Source and output CSV/Parquet files; temporary files for safe exports; SQLite
 metadata is reserved for later workflow persistence and is not required for the MVP happy path
 
-**Testing**: pytest unit/integration/contract tests for the engine; Vitest and Testing Library
-for frontend behavior; Tauri or Playwright end-to-end coverage for the primary workflow
+**Testing**: pytest unit/integration/contract tests for the engine; PEP 8-compatible Python
+formatting and lint checks; Vitest and Testing Library for frontend behavior; Prettier
+formatting checks using the repository's VS Code Prettier configuration; Tauri or Playwright
+end-to-end coverage for the primary workflow
 
 **Target Platform**: Windows desktop first, with platform-neutral boundaries for future macOS
 and Linux packaging
@@ -44,7 +46,8 @@ interactive during background processing
 **Constraints**: Local-only processing; bounded preview and aggregate responses; source files
 preserved by default; safe atomic export behavior; cooperative cancellation; no cloud service,
 Docker, or arbitrary code execution from pipeline definitions; source files at or below 250
-lines of code and no duplicated shared logic
+lines of code and no duplicated shared logic; Python code follows PEP 8; supported source files
+are formatted with the repository's configured Prettier rules through the VS Code extension
 
 **Scale/Scope**: Single-user MVP for CSV and Parquet datasets in the 1-5 GB target range;
 three primary flows, seven initial transformation capabilities, two export formats, and one
@@ -62,6 +65,9 @@ desktop workspace
 - Frontend work includes responsive, accessible state and error handling checks.
 - The source layout keeps all application-specific code under `app/`.
 - The design uses focused modules and explicitly enforces the 250-line source-file limit.
+- Python implementation and validation tasks include PEP 8 formatting and lint checks.
+- Frontend and supported source files include Prettier formatting checks using the VS Code
+  extension configuration.
 - Bounded IPC payloads preserve the local-first large-dataset architecture.
 
 ## Project Structure
@@ -137,7 +143,8 @@ test code is placed at repository root.
 - **Scope and architecture**: all product source and tests remain under `app/`; the engine is
   independent and the IPC contract limits responses to bounded data.
 - **Code quality**: the source layout uses focused modules and the plan retains the 250-line
-  limit and no-duplication review gate.
+  limit and no-duplication review gate; Python changes require PEP 8 checks and supported
+  source files require Prettier formatting checks through the VS Code extension.
 - **Privacy and safety**: research and contracts require local processing, source preservation,
   validated inputs, and safe export promotion.
 

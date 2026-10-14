@@ -81,7 +81,7 @@ source and last valid result survive failures or cancellation.
 ### Tests for User Story 2
 
 - [x] T025 [P] [US2] Write failing profiling unit tests in `app/engine/tests/unit/profiling/test_profiler.py` for row/column counts, missing counts, distinct counts, type summaries, numeric summaries, categorical frequencies, duplicate counts, empty datasets, and pending/unknown values.
-- [x] T026 [P] [US2] Write failing transformation validator tests in `app/engine/tests/unit/transformations/test_validator.py` for all seven types: `drop_duplicates`, `drop_null_rows`, `fill_null`, `rename_columns`, `drop_columns`, `convert_type`, and `filter_rows`, including invalid parameters, ordered operations, `fill_null` strategies (`constant`, `mean`, `median`, `mode`), and rejection of malformed or executable filter expressions.
+- [ ] T026 [P] [US2] Write failing transformation validator tests in `app/engine/tests/unit/transformations/test_validator.py` for all seven types: `drop_duplicates`, `drop_null_rows`, `fill_null`, `rename_columns`, `drop_columns`, `convert_type`, and `filter_rows`, including invalid parameters, ordered operations, `fill_null` strategies (`constant`, `mean`, `median`, `mode`), and the FR-018 security acceptance criterion rejecting malformed or executable filter expressions.
 - [x] T027 [P] [US2] Write failing transformation execution tests in `app/engine/tests/unit/transformations/test_executor.py` for sequential application, disabled operations, rollback to the last valid result, and source preservation.
 - [x] T028 [P] [US2] Write failing profile/cleaning IPC contract tests in `app/engine/tests/contract/test_cleaning_ipc.py` for `dataset.profile`, `cleaning.preview`, `cleaning.apply`, progress events, structured failures, and cancellation.
 - [x] T029 [P] [US2] Write the failing profile and cleaning workflow test in `app/engine/tests/integration/test_profile_clean_workflow.py` covering the independent story acceptance scenarios and all terminal job states.
@@ -137,7 +137,9 @@ exported safely in both formats, reopened successfully, and never misreported af
 - [x] T050 [P] Add source-size and duplication review tooling in `app/scripts/check_source_limits.ps1` to fail when production source files exceed 250 lines or when the same shared logic is duplicated across feature modules.
 - [x] T051 [P] Document local development, sidecar startup, IPC diagnostics, and the no-HTTP transport decision in `docs/DEVELOPMENT.md` and `docs/IPC.md`; document CORS configuration requirements if a future HTTP-capable local integration is introduced.
 - [x] T052 Run the complete backend, frontend, contract, and end-to-end validation described in `specs/001-forma-mvp/quickstart.md`, recording test output and measured behavior in `docs/MVP-VALIDATION.md`.
-- [ ] T053 Review the implementation against all constitution gates and MVP requirements in `specs/001-forma-mvp/spec.md`, resolving any unexplained duplication, oversized source file, missing TDD evidence, inaccessible UI state, or source-preservation failure before release.
+- [ ] T053 Review the implementation against all constitution gates and MVP requirements in `specs/001-forma-mvp/spec.md`, resolving any unexplained duplication, oversized source file, missing TDD evidence, missing PEP 8 or Prettier validation, inaccessible UI state, security acceptance failure, or source-preservation failure before release.
+- [ ] T054 [P] Add PEP 8-compatible formatting and lint tooling to `app/engine/pyproject.toml`, including dev dependencies and commands for `ruff check` and `ruff format --check`, then run both checks against the engine.
+- [ ] T055 [P] Add the repository Prettier configuration and `format:check` script to `app/frontend/desktop/package.json`, then run the check against supported source files through the VS Code Prettier-compatible configuration.
 
 ## Dependencies & Execution Order
 
@@ -146,7 +148,7 @@ exported safely in both formats, reopened successfully, and never misreported af
 - **Setup (Phase 1)**: T001-T005 can begin immediately; T002-T005 are parallel after the directory tree exists.
 - **Foundational (Phase 2)**: T006-T015 depend on setup; domain, IPC, jobs, and frontend boundary tasks become the shared blocking foundation.
 - **User Stories (Phases 3-5)**: All depend on the foundational phase. US1 is the recommended first delivery slice; US2 and US3 can be developed in parallel at the engine level after foundation, but their integrated desktop workflows are most efficiently validated in US1 -> US2 -> US3 order.
-- **Polish (Phase 6)**: Depends on the desired user stories being complete; T048-T051 can run in parallel before T052-T053.
+- **Polish (Phase 6)**: Depends on the desired user stories being complete; T048-T051 and T054-T055 can run in parallel before T052-T053.
 
 ### User Story Dependencies
 
@@ -161,7 +163,7 @@ exported safely in both formats, reopened successfully, and never misreported af
 - US1: T016-T018 can run in parallel; T019 and T022 can proceed in parallel after their tests are written.
 - US2: T025-T029 can run in parallel; T030, T031, and T035 can proceed in parallel after tests are written.
 - US3: T038-T041 can run in parallel; T042 and T045 can proceed in parallel after their tests are written.
-- Polish: T048-T051 can run in parallel after the relevant implementation slices are available.
+- Polish: T048-T051 and T054-T055 can run in parallel after the relevant implementation slices are available.
 
 ## Implementation Strategy
 

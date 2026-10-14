@@ -48,6 +48,26 @@ Expected outcomes:
   interrupted-export behavior.
 - IPC contract tests validate request correlation, bounded responses, error codes, and events.
 
+## Constitution Quality Checks
+
+From `app/engine`:
+
+```powershell
+python -m ruff check .
+python -m ruff format --check .
+```
+
+From `app/frontend/desktop`:
+
+```powershell
+npm run format:check
+```
+
+Expected outcomes:
+
+- Python source passes PEP 8-compatible lint and formatting checks.
+- Supported frontend source files pass the repository's Prettier formatting check.
+
 ## Desktop Workflow Check
 
 From `app/frontend/desktop`:

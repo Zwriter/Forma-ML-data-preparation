@@ -127,8 +127,7 @@ previews, export the result to each supported format, and reopen the exported fi
 - **FR-009**: Users MUST be able to rename columns, drop columns, convert data types, and
   filter rows using validated parameters. Row filters MUST use a declarative expression made
   only of column references, literal values, comparison operators (`==`, `!=`, `<`, `<=`, `>`,
-  `>=`), null checks, parentheses, and boolean `AND`/`OR`; filters MUST NOT execute arbitrary
-  code.
+  `>=`), null checks, parentheses, and boolean `AND`/`OR`.
 - **FR-010**: Forma MUST show a before and after preview for configured cleaning operations.
 - **FR-011**: Forma MUST report operation states as pending, running, completed, failed, or
   cancelled, and MUST keep the interface responsive while work is running.
@@ -143,8 +142,10 @@ previews, export the result to each supported format, and reopen the exported fi
   backend, Docker, or dataset upload.
 - **FR-017**: Forma MUST expose only bounded previews, metadata, and aggregates to the user
   interface; complete multi-gigabyte datasets MUST remain in the processing layer.
-- **FR-018**: Forma MUST reject row-filter expressions that contain unknown columns, malformed
-  syntax, unsupported operators, or executable code before evaluating them.
+- **FR-018**: Security acceptance criterion: Forma MUST treat row-filter input as data and
+  MUST reject expressions containing unknown columns, malformed syntax, unsupported operators,
+  or executable constructs before evaluation. Forma MUST never execute user-provided code while
+  parsing or evaluating a row filter.
 
 ### Key Entities
 
