@@ -1,5 +1,6 @@
 import { save } from '@tauri-apps/plugin-dialog';
 import { useExportStore } from '../../stores/exportStore';
+import { isTauriRuntime } from '../../services/tauriRuntime';
 
 export function ExportDialog({
   busy,
@@ -13,8 +14,13 @@ export function ExportDialog({
   const setDestination = useExportStore((state) => state.setDestination);
   const setOverwrite = useExportStore((state) => state.setOverwrite);
   async function browse(format: 'csv' | 'parquet') {
-    const path = await save({ filters: [{ name: format.toUpperCase(), extensions: [format] }] });
-    if (path) setDestination(path);
+    if (!isTauriRuntime()) return;
+    try {
+      const path = await save({ filters: [{ name: format.toUpperCase(), extensions: [format] }] });
+      if (path) setDestination(path);
+    } catch {
+      return;
+    }
   }
   return (
     <section className="card">

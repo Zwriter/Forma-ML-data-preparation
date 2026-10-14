@@ -13,6 +13,7 @@ import { useExportJob } from '../export/useExportJob';
 import { useJobStore } from '../../stores/jobStore';
 import { request } from '../../services/ipcClient';
 import type { Operation } from '../../types/transformation';
+import { getTauriRuntimeError, isTauriRuntime } from '../../services/tauriRuntime';
 
 type EventJob = Job & { result?: { dataset?: Dataset } & Record<string, unknown> };
 export function WorkflowActions() {
@@ -29,6 +30,10 @@ export function WorkflowActions() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    if (!isTauriRuntime()) {
+      setMessage(getTauriRuntimeError().message);
+      return;
+    }
     let stop: (() => void) | undefined;
     listen<EventJob>('engine-event', async (event) => {
       const job = event.payload;
@@ -38,6 +43,8 @@ export function WorkflowActions() {
       if (job.kind === 'profile' && job.result) setReport(job.result);
     }).then((unlisten) => {
       stop = unlisten;
+    }).catch((cause: unknown) => {
+      setMessage(cause instanceof Error ? cause.message : getTauriRuntimeError().message);
     });
     return () => stop?.();
   }, [acceptResult, addJob]);

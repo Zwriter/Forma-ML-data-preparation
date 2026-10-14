@@ -9,6 +9,7 @@ import { WorkflowActions } from './features/workspace/WorkflowActions';
 import { BeforeAfterComparison } from './features/cleaning/BeforeAfterComparison';
 import { useDatasetStore } from './stores/datasetStore';
 import { useWorkspaceStore } from './stores/workspaceStore';
+import { getTauriRuntimeError, isTauriRuntime, runtimeMessage } from './services/tauriRuntime';
 import './styles/globals.css';
 
 export default function App() {
@@ -19,18 +20,32 @@ export default function App() {
   const sourcePreview = useDatasetStore((state) => state.sourcePreview);
   const setError = useWorkspaceStore((state) => state.setError);
   useEffect(() => {
+    if (!isTauriRuntime()) {
+      setError(runtimeMessage);
+      return;
+    }
     let stop: (() => void) | undefined;
     listen<string>('engine-crashed', (event) => setError(event.payload)).then((unlisten) => {
       stop = unlisten;
+    }).catch((cause: unknown) => {
+      setError(cause instanceof Error ? cause.message : getTauriRuntimeError().message);
     });
     return () => stop?.();
   }, [setError]);
   async function browse() {
-    const selected = await open({
-      multiple: false,
-      filters: [{ name: 'Datasets', extensions: ['csv', 'parquet'] }],
-    });
-    if (typeof selected === 'string') setPath(selected);
+    if (!isTauriRuntime()) {
+      setError(runtimeMessage);
+      return;
+    }
+    try {
+      const selected = await open({
+        multiple: false,
+        filters: [{ name: 'Datasets', extensions: ['csv', 'parquet'] }],
+      });
+      if (typeof selected === 'string') setPath(selected);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : getTauriRuntimeError().message);
+    }
   }
   return (
     <main className="workspace">
