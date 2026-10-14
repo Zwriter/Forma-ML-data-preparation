@@ -29,7 +29,10 @@ def test_accepts_all_seven_declared_operations(operation):
 
 @pytest.mark.parametrize("strategy", ["mean", "median", "mode"])
 def test_accepts_non_constant_fill_strategies(strategy):
-    validate({"type": "fill_null", "parameters": {"column": "x", "strategy": strategy}}, ["x"])
+    validate(
+        {"type": "fill_null", "parameters": {"column": "x", "strategy": strategy}},
+        ["x"],
+    )
 
 
 @pytest.mark.parametrize(
@@ -37,14 +40,38 @@ def test_accepts_non_constant_fill_strategies(strategy):
     [
         ({"type": "unknown", "parameters": {}}, ["x"]),
         ({"type": "drop_duplicates", "parameters": []}, ["x"]),
-        ({"type": "fill_null", "parameters": {"column": "missing", "strategy": "mode"}}, ["x"]),
-        ({"type": "fill_null", "parameters": {"column": "x", "strategy": "constant"}}, ["x"]),
-        ({"type": "fill_null", "parameters": {"column": "x", "strategy": "average", "value": 0}}, ["x"]),
-        ({"type": "rename_columns", "parameters": {"mapping": {"missing": "y"}}}, ["x"]),
+        (
+            {
+                "type": "fill_null",
+                "parameters": {"column": "missing", "strategy": "mode"},
+            },
+            ["x"],
+        ),
+        (
+            {
+                "type": "fill_null",
+                "parameters": {"column": "x", "strategy": "constant"},
+            },
+            ["x"],
+        ),
+        (
+            {
+                "type": "fill_null",
+                "parameters": {"column": "x", "strategy": "average", "value": 0},
+            },
+            ["x"],
+        ),
+        (
+            {"type": "rename_columns", "parameters": {"mapping": {"missing": "y"}}},
+            ["x"],
+        ),
         ({"type": "rename_columns", "parameters": {"mapping": {"x": "y"}}}, ["x", "y"]),
         ({"type": "drop_columns", "parameters": {"columns": ["x"]}}, ["x"]),
         ({"type": "drop_columns", "parameters": {"columns": ["missing"]}}, ["x", "y"]),
-        ({"type": "convert_type", "parameters": {"column": "x", "to": "python"}}, ["x"]),
+        (
+            {"type": "convert_type", "parameters": {"column": "x", "to": "python"}},
+            ["x"],
+        ),
         ({"type": "filter_rows", "parameters": {"expression": "missing > 2"}}, ["x"]),
     ],
 )
@@ -60,7 +87,10 @@ def test_rejects_invalid_operation_order(order):
 
 
 def test_accepts_explicit_order_and_enabled_state():
-    validate({"type": "drop_duplicates", "parameters": {}, "order": 2, "enabled": False}, ["x"])
+    validate(
+        {"type": "drop_duplicates", "parameters": {}, "order": 2, "enabled": False},
+        ["x"],
+    )
 
 
 def test_rejects_non_boolean_enabled_state():
@@ -75,6 +105,7 @@ def test_rejects_non_boolean_enabled_state():
         "x + 2 > 3",
         "x == 1; __import__('os').system('whoami')",
         "__import__('os').system('whoami')",
+        "__column__('x') == 1",
         "open('/tmp/marker', 'w')",
         "x.__class__ == 1",
         "x <> 1",
@@ -84,7 +115,9 @@ def test_rejects_non_boolean_enabled_state():
 )
 def test_rejects_malformed_executable_or_unsupported_filter(expression):
     with pytest.raises(InvalidTransformationError):
-        validate({"type": "filter_rows", "parameters": {"expression": expression}}, ["x"])
+        validate(
+            {"type": "filter_rows", "parameters": {"expression": expression}}, ["x"]
+        )
 
 
 def test_filter_accepts_comparisons_boolean_groups_and_null_checks():

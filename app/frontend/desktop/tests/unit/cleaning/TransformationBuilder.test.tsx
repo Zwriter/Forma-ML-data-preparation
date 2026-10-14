@@ -15,8 +15,13 @@ describe('transformation builder', () => {
     expect(screen.getByLabelText('Operation')).toBeTruthy();
     const selector = screen.getByLabelText('Operation') as HTMLSelectElement;
     expect(Array.from(selector.options).map((option) => option.value)).toEqual([
-      'drop_duplicates', 'drop_null_rows', 'fill_null', 'rename_columns',
-      'drop_columns', 'convert_type', 'filter_rows',
+      'drop_duplicates',
+      'drop_null_rows',
+      'fill_null',
+      'rename_columns',
+      'drop_columns',
+      'convert_type',
+      'filter_rows',
     ]);
 
     fireEvent.change(screen.getByLabelText('Parameters (JSON)'), { target: { value: '{bad' } });
@@ -39,21 +44,29 @@ describe('transformation builder', () => {
 
     const checkboxes = screen.getAllByRole('checkbox') as HTMLInputElement[];
     expect(checkboxes).toHaveLength(2);
-    expect(useTransformationStore.getState().operations.map((operation) => operation.order)).toEqual([0, 1]);
+    expect(
+      useTransformationStore.getState().operations.map((operation) => operation.order),
+    ).toEqual([0, 1]);
 
     fireEvent.click(checkboxes[0]);
     fireEvent.click(screen.getByLabelText('Remove operation 1'));
     fireEvent.click(screen.getByText('Apply operations'));
 
     expect(onApply.mock.calls[0][0]).toHaveLength(1);
-    expect(onApply.mock.calls[0][0][0]).toMatchObject({ type: 'drop_null_rows', order: 0, enabled: true });
+    expect(onApply.mock.calls[0][0][0]).toMatchObject({
+      type: 'drop_null_rows',
+      order: 0,
+      enabled: true,
+    });
   });
 
   it('previews first enabled operation and shows statistics and errors in accessible states', () => {
     const onPreview = vi.fn();
-    render(<>
-      <TransformationBuilder onPreview={onPreview} onApply={vi.fn()} />
-    </>);
+    render(
+      <>
+        <TransformationBuilder onPreview={onPreview} onApply={vi.fn()} />
+      </>,
+    );
 
     expect((screen.getByText('Preview first enabled') as HTMLButtonElement).disabled).toBe(true);
     fireEvent.click(screen.getByText('Add operation'));

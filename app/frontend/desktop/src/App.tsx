@@ -20,20 +20,62 @@ export default function App() {
   const setError = useWorkspaceStore((state) => state.setError);
   useEffect(() => {
     let stop: (() => void) | undefined;
-    listen<string>('engine-crashed', (event) => setError(event.payload)).then((unlisten) => { stop = unlisten; });
+    listen<string>('engine-crashed', (event) => setError(event.payload)).then((unlisten) => {
+      stop = unlisten;
+    });
     return () => stop?.();
   }, [setError]);
   async function browse() {
-    const selected = await open({ multiple: false, filters: [{ name: 'Datasets', extensions: ['csv', 'parquet'] }] });
+    const selected = await open({
+      multiple: false,
+      filters: [{ name: 'Datasets', extensions: ['csv', 'parquet'] }],
+    });
     if (typeof selected === 'string') setPath(selected);
   }
-  return <main className="workspace">
-    <header><div><p className="eyebrow">LOCAL DATA WORKSPACE</p><h1>Forma</h1></div><span className="local">● Processing on this device</span></header>
-    <DatasetSelector path={path} busy={busy} setPath={setPath} onBrowse={browse} onOpen={openDataset} />
-    {error && <p role="alert" className="error">{error}</p>}
-    {!dataset && <section className="empty"><h2>Start with a dataset</h2><p>Choose a local CSV or Parquet file to inspect schema and records.</p></section>}
-    {dataset && <><SchemaSummary dataset={dataset} /><DatasetPreview preview={preview} onPage={page} />
-      {sourceDataset && <section className="card"><h2>Source comparison</h2><p>Original dataset: {sourceDataset.source_path}</p><BeforeAfterComparison before={sourcePreview?.records ?? []} after={preview?.records ?? []} /></section>}
-      <WorkflowActions /></>}
-  </main>;
+  return (
+    <main className="workspace">
+      <header>
+        <div>
+          <p className="eyebrow">LOCAL DATA WORKSPACE</p>
+          <h1>Forma</h1>
+        </div>
+        <span className="local">● Processing on this device</span>
+      </header>
+      <DatasetSelector
+        path={path}
+        busy={busy}
+        setPath={setPath}
+        onBrowse={browse}
+        onOpen={openDataset}
+      />
+      {error && (
+        <p role="alert" className="error">
+          {error}
+        </p>
+      )}
+      {!dataset && (
+        <section className="empty">
+          <h2>Start with a dataset</h2>
+          <p>Choose a local CSV or Parquet file to inspect schema and records.</p>
+        </section>
+      )}
+      {dataset && (
+        <>
+          <SchemaSummary dataset={dataset} />
+          <DatasetPreview preview={preview} onPage={page} />
+          {sourceDataset && (
+            <section className="card">
+              <h2>Source comparison</h2>
+              <p>Original dataset: {sourceDataset.source_path}</p>
+              <BeforeAfterComparison
+                before={sourcePreview?.records ?? []}
+                after={preview?.records ?? []}
+              />
+            </section>
+          )}
+          <WorkflowActions />
+        </>
+      )}
+    </main>
+  );
 }

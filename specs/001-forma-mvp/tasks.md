@@ -133,13 +133,13 @@ exported safely in both formats, reopened successfully, and never misreported af
 **Purpose**: Verify the complete MVP against the constitution, performance goals, and quickstart.
 
 - [x] T048 [P] Add large-dataset fixtures and bounded-preview performance measurements in `app/engine/tests/performance/test_large_dataset_preview.py` for the 1 GB target without transferring the complete dataset to frontend state.
-- [ ] T049 [P] Add frontend responsive, accessibility, and operation-state timing checks in `app/frontend/desktop/tests/e2e/accessibility-responsive.spec.ts` for supported desktop window sizes, keyboard navigation, actionable errors, and an assertion that pending/running state is visible within 1 second of starting a long-running profile, cleaning, or export operation.
+- [x] T049 [P] Add frontend responsive, accessibility, and operation-state timing checks in `app/frontend/desktop/tests/e2e/accessibility-responsive.spec.tsx` for supported desktop window sizes, keyboard navigation, actionable errors, and an assertion that pending/running state is visible within 1 second of starting a long-running profile, cleaning, or export operation.
 - [x] T050 [P] Add source-size and duplication review tooling in `app/scripts/check_source_limits.ps1` to fail when production source files exceed 250 lines or when the same shared logic is duplicated across feature modules.
 - [x] T051 [P] Document local development, sidecar startup, IPC diagnostics, and the no-HTTP transport decision in `docs/DEVELOPMENT.md` and `docs/IPC.md`; document CORS configuration requirements if a future HTTP-capable local integration is introduced.
 - [x] T052 Run the complete backend, frontend, contract, and end-to-end validation described in `specs/001-forma-mvp/quickstart.md`, recording test output and measured behavior in `docs/MVP-VALIDATION.md`.
-- [ ] T053 Review the implementation against all constitution gates and MVP requirements in `specs/001-forma-mvp/spec.md`, resolving any unexplained duplication, oversized source file, missing TDD evidence, missing PEP 8 or Prettier validation, inaccessible UI state, security acceptance failure, or source-preservation failure before release.
-- [ ] T054 [P] Add PEP 8-compatible formatting and lint tooling to `app/engine/pyproject.toml`, including dev dependencies and commands for `ruff check` and `ruff format --check`, then run both checks against the engine.
-- [ ] T055 [P] Add the repository Prettier configuration and `format:check` script to `app/frontend/desktop/package.json`, then run the check against supported source files through the VS Code Prettier-compatible configuration.
+- [x] T053 Review the implementation against all constitution gates and MVP requirements in `specs/001-forma-mvp/spec.md`, resolving any unexplained duplication, oversized source file, missing TDD evidence, missing PEP 8 or Prettier validation, inaccessible UI state, security acceptance failure, or source-preservation failure before release.
+- [x] T054 [P] Add PEP 8-compatible formatting and lint tooling to `app/engine/pyproject.toml`, including dev dependencies and commands for `ruff check` and `ruff format --check`, then run both checks against the engine.
+- [x] T055 [P] Add the repository Prettier configuration and `format:check` script to `app/frontend/desktop/package.json`, then run the check against supported source files through the VS Code Prettier-compatible configuration.
 
 ## Dependencies & Execution Order
 

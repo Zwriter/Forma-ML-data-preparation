@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Any
 
+
 @dataclass
 class ProfileReport:
     dataset_id: str
@@ -14,7 +15,14 @@ class ProfileReport:
     duplicate_count: int | None
 
     def to_dict(self) -> dict:
-        return {"dataset_id": self.dataset_id, "row_count": self.row_count, "column_count": self.column_count,
-                "missing_counts": self.missing_counts, "distinct_counts": self.distinct_counts,
-                "type_summary": self.type_summary, "numeric_summaries": self.numeric_summaries,
-                "categorical_frequencies": self.categorical_frequencies, "duplicate_count": self.duplicate_count}
+        return {
+            "dataset_id": self.dataset_id,
+            "row_count": self.row_count,
+            "column_count": self.column_count,
+            "missing_counts": self.missing_counts,
+            "distinct_counts": self.distinct_counts,
+            "type_summary": self.type_summary,
+            "numeric_summaries": self.numeric_summaries,
+            "categorical_frequencies": self.categorical_frequencies,
+            "duplicate_count": self.duplicate_count,
+        }

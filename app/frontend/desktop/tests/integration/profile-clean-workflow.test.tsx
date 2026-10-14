@@ -5,14 +5,18 @@ import { useDatasetStore } from '../../src/stores/datasetStore';
 import { useJobStore } from '../../src/stores/jobStore';
 import { useTransformationStore } from '../../src/stores/transformationStore';
 
-const eventBus = vi.hoisted(() => ({ handlers: {} as Record<string, (event: { payload: any }) => unknown> }));
+const eventBus = vi.hoisted(() => ({
+  handlers: {} as Record<string, (event: { payload: any }) => unknown>,
+}));
 const invoke = vi.fn();
 
 vi.mock('@tauri-apps/api/core', () => ({ invoke: (...args: unknown[]) => invoke(...args) }));
 vi.mock('@tauri-apps/api/event', () => ({
   listen: vi.fn(async (name: string, handler: (event: { payload: any }) => unknown) => {
     eventBus.handlers[name] = handler;
-    return () => { delete eventBus.handlers[name]; };
+    return () => {
+      delete eventBus.handlers[name];
+    };
   }),
 }));
 vi.mock('@tauri-apps/plugin-dialog', () => ({ open: vi.fn(), save: vi.fn() }));
@@ -40,7 +44,12 @@ describe('profile and cleaning workflow', () => {
     cleanup();
     invoke.mockReset();
     eventBus.handlers = {};
-    useDatasetStore.setState({ dataset: null, preview: null, sourceDataset: null, sourcePreview: null });
+    useDatasetStore.setState({
+      dataset: null,
+      preview: null,
+      sourceDataset: null,
+      sourcePreview: null,
+    });
     useJobStore.setState({ jobs: [] });
     useTransformationStore.setState({ operations: [] });
   });
@@ -48,20 +57,43 @@ describe('profile and cleaning workflow', () => {
   it('shows visible profile state immediately, progress, completion, and statistics', async () => {
     useDatasetStore.getState().setDataset(dataset);
     let finishProfile: ((value: unknown) => void) | undefined;
-    invoke.mockImplementationOnce(() => new Promise((resolve) => { finishProfile = resolve; }));
+    invoke.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finishProfile = resolve;
+        }),
+    );
     render(<WorkflowActions />);
 
     fireEvent.click(screen.getByText('Profile dataset'));
     expect((screen.getByText('Profile dataset') as HTMLButtonElement).disabled).toBe(true);
-    finishProfile?.(ipcResult({ job_id: 'profile-1', kind: 'profile', state: 'pending', progress: null, message: 'Queued' }));
+    finishProfile?.(
+      ipcResult({
+        job_id: 'profile-1',
+        kind: 'profile',
+        state: 'pending',
+        progress: null,
+        message: 'Queued',
+      }),
+    );
     await waitFor(() => expect(screen.getByText(/Profile job queued/)).toBeTruthy());
 
-    emitJob({ job_id: 'profile-1', kind: 'profile', state: 'running', progress: 0.4, message: 'Profiling rows' });
+    emitJob({
+      job_id: 'profile-1',
+      kind: 'profile',
+      state: 'running',
+      progress: 0.4,
+      message: 'Profiling rows',
+    });
     await waitFor(() => expect(screen.getByText('profile: Profiling rows (40%)')).toBeTruthy());
     expect(screen.getByLabelText('profile progress')).toBeTruthy();
 
     emitJob({
-      job_id: 'profile-1', kind: 'profile', state: 'completed', progress: 1, message: 'Profile complete',
+      job_id: 'profile-1',
+      kind: 'profile',
+      state: 'completed',
+      progress: 1,
+      message: 'Profile complete',
       result: { row_count: 2, column_count: 1, missing_counts: { x: 0 } },
     });
     await waitFor(() => expect(screen.getByText(/"row_count": 2/)).toBeTruthy());
@@ -70,7 +102,12 @@ describe('profile and cleaning workflow', () => {
 
   it('shows before and after preview, then reports cleaning failure without losing source dataset', async () => {
     useDatasetStore.getState().setSource(dataset, {
-      dataset_id: 'dataset-1', columns: dataset.schema, records: [{ x: 1 }], offset: 0, limit: 100, total_count: 2,
+      dataset_id: 'dataset-1',
+      columns: dataset.schema,
+      records: [{ x: 1 }],
+      offset: 0,
+      limit: 100,
+      total_count: 2,
     });
     invoke.mockResolvedValueOnce(ipcResult({ before: [{ x: 1 }], after: [{ x: 2 }] }));
     render(<WorkflowActions />);
@@ -84,15 +121,39 @@ describe('profile and cleaning workflow', () => {
     expect(screen.getByText(/"x": 2/)).toBeTruthy();
     expect(invoke.mock.calls[0][1].request.params.dataset_id).toBe('dataset-1');
 
-    invoke.mockResolvedValueOnce(ipcResult({ job_id: 'clean-1', kind: 'clean', state: 'pending', progress: null, message: 'Queued' }));
+    invoke.mockResolvedValueOnce(
+      ipcResult({
+        job_id: 'clean-1',
+        kind: 'clean',
+        state: 'pending',
+        progress: null,
+        message: 'Queued',
+      }),
+    );
     fireEvent.click(screen.getByText('Apply operations'));
     await waitFor(() => expect(screen.getByText('Cleaning job queued.')).toBeTruthy());
 
-    emitJob({ job_id: 'clean-1', kind: 'clean', state: 'running', progress: null, message: 'Applying operations' });
-    await waitFor(() => expect(screen.getByText('clean: Applying operations (progress unknown)')).toBeTruthy());
-    emitJob({ job_id: 'clean-1', kind: 'clean', state: 'failed', progress: null, message: 'Invalid transformation' });
+    emitJob({
+      job_id: 'clean-1',
+      kind: 'clean',
+      state: 'running',
+      progress: null,
+      message: 'Applying operations',
+    });
+    await waitFor(() =>
+      expect(screen.getByText('clean: Applying operations (progress unknown)')).toBeTruthy(),
+    );
+    emitJob({
+      job_id: 'clean-1',
+      kind: 'clean',
+      state: 'failed',
+      progress: null,
+      message: 'Invalid transformation',
+    });
 
-    await waitFor(() => expect(screen.getByText('clean: Invalid transformation (progress unknown)')).toBeTruthy());
+    await waitFor(() =>
+      expect(screen.getByText('clean: Invalid transformation (progress unknown)')).toBeTruthy(),
+    );
     expect(useDatasetStore.getState().dataset?.dataset_id).toBe('dataset-1');
     expect(useDatasetStore.getState().sourcePreview?.records).toEqual([{ x: 1 }]);
   });
@@ -100,7 +161,11 @@ describe('profile and cleaning workflow', () => {
   it('requests cancellation for a running job and keeps responsive controls', async () => {
     useDatasetStore.getState().setDataset(dataset);
     useJobStore.getState().add({
-      job_id: 'clean-2', kind: 'clean', state: 'running', progress: 0.2, message: 'Cleaning rows',
+      job_id: 'clean-2',
+      kind: 'clean',
+      state: 'running',
+      progress: 0.2,
+      message: 'Cleaning rows',
     });
     invoke.mockResolvedValueOnce(ipcResult({ job_id: 'clean-2', state: 'running' }));
     render(<WorkflowActions />);
@@ -108,7 +173,12 @@ describe('profile and cleaning workflow', () => {
     expect(screen.getByText('clean: Cleaning rows (20%)')).toBeTruthy();
     fireEvent.click(screen.getByText('Cancel'));
 
-    await waitFor(() => expect(screen.getByRole('status').textContent).toContain('Cancellation requested.'));
-    expect(invoke.mock.calls[0][1].request).toMatchObject({ method: 'job.cancel', params: { job_id: 'clean-2' } });
+    await waitFor(() =>
+      expect(screen.getByRole('status').textContent).toContain('Cancellation requested.'),
+    );
+    expect(invoke.mock.calls[0][1].request).toMatchObject({
+      method: 'job.cancel',
+      params: { job_id: 'clean-2' },
+    });
   });
 });

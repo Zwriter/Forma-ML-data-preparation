@@ -8,7 +8,11 @@ afterEach(cleanup);
 
 const column = { name: 'value', type: 'Int64', nullable: true };
 
-function preview(records: Array<Record<string, unknown>>, offset = 0, totalCount: number | null = 200): Preview {
+function preview(
+  records: Array<Record<string, unknown>>,
+  offset = 0,
+  totalCount: number | null = 200,
+): Preview {
   return {
     dataset_id: 'dataset-1',
     columns: [column],
@@ -30,7 +34,12 @@ describe('dataset preview', () => {
 
   it('renders bounded rows and requests the next page', () => {
     const onPage = vi.fn();
-    render(<DatasetPreview preview={preview(Array.from({ length: 100 }, (_, value) => ({ value })))} onPage={onPage} />);
+    render(
+      <DatasetPreview
+        preview={preview(Array.from({ length: 100 }, (_, value) => ({ value })))}
+        onPage={onPage}
+      />,
+    );
 
     expect(screen.getAllByRole('row')).toHaveLength(101);
     fireEvent.click(screen.getByText('Next'));
@@ -40,7 +49,9 @@ describe('dataset preview', () => {
 
   it('requests previous page and does not page beyond known total', () => {
     const onPage = vi.fn();
-    const { rerender } = render(<DatasetPreview preview={preview([{ value: 100 }], 100, 101)} onPage={onPage} />);
+    const { rerender } = render(
+      <DatasetPreview preview={preview([{ value: 100 }], 100, 101)} onPage={onPage} />,
+    );
 
     fireEvent.click(screen.getByText('Previous'));
     expect(onPage).toHaveBeenCalledWith(0);

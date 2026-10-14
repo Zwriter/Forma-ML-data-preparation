@@ -31,16 +31,24 @@ describe('dataset explorer workflow', () => {
   afterEach(() => {
     cleanup();
     invoke.mockReset();
-    useDatasetStore.setState({ dataset: null, preview: null, sourceDataset: null, sourcePreview: null });
+    useDatasetStore.setState({
+      dataset: null,
+      preview: null,
+      sourceDataset: null,
+      sourcePreview: null,
+    });
     useWorkspaceStore.setState({ busy: false, error: null });
   });
 
   it('opens file, shows schema and bounded records', async () => {
-    invoke.mockResolvedValueOnce({ id: 'ui-1', status: 'success', result: dataset, error: null })
+    invoke
+      .mockResolvedValueOnce({ id: 'ui-1', status: 'success', result: dataset, error: null })
       .mockResolvedValueOnce({ id: 'ui-2', status: 'success', result: firstPage, error: null });
 
     render(<App />);
-    fireEvent.change(screen.getByLabelText('CSV or Parquet file'), { target: { value: 'source.csv' } });
+    fireEvent.change(screen.getByLabelText('CSV or Parquet file'), {
+      target: { value: 'source.csv' },
+    });
     fireEvent.click(screen.getByText('Open dataset'));
 
     await waitFor(() => expect(screen.getByText('Dataset overview')).toBeTruthy());
@@ -53,17 +61,31 @@ describe('dataset explorer workflow', () => {
 
   it('shows loading state and keeps open control disabled until request finishes', async () => {
     let finishOpen: ((response: unknown) => void) | undefined;
-    invoke.mockImplementationOnce(() => new Promise((resolve) => { finishOpen = resolve; }));
+    invoke.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finishOpen = resolve;
+        }),
+    );
 
     render(<App />);
-    fireEvent.change(screen.getByLabelText('CSV or Parquet file'), { target: { value: 'slow.csv' } });
+    fireEvent.change(screen.getByLabelText('CSV or Parquet file'), {
+      target: { value: 'slow.csv' },
+    });
     fireEvent.click(screen.getByText('Open dataset'));
 
     expect(screen.getByText('Opening…')).toBeTruthy();
     expect((screen.getByText('Opening…') as HTMLButtonElement).disabled).toBe(true);
-    finishOpen?.({ id: 'ui-3', status: 'error', result: null, error: { code: 'FILE_ACCESS_ERROR', message: 'Cannot read selected file.' } });
+    finishOpen?.({
+      id: 'ui-3',
+      status: 'error',
+      result: null,
+      error: { code: 'FILE_ACCESS_ERROR', message: 'Cannot read selected file.' },
+    });
 
-    await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('Cannot read selected file.'));
+    await waitFor(() =>
+      expect(screen.getByRole('alert').textContent).toContain('Cannot read selected file.'),
+    );
   });
 
   it('shows actionable invalid-file error and preserves existing dataset', async () => {
@@ -76,7 +98,9 @@ describe('dataset explorer workflow', () => {
     });
 
     render(<App />);
-    fireEvent.change(screen.getByLabelText('CSV or Parquet file'), { target: { value: 'invalid.csv' } });
+    fireEvent.change(screen.getByLabelText('CSV or Parquet file'), {
+      target: { value: 'invalid.csv' },
+    });
     fireEvent.click(screen.getByText('Open dataset'));
 
     expect((await screen.findByRole('alert')).textContent).toContain('The file has no columns.');
@@ -99,7 +123,11 @@ describe('dataset explorer workflow', () => {
     fireEvent.click(screen.getByText('Next'));
 
     await waitFor(() => expect(screen.getByText('3')).toBeTruthy());
-    expect(invoke.mock.calls[0][1].request.params).toMatchObject({ dataset_id: 'dataset-1', offset: 100, limit: 100 });
+    expect(invoke.mock.calls[0][1].request.params).toMatchObject({
+      dataset_id: 'dataset-1',
+      offset: 100,
+      limit: 100,
+    });
     expect(useDatasetStore.getState().sourcePreview?.records).toEqual(firstPage.records);
   });
 });
