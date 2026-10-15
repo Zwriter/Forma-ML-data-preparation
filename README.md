@@ -1,5 +1,4 @@
-
-# Forma
+<h1><img src="app/desktop/src-tauri/forma-logo-icon.svg" alt="" width="22"> Forma</h1>
 
 **Local-first data preparation for machine learning.**
 
