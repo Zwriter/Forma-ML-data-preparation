@@ -37,10 +37,6 @@ export function DatasetPreview({
 
   const activeRowIndex = activeCell?.row ?? offset;
   const activeColumn = activeCell?.column ?? preview?.columns[0]?.name;
-  const activeValue =
-    activeColumn && activeRowIndex >= offset
-      ? records[activeRowIndex - offset]?.[activeColumn]
-      : undefined;
   const activeColumnIndex =
     preview?.columns.findIndex((column) => column.name === activeColumn) ?? -1;
   const activeAddress =
@@ -86,9 +82,6 @@ export function DatasetPreview({
           <Icon name="columns" /> Columns
         </button>
         <SchemaSummary dataset={dataset} />
-      </div>
-      <div className="spreadsheet-formula-bar" aria-label="Selected cell value">
-        <input aria-label="Cell value" readOnly value={String(activeValue ?? '')} />
       </div>
       {records.length ? (
         <div className="table-wrap">
