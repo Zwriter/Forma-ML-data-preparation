@@ -1,12 +1,3 @@
-<!--
-Sync Impact Report
-- Version change: unversioned scaffold -> 1.0.0
-- Modified principles: template placeholders -> five Forma-specific principles
-- Added sections: Architecture and Scope Constraints; Development Workflow and Quality Gates
-- Removed sections: none
-- Follow-up TODOs: confirm the original ratification date
--->
-
 # Forma Constitution
 
 ## Core Principles
@@ -47,8 +38,28 @@ supported viewport sizes and MUST preserve bounded data transfer from the proces
 Production source files MUST remain at or below 250 lines of code, excluding blank lines and
 comments. Shared behavior MUST have one authoritative implementation; duplicated logic MUST
 be extracted or deliberately justified in review. Code MUST favor focused modules and simple
-composition over oversized files or speculative abstractions. This limit is a design signal,
-not permission to split code into meaningless fragments.
+composition over oversized files or speculative abstractions. Assess this limit after normal
+language formatting. Developers MUST NOT compress multiple statements, remove useful whitespace,
+or minify code to meet the limit. This limit is a design signal, not permission to split code
+into meaningless fragments; when a cohesive module exceeds the limit after formatting, refactor
+by responsibility or document a review exception.
+
+### VI. PEP 8 Compliance
+
+All Python production code MUST follow PEP 8 naming, layout, indentation, import, and line
+length conventions unless a documented project convention or tool configuration requires an
+exception. Automated formatting and linting checks MUST be applied to Python changes, and
+exceptions MUST include a written rationale in the change review. Consistent Python style
+reduces review friction and makes the processing engine easier to maintain.
+
+### VII. Human-Readable Formatting
+
+All source code MUST be formatted according to the repository's configured Prettier rules
+where that formatter supports the file type. Python MUST also pass configured Ruff formatting
+and lint checks. Code MUST use clear structure, meaningful names, consistent whitespace, and
+line wrapping that allows a reviewer to understand it without manual reformatting. Formatting
+exceptions MUST be documented in the change review. Consistent formatting keeps the codebase
+readable and prevents style-only differences from obscuring behavior changes.
 
 ## Architecture and Scope Constraints
 
@@ -72,8 +83,9 @@ behavior, and UI changes that regress usability or responsiveness.
 <!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
 This constitution supersedes conflicting project practices. Amendments MUST update this file,
-include a Sync Impact Report, state the reason for the change, and preserve or document any
-required migration. Versioning follows semantic versioning: MAJOR for incompatible governance
+prepare a Sync Impact Report for review, state the reason for the change, and preserve or
+document any required migration. Record the report in the change review. Versioning follows
+semantic versioning: MAJOR for incompatible governance
 changes or principle removals, MINOR for new or materially expanded principles or sections,
 and PATCH for clarifications and non-semantic wording changes.
 
@@ -82,5 +94,5 @@ exceptions. The project MUST review this constitution whenever architecture, sup
 platforms, testing policy, or quality gates materially change. Unresolved governance gaps
 MUST be recorded as explicit TODOs rather than silently ignored.
 
-**Version**: 1.0.0 | **Ratified**: TODO(RATIFICATION_DATE): confirm original adoption date | **Last Amended**: 2026-10-13
+**Version**: 1.1.1 | **Ratified**: TODO(RATIFICATION_DATE): confirm original adoption date | **Last Amended**: 2026-10-15
 <!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->

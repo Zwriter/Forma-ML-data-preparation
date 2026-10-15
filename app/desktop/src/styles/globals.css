@@ -1,0 +1,132 @@
+:root {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  color: #17213f;
+  background: #f7f8fb;
+  font-synthesis: none;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  --ink: #17213f;
+  --muted: #697590;
+  --line: #e0e4ed;
+  --surface: #ffffff;
+  --purple: #8b2fba;
+  --purple-soft: #f0edff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  overflow: hidden;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #bc8bd2;
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.card {
+  padding: 20px;
+  margin: 16px 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px #1c2d4b08;
+}
+
+.card h2 {
+  margin: 0 0 16px;
+  font-size: 18px;
+}
+
+.error-banner {
+  padding: 11px 14px;
+  color: #9a2f34;
+  background: #fff0f0;
+  border: 1px solid #f2c9cb;
+  border-radius: 8px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.report pre,
+.compare pre {
+  max-height: 180px;
+  padding: 10px;
+  overflow: auto;
+  background: #f5f6fa;
+  border-radius: 7px;
+}
+
+.compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.job-row,
+ol li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+.job-row button,
+ol li button {
+  padding: 6px 10px;
+}

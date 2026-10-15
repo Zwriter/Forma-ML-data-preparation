@@ -1,0 +1,1 @@
+"""NDJSON IPC boundary."""

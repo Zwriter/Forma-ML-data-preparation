@@ -1,5 +1,4 @@
-
-# Forma
+<h1><img src="app/desktop/src-tauri/forma-logo-icon.svg" alt="" width="22"> Forma</h1>
 
 **Local-first data preparation for machine learning.**
 
@@ -131,16 +130,6 @@ Large datasets remain in the processing layer rather than being transferred into
 5. **Scalable** — Prefer lazy and streaming processing for large datasets.
 6. **Modular** — The processing engine remains independent of the UI.
 7. **Transparent** — Users can inspect transformations and their results.
-
-## Project Status
-
-**Status:** Planning / Early Development
-
-See [ROADMAP.md](src/ROADMAP.md) for the development plan.
-
-See [ARCHITECTURE.md](src/ARCHITECTURE.md) for technical details.
-
-See [REQUIREMENTS.md](src/REQUIREMENTS.md) for functional and non-functional requirements.
 
 ## License
 
