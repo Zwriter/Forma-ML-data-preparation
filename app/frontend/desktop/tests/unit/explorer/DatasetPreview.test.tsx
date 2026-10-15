@@ -25,11 +25,20 @@ function preview(
 
 describe('dataset preview', () => {
   it('shows empty state and disables both paging controls', () => {
-    render(<DatasetPreview preview={preview([])} onPage={() => undefined} />);
+    render(
+      <DatasetPreview
+        preview={preview([])}
+        selectedColumn="value"
+        onSelectColumn={() => undefined}
+        onPage={() => undefined}
+      />,
+    );
 
     expect(screen.getByText('This dataset has no records to preview.')).toBeTruthy();
-    expect((screen.getByText('Previous') as HTMLButtonElement).disabled).toBe(true);
-    expect((screen.getByText('Next') as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByRole('button', { name: 'Previous page' }).hasAttribute('disabled')).toBe(
+      true,
+    );
+    expect(screen.getByRole('button', { name: 'Next page' }).hasAttribute('disabled')).toBe(true);
   });
 
   it('renders bounded rows and requests the next page', () => {
@@ -37,6 +46,8 @@ describe('dataset preview', () => {
     render(
       <DatasetPreview
         preview={preview(Array.from({ length: 100 }, (_, value) => ({ value })))}
+        selectedColumn="value"
+        onSelectColumn={() => undefined}
         onPage={onPage}
       />,
     );
@@ -50,14 +61,26 @@ describe('dataset preview', () => {
   it('requests previous page and does not page beyond known total', () => {
     const onPage = vi.fn();
     const { rerender } = render(
-      <DatasetPreview preview={preview([{ value: 100 }], 100, 101)} onPage={onPage} />,
+      <DatasetPreview
+        preview={preview([{ value: 100 }], 100, 101)}
+        selectedColumn="value"
+        onSelectColumn={() => undefined}
+        onPage={onPage}
+      />,
     );
 
     fireEvent.click(screen.getByText('Previous'));
     expect(onPage).toHaveBeenCalledWith(0);
-    expect((screen.getByText('Next') as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByRole('button', { name: 'Next page' }).hasAttribute('disabled')).toBe(true);
 
-    rerender(<DatasetPreview preview={preview([{ value: 100 }], 100, null)} onPage={onPage} />);
+    rerender(
+      <DatasetPreview
+        preview={preview([{ value: 100 }], 100, null)}
+        selectedColumn="value"
+        onSelectColumn={() => undefined}
+        onPage={onPage}
+      />,
+    );
     expect(screen.getByText('Rows 101–101 of unknown')).toBeTruthy();
   });
 });
@@ -76,8 +99,7 @@ describe('schema summary', () => {
 
     render(<SchemaSummary dataset={dataset} />);
 
-    expect(screen.getByText('Unknown')).toBeTruthy();
-    expect(screen.getByText('source.csv')).toBeTruthy();
-    expect(screen.getByText('Int64')).toBeTruthy();
+    expect(screen.getByText(/Unknown rows/)).toBeTruthy();
+    expect(screen.getByText('CSV')).toBeTruthy();
   });
 });

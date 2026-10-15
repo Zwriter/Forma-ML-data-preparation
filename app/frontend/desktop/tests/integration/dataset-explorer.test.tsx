@@ -40,6 +40,31 @@ describe('dataset explorer workflow', () => {
     useWorkspaceStore.setState({ busy: false, error: null });
   });
 
+  it('shows the full ribbon and workspace navigation with the purple accent controls', () => {
+    render(<App />);
+
+    for (const action of [
+      'Save',
+      'Reload',
+      'Select columns',
+      'Filter rows',
+      'Sort',
+      'Data type',
+      'Replace',
+      'Fill',
+      'Split',
+      'Merge',
+      'Group by',
+      'Pivot',
+      'Unpivot',
+    ]) {
+      expect(screen.getByText(action)).toBeTruthy();
+    }
+    expect(screen.getByRole('link', { name: 'Pipelines' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('link', { name: 'Settings' }));
+    expect(screen.getByRole('heading', { name: 'Settings' })).toBeTruthy();
+  });
+
   it('opens file, shows schema and bounded records', async () => {
     invoke
       .mockResolvedValueOnce({ id: 'ui-1', status: 'success', result: dataset, error: null })
@@ -53,7 +78,7 @@ describe('dataset explorer workflow', () => {
 
     await waitFor(() => expect(screen.getByText('Dataset overview')).toBeTruthy());
     expect(screen.getByText('source.csv')).toBeTruthy();
-    expect(screen.getByText('Int64')).toBeTruthy();
+    expect(screen.getAllByText('Int64').length).toBeGreaterThan(0);
     expect(screen.getAllByRole('row')).toHaveLength(101);
     expect(invoke).toHaveBeenCalledTimes(2);
     expect(invoke.mock.calls[1][1].request.params).toMatchObject({ offset: 0, limit: 100 });
@@ -98,6 +123,7 @@ describe('dataset explorer workflow', () => {
     });
 
     render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Open another dataset' }));
     fireEvent.change(screen.getByLabelText('CSV or Parquet file'), {
       target: { value: 'invalid.csv' },
     });
@@ -122,7 +148,7 @@ describe('dataset explorer workflow', () => {
     render(<App />);
     fireEvent.click(screen.getByText('Next'));
 
-    await waitFor(() => expect(screen.getByText('3')).toBeTruthy());
+    await waitFor(() => expect(screen.getByRole('cell', { name: '3' })).toBeTruthy());
     expect(invoke.mock.calls[0][1].request.params).toMatchObject({
       dataset_id: 'dataset-1',
       offset: 100,

@@ -23,7 +23,7 @@ export function ExportDialog({
     }
   }
   return (
-    <section className="card">
+    <section className="card workflow-card" id="export">
       <h2>Export cleaned dataset</h2>
       <label htmlFor="export-destination">Destination path</label>
       <div className="row">

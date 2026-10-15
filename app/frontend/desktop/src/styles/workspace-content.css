@@ -1,0 +1,291 @@
+﻿.work-area {
+  min-width: 0;
+  padding: 20px 18px 32px;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.dataset-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 0 0 17px;
+}
+
+.dataset-heading h1,
+.welcome-panel h1 {
+  margin: 0;
+  color: #17213f;
+  font-size: clamp(24px, 2vw, 31px);
+  font-weight: 700;
+  letter-spacing: -0.8px;
+}
+
+.breadcrumb {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.breadcrumb span {
+  padding: 0 8px;
+  color: #9aa3b5;
+}
+
+.dataset-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.meta-chip {
+  padding: 6px 10px;
+  color: #39445e;
+  background: #eef0f5;
+  border-radius: 5px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.welcome-panel {
+  width: min(720px, 100%);
+  margin: clamp(28px, 8vh, 90px) auto;
+  padding: 38px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 8px 28px #1c2d4b0d;
+}
+
+.welcome-panel .eyebrow {
+  margin: 0 0 8px;
+  color: var(--purple);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.welcome-panel > p:not(.eyebrow) {
+  margin: 9px 0 22px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.welcome-panel .card {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  box-shadow: none;
+}
+
+.welcome-panel .card h2 {
+  display: none;
+}
+
+.welcome-panel label,
+.open-panel label {
+  display: block;
+  margin: 10px 0 7px;
+  color: #3c4864;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.welcome-panel .row,
+.open-panel .row {
+  gap: 8px;
+}
+
+.welcome-panel input,
+.open-panel input {
+  min-width: 0;
+  min-height: 38px;
+  padding: 8px 10px;
+  background: #fff;
+  border: 1px solid #cbd1dd;
+  border-radius: 6px;
+}
+
+.welcome-panel button,
+.open-panel .row button {
+  min-height: 38px;
+  padding: 0 14px;
+  color: #fff;
+  background: var(--purple);
+  border: 0;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.open-panel {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+
+.open-panel .card {
+  flex: 1;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  box-shadow: none;
+}
+
+.open-panel .card h2 {
+  display: none;
+}
+
+.quiet-button {
+  padding: 5px 8px;
+  color: #59647d;
+  background: transparent;
+  border: 0;
+  border-radius: 5px;
+}
+
+.quiet-button:hover {
+  background: #f0f1f6;
+}
+
+.error-banner {
+  margin: 0 0 14px;
+}
+
+.settings-card {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.settings-card p {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.processing-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar-footer a {
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 13px;
+  padding: 0 2px;
+  color: #293653;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.sidebar-footer a.active,
+.sidebar-footer a:hover {
+  color: var(--purple);
+}
+
+.sidebar-footer .icon {
+  width: 21px;
+  height: 21px;
+}
+
+@media (max-width: 900px) {
+  .workspace-body {
+    grid-template-columns: 62px minmax(0, 1fr);
+  }
+
+  .sidebar nav a {
+    justify-content: center;
+    padding: 0;
+  }
+
+  .sidebar nav a span,
+  .processing-status,
+  .sidebar-footer a span {
+    display: none;
+  }
+
+  .dataset-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 620px) {
+  .app-titlebar {
+    gap: 12px;
+    padding: 0 12px;
+  }
+
+  .active-file {
+    max-width: 130px;
+  }
+
+  .file-status {
+    display: none;
+  }
+
+  .window-controls {
+    gap: 13px;
+  }
+
+  .top-tabs {
+    justify-content: space-between;
+    gap: 2px;
+    padding: 0 8px;
+  }
+
+  .top-tabs a {
+    min-width: auto;
+    padding: 0 8px;
+  }
+
+  .ribbon {
+    flex-basis: 96px;
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .ribbon-group {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .workspace-body {
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+
+  .sidebar {
+    padding-right: 4px;
+    padding-left: 4px;
+  }
+
+  .work-area {
+    padding: 16px 10px 26px;
+  }
+
+  .welcome-panel {
+    padding: 22px 16px;
+  }
+
+  .welcome-panel .row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dataset-heading h1 {
+    font-size: 24px;
+  }
+
+  .open-panel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

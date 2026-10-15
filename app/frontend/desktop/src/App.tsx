@@ -1,16 +1,23 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import { open } from '@tauri-apps/plugin-dialog';
-import { useDatasetExplorer } from './features/explorer/useDatasetExplorer';
+import { Icon } from './components/Icon';
+import { ColumnDetails } from './features/explorer/ColumnDetails';
+import { DatasetPreview } from './features/explorer/DatasetPreview';
 import { DatasetSelector } from './features/explorer/DatasetSelector';
 import { SchemaSummary } from './features/explorer/SchemaSummary';
-import { DatasetPreview } from './features/explorer/DatasetPreview';
-import { WorkflowActions } from './features/workspace/WorkflowActions';
 import { BeforeAfterComparison } from './features/cleaning/BeforeAfterComparison';
+import { WorkflowActions } from './features/workspace/WorkflowActions';
+import { WorkspaceChrome, WorkspaceSidebar } from './features/workspace/WorkspaceChrome';
+import { useDatasetExplorer } from './features/explorer/useDatasetExplorer';
 import { useDatasetStore } from './stores/datasetStore';
 import { useWorkspaceStore } from './stores/workspaceStore';
 import { getTauriRuntimeError, isTauriRuntime, runtimeMessage } from './services/tauriRuntime';
 import './styles/globals.css';
+import './styles/workspace.css';
+import './styles/workspace-content.css';
+import './styles/explorer.css';
+import './styles/inspector.css';
 
 export default function App() {
   const { path, setPath, dataset, preview, openDataset, page } = useDatasetExplorer();
@@ -19,6 +26,18 @@ export default function App() {
   const sourceDataset = useDatasetStore((state) => state.sourceDataset);
   const sourcePreview = useDatasetStore((state) => state.sourcePreview);
   const setError = useWorkspaceStore((state) => state.setError);
+  const [showPathPicker, setShowPathPicker] = useState(false);
+  const [activeTab, setActiveTab] = useState('Home');
+  const [selectedColumn, setSelectedColumn] = useState<string | null>(null);
+  const [showColumnDetails, setShowColumnDetails] = useState(true);
+  const column = dataset?.schema.find((item) => item.name === selectedColumn) ?? dataset?.schema[0];
+  const fileName = dataset?.source_path.split(/[\\/]/).pop() ?? '';
+  const title = fileName.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ') || 'Dataset';
+
+  useEffect(() => {
+    if (dataset) setShowPathPicker(false);
+  }, [dataset]);
+
   useEffect(() => {
     if (!isTauriRuntime()) {
       setError(runtimeMessage);
@@ -34,6 +53,7 @@ export default function App() {
       });
     return () => stop?.();
   }, [setError]);
+
   async function browse() {
     if (!isTauriRuntime()) {
       setError(runtimeMessage);
@@ -49,50 +69,137 @@ export default function App() {
       setError(cause instanceof Error ? cause.message : getTauriRuntimeError().message);
     }
   }
+
   return (
-    <main className="workspace">
-      <header>
-        <div>
-          <p className="eyebrow">LOCAL DATA WORKSPACE</p>
-          <h1>Forma</h1>
+    <div className="app-shell" id="workspace-top">
+      <header className="app-titlebar">
+        <a className="brand" href="#workspace-top" aria-label="Forma home">
+          <Icon name="brand" />
+          <span>Forma</span>
+        </a>
+        <span className="titlebar-divider" />
+        <span className="active-file">{fileName || 'No dataset open'}</span>
+        <span className="file-status">
+          <i aria-hidden="true" />
+          {busy ? 'Processing locally' : dataset ? 'Local file — Ready' : 'Local workspace'}
+        </span>
+        <div className="window-controls" aria-hidden="true">
+          <span>−</span>
+          <span>□</span>
+          <span>×</span>
         </div>
-        <span className="local">● Processing on this device</span>
       </header>
-      <DatasetSelector
-        path={path}
-        busy={busy}
-        setPath={setPath}
-        onBrowse={browse}
-        onOpen={openDataset}
+
+      <WorkspaceChrome
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        onOpen={() => setShowPathPicker(true)}
+        onReload={() => page(preview?.offset ?? 0)}
+        onSelectColumns={() => {
+          setSelectedColumn(dataset?.schema[0]?.name ?? null);
+          setShowColumnDetails(true);
+        }}
+        hasDataset={Boolean(dataset)}
       />
-      {error && (
-        <p role="alert" className="error">
-          {error}
-        </p>
-      )}
-      {!dataset && (
-        <section className="empty">
-          <h2>Start with a dataset</h2>
-          <p>Choose a local CSV or Parquet file to inspect schema and records.</p>
-        </section>
-      )}
-      {dataset && (
-        <>
-          <SchemaSummary dataset={dataset} />
-          <DatasetPreview preview={preview} onPage={page} />
-          {sourceDataset && (
-            <section className="card">
-              <h2>Source comparison</h2>
-              <p>Original dataset: {sourceDataset.source_path}</p>
-              <BeforeAfterComparison
-                before={sourcePreview?.records ?? []}
-                after={preview?.records ?? []}
+
+      <div className="workspace-body">
+        <WorkspaceSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        <main className="work-area">
+          {error && (
+            <p role="alert" className="error-banner">
+              {error}
+            </p>
+          )}
+          {activeTab === 'Settings' ? (
+            <section className="card settings-card" id="settings">
+              <h1>Settings</h1>
+              <p>Forma processes datasets locally on this device.</p>
+              <label className="check">
+                <input
+                  type="checkbox"
+                  checked={showColumnDetails}
+                  onChange={(event) => setShowColumnDetails(event.target.checked)}
+                />
+                Show column details
+              </label>
+            </section>
+          ) : !dataset ? (
+            <section className="welcome-panel">
+              <p className="eyebrow">LOCAL DATA WORKSPACE</p>
+              <h1>Start with a dataset</h1>
+              <p>Open a CSV or Parquet file to explore its schema and records.</p>
+              <DatasetSelector
+                path={path}
+                busy={busy}
+                setPath={setPath}
+                onBrowse={browse}
+                onOpen={openDataset}
               />
             </section>
+          ) : (
+            <>
+              <div className="dataset-heading">
+                <div>
+                  <h1>{title}</h1>
+                  <p className="breadcrumb">
+                    Local <span>›</span> Datasets <span>›</span> {fileName}
+                  </p>
+                </div>
+                <SchemaSummary dataset={dataset} />
+              </div>
+              {showPathPicker && (
+                <div className="open-panel">
+                  <DatasetSelector
+                    path={path}
+                    busy={busy}
+                    setPath={setPath}
+                    onBrowse={browse}
+                    onOpen={openDataset}
+                  />
+                  <button
+                    type="button"
+                    className="quiet-button"
+                    onClick={() => setShowPathPicker(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              )}
+              <div className="data-layout">
+                <div className="data-primary">
+                  <DatasetPreview
+                    preview={preview}
+                    selectedColumn={column?.name ?? null}
+                    onSelectColumn={(name) => {
+                      setSelectedColumn(name);
+                      setShowColumnDetails(true);
+                    }}
+                    onPage={page}
+                  />
+                  {sourceDataset && (
+                    <section className="card source-comparison">
+                      <h2>Source comparison</h2>
+                      <p>Original dataset: {sourceDataset.source_path}</p>
+                      <BeforeAfterComparison
+                        before={sourcePreview?.records ?? []}
+                        after={preview?.records ?? []}
+                      />
+                    </section>
+                  )}
+                  <WorkflowActions />
+                </div>
+                {showColumnDetails && (
+                  <ColumnDetails
+                    column={column}
+                    records={preview?.records ?? []}
+                    onClose={() => setShowColumnDetails(false)}
+                  />
+                )}
+              </div>
+            </>
           )}
-          <WorkflowActions />
-        </>
-      )}
-    </main>
+        </main>
+      </div>
+    </div>
   );
 }

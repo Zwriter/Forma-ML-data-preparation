@@ -55,7 +55,7 @@ describe('desktop accessibility and responsive shell', () => {
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: width });
     render(<App />);
 
-    expect(screen.getByRole('heading', { name: 'Forma' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Start with a dataset' })).toBeTruthy();
     fireEvent.change(screen.getByLabelText('CSV or Parquet file'), {
       target: { value: 'data.csv' },
     });

@@ -107,7 +107,7 @@ export function WorkflowActions() {
   }
   return (
     <>
-      <section className="card">
+      <section className="card workflow-card" id="profile">
         <h2>Data profile</h2>
         <button disabled={busy} onClick={() => void runProfile()}>
           Profile dataset

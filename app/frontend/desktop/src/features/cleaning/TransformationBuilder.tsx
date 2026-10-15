@@ -52,8 +52,8 @@ export function TransformationBuilder({
     }
   }
   return (
-    <section className="card" aria-labelledby="transform-title">
-      <h2 id="transform-title">Transformation builder</h2>
+    <section className="card workflow-card" id="clean" aria-labelledby="transform-title">
+      <h2 id="transform-title">Pipelines</h2>
       <label htmlFor="operation-type">Operation</label>
       <select
         id="operation-type"

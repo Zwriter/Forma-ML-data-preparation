@@ -137,6 +137,7 @@ describe('import-clean-export desktop flow', () => {
     );
 
     render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Open another dataset' }));
     fireEvent.change(screen.getByLabelText('CSV or Parquet file'), {
       target: { value: 'source.csv' },
     });
@@ -204,6 +205,7 @@ describe('import-clean-export desktop flow', () => {
       'completed',
     );
 
+    fireEvent.click(screen.getByRole('button', { name: 'Open another dataset' }));
     fireEvent.change(screen.getByLabelText('CSV or Parquet file'), {
       target: { value: 'cleaned.csv' },
     });
@@ -242,6 +244,7 @@ describe('import-clean-export desktop flow', () => {
         validated: true,
       },
     });
+    fireEvent.click(screen.getByRole('button', { name: 'Open another dataset' }));
     fireEvent.change(screen.getByLabelText('CSV or Parquet file'), {
       target: { value: 'cleaned.parquet' },
     });
