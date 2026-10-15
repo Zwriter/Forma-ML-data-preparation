@@ -12,24 +12,29 @@ export function useDatasetExplorer() {
   const setPreview = useDatasetStore((state) => state.setPreview);
   const setBusy = useWorkspaceStore((state) => state.setBusy);
   const setError = useWorkspaceStore((state) => state.setError);
-  const openDataset = useCallback(async () => {
-    setBusy(true);
-    setError(null);
-    try {
-      const opened = await request<Dataset>('dataset.open', { path });
-      const firstPage = await request<Preview>('dataset.preview', {
-        dataset_id: opened.dataset_id,
-        offset: 0,
-        limit: 100,
-      });
-      setSource(opened, firstPage);
-      setPreview(firstPage);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Could not open the dataset.');
-    } finally {
-      setBusy(false);
-    }
-  }, [path, setBusy, setError, setSource, setPreview]);
+  const openDataset = useCallback(
+    async (sourcePath = path) => {
+      setBusy(true);
+      setError(null);
+      try {
+        const opened = await request<Dataset>('dataset.open', { path: sourcePath });
+        const firstPage = await request<Preview>('dataset.preview', {
+          dataset_id: opened.dataset_id,
+          offset: 0,
+          limit: 100,
+        });
+        setSource(opened, firstPage);
+        setPreview(firstPage);
+        return true;
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : 'Could not open the dataset.');
+        return false;
+      } finally {
+        setBusy(false);
+      }
+    },
+    [path, setBusy, setError, setSource, setPreview],
+  );
   const page = useCallback(
     async (offset: number) => {
       if (!dataset) return;

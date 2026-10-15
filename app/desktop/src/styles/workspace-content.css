@@ -169,6 +169,47 @@
   font-size: 13px;
 }
 
+.file-menu {
+  width: min(760px, 100%);
+  margin: 24px auto;
+  padding: 28px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 8px 28px #1c2d4b0d;
+}
+
+.file-menu > h1 {
+  margin: 0 0 20px;
+  color: #17213f;
+  font-size: 26px;
+}
+
+.file-menu > button {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 5px;
+  padding: 13px 14px;
+  color: #243252;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.file-menu > button:hover {
+  color: var(--purple);
+  background: #f4f3ff;
+}
+
+.file-menu > button span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .processing-status {
   display: flex;
   align-items: center;
@@ -198,7 +239,7 @@
 
 @media (max-width: 900px) {
   .workspace-body {
-    grid-template-columns: 62px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .sidebar nav a {
@@ -243,6 +284,11 @@
     padding: 0 8px;
   }
 
+  .top-tabs .file-tab {
+    min-width: auto;
+    padding: 0 8px;
+  }
+
   .ribbon {
     flex-basis: 96px;
     padding-right: 10px;
@@ -255,7 +301,58 @@
   }
 
   .workspace-body {
-    grid-template-columns: 48px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .file-backstage {
+    grid-template-columns: 58px minmax(0, 1fr);
+  }
+
+  .file-navigation {
+    align-items: center;
+    padding: 8px 3px;
+  }
+  .file-navigation button:not(.file-back) {
+    justify-content: center;
+    width: 48px;
+    padding: 0;
+    font-size: 0;
+  }
+  .file-navigation .file-back {
+    width: 42px;
+    min-height: 42px;
+  }
+  .file-nav-bottom {
+    width: 100%;
+  }
+  .file-content {
+    padding: 24px 16px;
+  }
+
+  .recent-files-tools {
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .recent-file-actions {
+    flex-basis: 100%;
+  }
+
+  .recent-file-actions input {
+    width: auto;
+    flex: 1;
+  }
+
+  .recent-files-list li {
+    grid-template-columns: minmax(0, 1fr) 34px;
+  }
+
+  .recent-files-list .recent-file-open {
+    grid-template-columns: 18px minmax(0, 1fr) auto;
+  }
+
+  .recent-files-list .recent-file-path {
+    display: none;
   }
 
   .sidebar {

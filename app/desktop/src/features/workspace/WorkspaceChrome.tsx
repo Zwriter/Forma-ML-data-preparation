@@ -1,11 +1,11 @@
+import { useState } from 'react';
 import { Icon } from '../../components/Icon';
 import type { IconName } from '../../components/Icon';
-import { sidebarLinks, topTabs } from './navigation';
+import { topTabs } from './navigation';
 
 type Props = {
   activeTab: string;
   onTabChange: (tab: string) => void;
-  onOpen: () => void;
   onReload: () => void;
   onSelectColumns: () => void;
   hasDataset: boolean;
@@ -18,154 +18,199 @@ type Tool = {
   onClick?: () => void;
   disabled?: boolean;
 };
+type RibbonGroup = { group: string; commands: string[] };
+
+const ribbonCommands: Record<string, RibbonGroup[]> = {
+  Data: [
+    { group: 'File', commands: ['Save', 'Undo', 'Redo'] },
+    { group: 'Table', commands: ['Select column', 'Filter row', 'Sort'] },
+    { group: 'Reshape', commands: ['Group by', 'Pivot', 'Unpivot'] },
+  ],
+  Clean: [
+    { group: 'Transform', commands: ['Convert', 'Replace', 'Fill'] },
+    { group: 'Combine', commands: ['Split', 'Merge'] },
+    { group: 'Columns and rows', commands: ['Remove', 'Rename'] },
+  ],
+  Profile: [
+    { group: 'Overview', commands: ['Refresh', 'Column details'] },
+    { group: 'Quality', commands: ['Data quality', 'Distribution', 'Duplicates'] },
+    { group: 'Insights', commands: ['Creations', 'Patterns', 'Anomalies', 'Recommendations'] },
+  ],
+  Pipelines: [{ group: 'Pipeline', commands: ['Create pipeline', 'Run pipeline'] }],
+  Export: [
+    { group: 'Export', commands: ['Export'] },
+    { group: 'Database', commands: ['Connect to DB', 'Test connection'] },
+  ],
+};
+
+const commandIcons: Record<string, IconName> = {
+  Save: 'save',
+  Undo: 'undo',
+  Redo: 'redo',
+  'Select column': 'columns',
+  'Filter row': 'filter',
+  Sort: 'sort',
+  'Group by': 'group',
+  Pivot: 'pivot',
+  Unpivot: 'unpivot',
+  Convert: 'datatype',
+  Replace: 'replace',
+  Fill: 'fill',
+  Split: 'split',
+  Merge: 'merge',
+  Remove: 'clean',
+  Rename: 'columns',
+  Refresh: 'reload',
+  'Column details': 'columns',
+  'Data quality': 'profile',
+  Distribution: 'profile',
+  Creations: 'profile',
+  Patterns: 'profile',
+  Anomalies: 'profile',
+  Duplicates: 'profile',
+  Recommendations: 'profile',
+  'Create pipeline': 'pipeline',
+  'Run pipeline': 'pipeline',
+  Export: 'export',
+  'Connect to DB': 'database',
+  'Test connection': 'database',
+};
 
 export function WorkspaceChrome({
   activeTab,
   onTabChange,
-  onOpen,
   onReload,
   onSelectColumns,
   hasDataset,
 }: Props) {
-  const tools: { group: string; actions: Tool[] }[] = [
-    {
-      group: 'File',
-      actions: [
-        { label: 'Open', icon: 'open', onClick: onOpen },
-        { label: 'Save', icon: 'save', href: '#export', disabled: !hasDataset },
-        { label: 'Reload', icon: 'reload', onClick: onReload, disabled: !hasDataset },
-      ],
-    },
-    {
-      group: 'Table',
-      actions: [
-        {
-          label: 'Select columns',
-          icon: 'columns',
-          onClick: onSelectColumns,
-          disabled: !hasDataset,
-        },
-        { label: 'Filter rows', icon: 'filter', href: '#clean', disabled: !hasDataset },
-        { label: 'Sort', icon: 'sort', disabled: true },
-      ],
-    },
-    {
-      group: 'Transform',
-      actions: [
-        { label: 'Data type', icon: 'datatype', href: '#clean', disabled: !hasDataset },
-        { label: 'Replace', icon: 'replace', disabled: true },
-        { label: 'Fill', icon: 'fill', href: '#clean', disabled: !hasDataset },
-        { label: 'Split', icon: 'split', disabled: true },
-        { label: 'Merge', icon: 'merge', disabled: true },
-      ],
-    },
-    {
-      group: 'Reshape',
-      actions: [
-        { label: 'Group by', icon: 'group', disabled: true },
-        { label: 'Pivot', icon: 'pivot', disabled: true },
-        { label: 'Unpivot', icon: 'unpivot', disabled: true },
-      ],
-    },
-  ];
+  const [showDbPanel, setShowDbPanel] = useState(false);
+  const [connectionMessage, setConnectionMessage] = useState('');
+  const groups = ribbonCommands[activeTab] ?? [];
 
+  function toolFor(label: string): Tool {
+    if (label === 'Save' || label === 'Export')
+      return { label, icon: commandIcons[label], href: '#export', disabled: !hasDataset };
+    if (label === 'Undo' || label === 'Redo')
+      return { label, icon: commandIcons[label], disabled: true };
+    if (label === 'Refresh')
+      return { label, icon: commandIcons[label], onClick: onReload, disabled: !hasDataset };
+    if (label === 'Select column' || label === 'Column details')
+      return { label, icon: commandIcons[label], onClick: onSelectColumns, disabled: !hasDataset };
+    if (label === 'Connect to DB')
+      return {
+        label,
+        icon: commandIcons[label],
+        onClick: () => {
+          setShowDbPanel((value) => !value);
+          setConnectionMessage('');
+        },
+      };
+    if (label === 'Test connection')
+      return {
+        label,
+        icon: commandIcons[label],
+        onClick: () => {
+          setShowDbPanel(true);
+          setConnectionMessage('Connection testing is not available yet.');
+        },
+      };
+    return {
+      label,
+      icon: commandIcons[label],
+      href:
+        activeTab === 'Pipelines' ? '#pipelines' : activeTab === 'Profile' ? '#profile' : '#clean',
+      disabled: !hasDataset,
+    };
+  }
+
+  if (activeTab === 'File') return null;
   return (
     <>
       <nav className="top-tabs" aria-label="Workspace sections">
-        {topTabs.map((tab) => (
-          <a
-            key={tab.label}
-            href={tab.href}
-            className={activeTab === tab.label ? 'active' : ''}
-            onClick={() => onTabChange(tab.label)}
-          >
-            {tab.label}
-          </a>
-        ))}
+        {topTabs.map((tab) =>
+          tab.label === 'File' ? (
+            <button
+              key={tab.label}
+              type="button"
+              className={`file-tab${activeTab === 'File' ? ' active' : ''}`}
+              onClick={() => onTabChange('File')}
+            >
+              File
+            </button>
+          ) : (
+            <a
+              key={tab.label}
+              href={tab.href}
+              className={activeTab === tab.label ? 'active' : ''}
+              aria-current={activeTab === tab.label ? 'page' : undefined}
+              onClick={(event) => {
+                event.preventDefault();
+                onTabChange(tab.label);
+              }}
+            >
+              {tab.label}
+            </a>
+          ),
+        )}
       </nav>
-      <section className="ribbon" aria-label="Workspace toolbar">
-        {tools.map(({ group, actions }) => (
+      <section className="ribbon" aria-label={`${activeTab} toolbar`}>
+        {groups.map(({ group, commands }) => (
           <div className="ribbon-group" key={group}>
-            {actions.map((action) => (
-              <ToolButton key={action.label} action={action} onTabChange={onTabChange} />
+            {commands.map((label) => (
+              <ToolButton key={label} action={toolFor(label)} onTabChange={onTabChange} />
             ))}
             <span className="group-caption">{group}</span>
           </div>
         ))}
       </section>
-    </>
-  );
-}
-
-export function WorkspaceSidebar({
-  activeTab,
-  onTabChange,
-}: Pick<Props, 'activeTab' | 'onTabChange'>) {
-  return (
-    <aside className="sidebar">
-      <nav aria-label="Dataset tools">
-        {sidebarLinks.map((link) => (
-          <a
-            key={link.label}
-            href={link.href}
-            className={
-              activeTab === link.label || (activeTab === 'Home' && link.label === 'Explore')
-                ? 'active'
-                : ''
-            }
-            onClick={() => onTabChange(link.label)}
+      {showDbPanel && activeTab === 'Export' && (
+        <section className="db-connection-panel" aria-label="Database connection">
+          <label>
+            Connection string
+            <input
+              aria-label="Database connection string"
+              placeholder="postgresql://user:password@host:5432/database"
+            />
+          </label>
+          <button
+            type="button"
+            onClick={() => setConnectionMessage('Connection testing is not available yet.')}
           >
-            <Icon name={link.icon} />
-            <span>{link.label}</span>
-          </a>
-        ))}
-      </nav>
-      <div className="sidebar-footer">
-        <div className="processing-status">
-          <span className="sidebar-dot" />
-          Local processing
-        </div>
-        <a
-          href="#settings"
-          className={activeTab === 'Settings' ? 'active' : ''}
-          onClick={() => onTabChange('Settings')}
-        >
-          <Icon name="settings" />
-          <span>Settings</span>
-        </a>
-      </div>
-    </aside>
+            Test connection
+          </button>
+          <button type="button" className="quiet-button" onClick={() => setShowDbPanel(false)}>
+            Close
+          </button>
+          {connectionMessage && <span role="status">{connectionMessage}</span>}
+        </section>
+      )}
+    </>
   );
 }
 
 function ToolButton({ action, onTabChange }: { action: Tool; onTabChange: (tab: string) => void }) {
   const className = `ribbon-action${action.disabled ? ' unavailable' : ''}`;
-  const title = action.disabled
-    ? `${action.label} is not available in the current engine`
-    : undefined;
-  if (action.href) {
+  if (action.href)
     return (
       <a
         className={className}
         href={action.disabled ? undefined : action.href}
         aria-disabled={action.disabled || undefined}
-        title={title}
-        onClick={() => {
-          if (!action.disabled) onTabChange(action.href === '#export' ? 'Export' : 'Transform');
+        onClick={(event) => {
+          event.preventDefault();
+          if (!action.disabled) onTabChange(action.href === '#export' ? 'Export' : 'Clean');
         }}
       >
         <Icon name={action.icon} />
         <span>{action.label}</span>
       </a>
     );
-  }
   return (
     <button
       type="button"
       className={className}
-      aria-label={action.label === 'Open' ? 'Open another dataset' : action.label}
+      aria-label={action.label}
       disabled={action.disabled}
-      title={title}
       onClick={action.onClick}
     >
       <Icon name={action.icon} />
