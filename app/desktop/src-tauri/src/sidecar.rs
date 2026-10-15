@@ -9,7 +9,7 @@ impl Engine {
     pub fn start(&self, app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
         let engine_dir = std::env::var_os("FORMA_ENGINE_DIR")
             .map(std::path::PathBuf::from)
-            .unwrap_or_else(|| std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../engine"));
+            .unwrap_or_else(|| std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../engine"));
         let virtualenv_python = engine_dir.join(".venv").join(if cfg!(windows) {
             "Scripts/python.exe"
         } else {
