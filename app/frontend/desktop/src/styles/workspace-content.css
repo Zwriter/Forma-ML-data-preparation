@@ -232,10 +232,6 @@
     display: none;
   }
 
-  .window-controls {
-    gap: 13px;
-  }
-
   .top-tabs {
     justify-content: space-between;
     gap: 2px;

@@ -7,11 +7,26 @@ pub struct Engine { writer: Mutex<Option<ChildStdin>>, child: Mutex<Option<Child
 
 impl Engine {
     pub fn start(&self, app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
-        let python = std::env::var("FORMA_PYTHON").unwrap_or_else(|_| "python".into());
+        let engine_dir = std::env::var_os("FORMA_ENGINE_DIR")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../engine"));
+        let virtualenv_python = engine_dir.join(".venv").join(if cfg!(windows) {
+            "Scripts/python.exe"
+        } else {
+            "bin/python"
+        });
+        let python = std::env::var_os("FORMA_PYTHON")
+            .map(std::path::PathBuf::from)
+            .unwrap_or_else(|| {
+                if virtualenv_python.is_file() {
+                    virtualenv_python
+                } else {
+                    "python".into()
+                }
+            });
         let mut command = Command::new(python);
         command.args(["-m", "forma_engine"]);
-        if let Ok(engine_dir) = std::env::var("FORMA_ENGINE_DIR") { command.current_dir(engine_dir); }
-        else { command.current_dir("../../engine"); }
+        command.current_dir(engine_dir);
         let mut child = command.stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::inherit()).spawn()?;
         let stdin = child.stdin.take().ok_or("sidecar stdin unavailable")?;
         let stdout = child.stdout.take().ok_or("sidecar stdout unavailable")?;

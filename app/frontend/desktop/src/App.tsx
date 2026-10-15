@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { listen } from '@tauri-apps/api/event';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import { open } from '@tauri-apps/plugin-dialog';
 import { Icon } from './components/Icon';
 import { ColumnDetails } from './features/explorer/ColumnDetails';
@@ -19,6 +20,15 @@ import './styles/workspace-content.css';
 import './styles/explorer.css';
 import './styles/inspector.css';
 
+function getDesktopWindow() {
+  if (!isTauriRuntime()) return undefined;
+  try {
+    return getCurrentWindow();
+  } catch {
+    return undefined;
+  }
+}
+
 export default function App() {
   const { path, setPath, dataset, preview, openDataset, page } = useDatasetExplorer();
   const busy = useWorkspaceStore((state) => state.busy);
@@ -30,6 +40,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('Home');
   const [selectedColumn, setSelectedColumn] = useState<string | null>(null);
   const [showColumnDetails, setShowColumnDetails] = useState(true);
+  const [isMaximized, setIsMaximized] = useState(false);
   const column = dataset?.schema.find((item) => item.name === selectedColumn) ?? dataset?.schema[0];
   const fileName = dataset?.source_path.split(/[\\/]/).pop() ?? '';
   const title = fileName.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ') || 'Dataset';
@@ -37,6 +48,28 @@ export default function App() {
   useEffect(() => {
     if (dataset) setShowPathPicker(false);
   }, [dataset]);
+
+  useEffect(() => {
+    const window = getDesktopWindow();
+    if (!window) return;
+    let active = true;
+    let unlisten: (() => void) | undefined;
+    void window.isMaximized().then((maximized) => {
+      if (active) setIsMaximized(maximized);
+    });
+    void window.onResized(() => {
+      void window.isMaximized().then((maximized) => {
+        if (active) setIsMaximized(maximized);
+      });
+    }).then((stopListening) => {
+      if (active) unlisten = stopListening;
+      else stopListening();
+    });
+    return () => {
+      active = false;
+      unlisten?.();
+    };
+  }, []);
 
   useEffect(() => {
     if (!isTauriRuntime()) {
@@ -72,7 +105,17 @@ export default function App() {
 
   return (
     <div className="app-shell" id="workspace-top">
-      <header className="app-titlebar">
+      <header
+        className="app-titlebar"
+        onMouseDown={(event) => {
+          if (event.button !== 0 || (event.target as HTMLElement).closest('a, button')) return;
+          void getDesktopWindow()?.startDragging();
+        }}
+        onDoubleClick={(event) => {
+          if ((event.target as HTMLElement).closest('a, button')) return;
+          void getDesktopWindow()?.toggleMaximize();
+        }}
+      >
         <a className="brand" href="#workspace-top" aria-label="Forma home">
           <Icon name="brand" />
           <span>Forma</span>
@@ -83,10 +126,37 @@ export default function App() {
           <i aria-hidden="true" />
           {busy ? 'Processing locally' : dataset ? 'Local file — Ready' : 'Local workspace'}
         </span>
-        <div className="window-controls" aria-hidden="true">
-          <span>−</span>
-          <span>□</span>
-          <span>×</span>
+        <div className="window-controls">
+          <button
+            type="button"
+            aria-label="Minimize window"
+            title="Minimize"
+            onClick={() => {
+              void getDesktopWindow()?.minimize();
+            }}
+          >
+            <span aria-hidden="true">−</span>
+          </button>
+          <button
+            type="button"
+            aria-label={isMaximized ? 'Restore window' : 'Maximize window'}
+            title={isMaximized ? 'Restore' : 'Maximize'}
+            onClick={() => {
+              void getDesktopWindow()?.toggleMaximize();
+            }}
+          >
+            <span aria-hidden="true">{isMaximized ? '❐' : '□'}</span>
+          </button>
+          <button
+            type="button"
+            aria-label="Close window"
+            title="Close"
+            onClick={() => {
+              void getDesktopWindow()?.close();
+            }}
+          >
+            <span aria-hidden="true">×</span>
+          </button>
         </div>
       </header>
 

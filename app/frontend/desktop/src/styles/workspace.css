@@ -18,6 +18,7 @@
   padding: 0 20px;
   background: #fff;
   border-bottom: 1px solid var(--line);
+  user-select: none;
 }
 
 .brand {
@@ -81,16 +82,33 @@
   display: flex;
   align-items: stretch;
   align-self: stretch;
-  gap: 28px;
   margin-left: auto;
+  margin-right: -20px;
   color: #39435d;
-  font-size: 18px;
 }
 
-.window-controls span {
+.window-controls button {
   display: grid;
-  min-width: 16px;
+  width: 46px;
+  flex: 0 0 46px;
   place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.window-controls button:hover {
+  background: #e9edf5;
+}
+
+.window-controls button:last-child:hover {
+  background: #c42b1c;
+  color: #fff;
 }
 
 .top-tabs {
