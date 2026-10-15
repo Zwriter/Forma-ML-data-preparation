@@ -12,6 +12,7 @@ type Props = {
 export function DatasetPreview({ preview, selectedColumn, onSelectColumn, onPage }: Props) {
   const offset = preview?.offset ?? 0;
   const [query, setQuery] = useState('');
+  const [activeCell, setActiveCell] = useState<{ row: number; column: string } | null>(null);
   const records = useMemo(() => {
     if (!preview) return [];
     const normalized = query.trim().toLowerCase();
@@ -25,6 +26,28 @@ export function DatasetPreview({ preview, selectedColumn, onSelectColumn, onPage
         )
       : preview.records;
   }, [preview, query]);
+
+  const activeRowIndex = activeCell?.row ?? offset;
+  const activeColumn = activeCell?.column ?? preview?.columns[0]?.name;
+  const activeValue =
+    activeColumn && activeRowIndex >= offset
+      ? records[activeRowIndex - offset]?.[activeColumn]
+      : undefined;
+  const activeColumnIndex =
+    preview?.columns.findIndex((column) => column.name === activeColumn) ?? -1;
+  const activeAddress =
+    activeColumnIndex >= 0 ? `${columnLetter(activeColumnIndex)}${activeRowIndex + 2}` : '';
+
+  function columnLetter(index: number) {
+    let value = index + 1;
+    let label = '';
+    while (value > 0) {
+      value -= 1;
+      label = String.fromCharCode(65 + (value % 26)) + label;
+      value = Math.floor(value / 26);
+    }
+    return label;
+  }
 
   return (
     <section className="data-card" id="dataset-table" aria-labelledby="preview-title">
@@ -54,10 +77,23 @@ export function DatasetPreview({ preview, selectedColumn, onSelectColumn, onPage
           <Icon name="columns" /> Columns
         </button>
       </div>
+      <div className="spreadsheet-formula-bar" aria-label="Selected cell value">
+        <span className="spreadsheet-cell-address">{activeAddress || '—'}</span>
+        <span className="spreadsheet-fx" aria-hidden="true">
+          fx
+        </span>
+        <input aria-label="Cell value" readOnly value={String(activeValue ?? '')} />
+      </div>
       {records.length ? (
         <div className="table-wrap">
           <table>
             <thead>
+              <tr className="spreadsheet-column-letters">
+                <th className="row-number-heading" aria-label="Select all cells" />
+                {preview?.columns.map((column, index) => (
+                  <th key={column.name}>{columnLetter(index)}</th>
+                ))}
+              </tr>
               <tr>
                 <th className="row-number-heading" aria-label="Row number" />
                 {preview?.columns.map((column) => (
@@ -87,11 +123,18 @@ export function DatasetPreview({ preview, selectedColumn, onSelectColumn, onPage
             <tbody>
               {records.map((record, index) => (
                 <tr key={`${offset}-${index}`}>
-                  <td className="row-number">{offset + index + 1}</td>
+                  <td className="row-number">{offset + index + 2}</td>
                   {preview?.columns.map((column) => (
                     <td
                       key={column.name}
-                      className={selectedColumn === column.name ? 'selected' : ''}
+                      role="gridcell"
+                      className={`${selectedColumn === column.name ? 'selected-column' : ''}${activeRowIndex === offset + index && activeColumn === column.name ? ' active-cell' : ''}`}
+                      tabIndex={0}
+                      aria-selected={
+                        activeRowIndex === offset + index && activeColumn === column.name
+                      }
+                      onFocus={() => setActiveCell({ row: offset + index, column: column.name })}
+                      onClick={() => setActiveCell({ row: offset + index, column: column.name })}
                     >
                       {String(record[column.name] ?? '—')}
                     </td>
@@ -106,6 +149,14 @@ export function DatasetPreview({ preview, selectedColumn, onSelectColumn, onPage
           {query ? 'No preview rows match this search.' : 'This dataset has no records to preview.'}
         </p>
       )}
+      <div className="worksheet-tabs" aria-label="Worksheet tabs">
+        <button type="button" className="worksheet-tab active" aria-current="page">
+          Sheet1
+        </button>
+        <button type="button" className="add-worksheet" disabled aria-label="Add worksheet">
+          +
+        </button>
+      </div>
       <div className="table-footer">
         <span>
           Rows {offset + 1}–{offset + (preview?.records.length ?? 0)} of{' '}

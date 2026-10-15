@@ -249,7 +249,7 @@ export default function App() {
                   aria-label="Back to workspace"
                   onClick={() => setActiveTab('Data')}
                 >
-                  <span aria-hidden="true">←</span>
+                  <Icon name="back" />
                 </button>
                 <button
                   className={filePage === 'import' ? 'selected' : ''}
