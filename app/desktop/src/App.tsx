@@ -5,7 +5,6 @@ import { open } from '@tauri-apps/plugin-dialog';
 import { Icon } from './components/Icon';
 import { ColumnDetails } from './features/explorer/ColumnDetails';
 import { DatasetPreview } from './features/explorer/DatasetPreview';
-import { SchemaSummary } from './features/explorer/SchemaSummary';
 import { BeforeAfterComparison } from './features/cleaning/BeforeAfterComparison';
 import { WorkflowActions } from './features/workspace/WorkflowActions';
 import { WorkspaceChrome } from './features/workspace/WorkspaceChrome';
@@ -235,7 +234,9 @@ export default function App() {
       />
 
       <div className="workspace-body">
-        <main className="work-area">
+        <main
+          className={`work-area${activeTab === 'Data' && dataset ? ' worksheet-work-area' : ''}`}
+        >
           {error && activeTab !== 'File' && (
             <p role="alert" className="error-banner">
               {error}
@@ -418,11 +419,11 @@ export default function App() {
                     Local <span>›</span> Datasets <span>›</span> {fileName}
                   </p>
                 </div>
-                <SchemaSummary dataset={dataset} />
               </div>
               {activeTab === 'Data' ? (
                 <div className="spreadsheet-stage">
                   <DatasetPreview
+                    dataset={dataset}
                     preview={preview}
                     selectedColumn={column?.name ?? null}
                     onSelectColumn={(name) => {

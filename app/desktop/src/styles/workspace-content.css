@@ -382,3 +382,20 @@
     flex-direction: column;
   }
 }
+
+.worksheet-work-area {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 10px 12px 12px;
+}
+
+.worksheet-work-area .dataset-heading {
+  flex: 0 0 auto;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.worksheet-work-area .dataset-heading h1 {
+  font-size: 22px;
+}

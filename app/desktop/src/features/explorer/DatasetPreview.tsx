@@ -1,15 +1,23 @@
 import { useMemo, useState } from 'react';
-import type { Preview } from '../../types/dataset';
+import type { Dataset, Preview } from '../../types/dataset';
 import { Icon } from '../../components/Icon';
+import { SchemaSummary } from './SchemaSummary';
 
 type Props = {
+  dataset: Dataset;
   preview: Preview | null;
   selectedColumn: string | null;
   onSelectColumn: (name: string) => void;
   onPage: (offset: number) => void;
 };
 
-export function DatasetPreview({ preview, selectedColumn, onSelectColumn, onPage }: Props) {
+export function DatasetPreview({
+  dataset,
+  preview,
+  selectedColumn,
+  onSelectColumn,
+  onPage,
+}: Props) {
   const offset = preview?.offset ?? 0;
   const [query, setQuery] = useState('');
   const [activeCell, setActiveCell] = useState<{ row: number; column: string } | null>(null);
@@ -76,6 +84,7 @@ export function DatasetPreview({ preview, selectedColumn, onSelectColumn, onPage
         >
           <Icon name="columns" /> Columns
         </button>
+        <SchemaSummary dataset={dataset} />
       </div>
       <div className="spreadsheet-formula-bar" aria-label="Selected cell value">
         <span className="spreadsheet-cell-address">{activeAddress || '—'}</span>
