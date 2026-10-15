@@ -63,10 +63,19 @@ From `app/frontend/desktop`:
 npm run format:check
 ```
 
+From the repository root:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File app/scripts/check_source_limits.ps1
+```
+
 Expected outcomes:
 
-- Python source passes PEP 8-compatible lint and formatting checks.
-- Supported frontend source files pass the repository's Prettier formatting check.
+- Python source passes Ruff lint and formatting checks, including the configured 88-character
+  line limit and PEP 8's one-statement-per-line rule.
+- TypeScript, TSX, CSS, and JSON files pass the repository's Prettier formatting check.
+- Production files stay within 250 formatted code lines and use no minification or compressed
+  statements to meet the limit; shared feature logic is not duplicated.
 
 ## Desktop Workflow Check
 
@@ -81,7 +90,7 @@ Expected outcomes:
 
 - Component and state tests cover loading, empty, error, running, completed, and cancelled UI
   states.
-- The build succeeds without source files exceeding the constitution's 250-line limit.
+- The build succeeds, and the formatted-source limit and duplication check passes.
 - Keyboard navigation and accessible names exist for file selection, transformation, cancellation,
   comparison, and export controls.
 

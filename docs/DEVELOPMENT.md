@@ -47,3 +47,27 @@ cannot open datasets in a browser.
 
 The MVP selects files by entering a local path. The engine validates file access and schema and
 does not write to imported source files. Preview requests have a maximum of 500 records.
+
+## Code quality checks
+
+From `app/engine`, run Python lint and formatting checks:
+
+```powershell
+py -m ruff check .
+py -m ruff format --check .
+```
+
+From `app/frontend/desktop`, run the configured Prettier check for TypeScript, TSX, CSS, and JSON:
+
+```powershell
+npm run format:check
+```
+
+From the repository root, check formatted source-size limits and duplicated feature logic:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File app/scripts/check_source_limits.ps1
+```
+
+Apply formatters before checking the 250-line limit. Do not minify code or compress statements to
+meet the limit.

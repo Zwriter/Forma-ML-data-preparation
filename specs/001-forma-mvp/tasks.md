@@ -134,12 +134,13 @@ exported safely in both formats, reopened successfully, and never misreported af
 
 - [x] T048 [P] Add large-dataset fixtures and bounded-preview performance measurements in `app/engine/tests/performance/test_large_dataset_preview.py` for the 1 GB target without transferring the complete dataset to frontend state.
 - [x] T049 [P] Add frontend responsive, accessibility, and operation-state timing checks in `app/frontend/desktop/tests/e2e/accessibility-responsive.spec.tsx` for supported desktop window sizes, keyboard navigation, actionable errors, and an assertion that pending/running state is visible within 1 second of starting a long-running profile, cleaning, or export operation.
-- [x] T050 [P] Add source-size and duplication review tooling in `app/scripts/check_source_limits.ps1` to fail when production source files exceed 250 lines or when the same shared logic is duplicated across feature modules.
+- [x] T050 [P] Add source-size and duplication review tooling in `app/scripts/check_source_limits.ps1` to fail when formatted production source files (including CSS) exceed 250 code lines or when the same shared logic is duplicated across feature modules; the limit must not be met through minification or compressed statements.
 - [x] T051 [P] Document local development, sidecar startup, IPC diagnostics, and the no-HTTP transport decision in `docs/DEVELOPMENT.md` and `docs/IPC.md`; document CORS configuration requirements if a future HTTP-capable local integration is introduced.
 - [x] T052 Run the complete backend, frontend, contract, and end-to-end validation described in `specs/001-forma-mvp/quickstart.md`, recording test output and measured behavior in `docs/MVP-VALIDATION.md`.
-- [x] T053 Review the implementation against all constitution gates and MVP requirements in `specs/001-forma-mvp/spec.md`, resolving any unexplained duplication, oversized source file, missing TDD evidence, missing PEP 8 or Prettier validation, inaccessible UI state, security acceptance failure, or source-preservation failure before release.
-- [x] T054 [P] Add PEP 8-compatible formatting and lint tooling to `app/engine/pyproject.toml`, including dev dependencies and commands for `ruff check` and `ruff format --check`, then run both checks against the engine.
-- [x] T055 [P] Add the repository Prettier configuration and `format:check` script to `app/frontend/desktop/package.json`, then run the check against supported source files through the VS Code Prettier-compatible configuration.
+- [x] T053 Review the implementation against all constitution gates and MVP requirements in `specs/001-forma-mvp/spec.md`, resolving any unexplained duplication, oversized or minified source file, missing TDD evidence, missing PEP 8 or Prettier validation, inaccessible UI state, security acceptance failure, or source-preservation failure before release.
+- [x] T054 [P] Add PEP 8-compatible formatting and lint tooling to `app/engine/pyproject.toml`, including dev dependencies and commands for `ruff check` and `ruff format --check`, enforce the configured 88-character line limit, then run both checks against the engine.
+- [x] T055 [P] Add the repository Prettier configuration and `format:check` script to `app/frontend/desktop/package.json`, covering TypeScript, TSX, CSS, and JSON source files, then run the check.
+- [x] T056 Align the constitution, implementation plan, quickstart, tasks, validation record, and source checks with the readable-formatting policy; verify source limits only after formatting and prohibit minification as a workaround.
 
 ## Dependencies & Execution Order
 
@@ -148,7 +149,7 @@ exported safely in both formats, reopened successfully, and never misreported af
 - **Setup (Phase 1)**: T001-T005 can begin immediately; T002-T005 are parallel after the directory tree exists.
 - **Foundational (Phase 2)**: T006-T015 depend on setup; domain, IPC, jobs, and frontend boundary tasks become the shared blocking foundation.
 - **User Stories (Phases 3-5)**: All depend on the foundational phase. US1 is the recommended first delivery slice; US2 and US3 can be developed in parallel at the engine level after foundation, but their integrated desktop workflows are most efficiently validated in US1 -> US2 -> US3 order.
-- **Polish (Phase 6)**: Depends on the desired user stories being complete; T048-T051 and T054-T055 can run in parallel before T052-T053.
+- **Polish (Phase 6)**: Depends on the desired user stories being complete; T048-T051 and T054-T055 can run in parallel before T052-T053. T056 follows the constitution review.
 
 ### User Story Dependencies
 
@@ -163,7 +164,7 @@ exported safely in both formats, reopened successfully, and never misreported af
 - US1: T016-T018 can run in parallel; T019 and T022 can proceed in parallel after their tests are written.
 - US2: T025-T029 can run in parallel; T030, T031, and T035 can proceed in parallel after tests are written.
 - US3: T038-T041 can run in parallel; T042 and T045 can proceed in parallel after their tests are written.
-- Polish: T048-T051 and T054-T055 can run in parallel after the relevant implementation slices are available.
+- Polish: T048-T051 and T054-T055 can run in parallel after the relevant implementation slices are available; T056 follows the constitution review.
 
 ## Implementation Strategy
 

@@ -1,6 +1,6 @@
 $ErrorActionPreference = 'Stop'
 $sourceRoot = Join-Path $PSScriptRoot '..'
-$extensions = @('.py', '.ts', '.tsx', '.rs')
+$extensions = @('.py', '.ts', '.tsx', '.css', '.rs')
 $violations = [System.Collections.Generic.List[string]]::new()
 $blocks = @{}
 $hash = [System.Security.Cryptography.SHA256]::Create()

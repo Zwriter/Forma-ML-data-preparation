@@ -14,7 +14,7 @@ Validation run on Windows, 2026-10-14, from the checked out workspace.
 
 - Backend: `python -m pytest -q tests/unit tests/contract tests/integration tests/performance` — **104 passed** (2.82s).
 - Frontend: `vitest run --pool=forks --maxWorkers=1 --minWorkers=1` — **7 files, 26 tests passed** (7.50s).
-- Frontend formatting: `npm run format:check` — all supported TypeScript, TSX, and JSON files passed Prettier 3.6.2.
+- Frontend formatting: `npm run format:check` — TypeScript, TSX, and JSON files passed Prettier 3.6.2.
 - Frontend production build: `npm run build` — TypeScript check and Vite production bundle passed.
 - Engine lint: `ruff check .` — passed with Ruff 0.17.0.
 - Engine formatting: `ruff format --check .` — **55 files already formatted**.
@@ -28,3 +28,17 @@ The Tauri Rust shell could not be compiled or launched in this environment becau
 ## Source preservation
 
 The engine opens input datasets through lazy readers and writes exports to temporary destinations before validating and promoting them. Integration tests cover source byte preservation and export validation/cancellation cleanup. The test suite passed these checks.
+
+## Constitution alignment review
+
+Reviewed 2026-10-15 after clarifying that source-size limits apply after normal formatting and
+must not be met through minification or compressed statements.
+
+- Prettier: `npm run format:check` passed for TypeScript, TSX, CSS, and JSON.
+- Frontend build: `npm run build` passed after formatting the CSS and TypeScript changes.
+- Source constraints: `app/scripts/check_source_limits.ps1` passed with CSS included in source
+  size checks.
+- Python audit: all 38 production files parsed; no lines exceeded 88 characters and no physical
+  line contained multiple Python statements.
+- Ruff could not be rerun in this workspace because it is not installed in the active Python
+  environment. The configuration selects Ruff's `E501` line-length rule.

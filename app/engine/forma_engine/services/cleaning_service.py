@@ -35,7 +35,8 @@ class CleaningService:
             rows = row_count(result)
         except Exception as exc:
             raise InvalidTransformationError(
-                "The transformation result could not be materialized; the last valid dataset remains available."
+                "The transformation result could not be materialized; "
+                "the last valid dataset remains available."
             ) from exc
         dataset = Dataset(path, "parquet", schema_for(result), rows)
         self.datasets.datasets[dataset.dataset_id] = dataset

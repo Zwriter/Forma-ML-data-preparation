@@ -25,11 +25,13 @@ export default function App() {
       return;
     }
     let stop: (() => void) | undefined;
-    listen<string>('engine-crashed', (event) => setError(event.payload)).then((unlisten) => {
-      stop = unlisten;
-    }).catch((cause: unknown) => {
-      setError(cause instanceof Error ? cause.message : getTauriRuntimeError().message);
-    });
+    listen<string>('engine-crashed', (event) => setError(event.payload))
+      .then((unlisten) => {
+        stop = unlisten;
+      })
+      .catch((cause: unknown) => {
+        setError(cause instanceof Error ? cause.message : getTauriRuntimeError().message);
+      });
     return () => stop?.();
   }, [setError]);
   async function browse() {

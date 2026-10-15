@@ -117,7 +117,8 @@ def parse_filter(expression: str, columns: list[str]) -> pl.Expr:
                 raise InvalidTransformationError("Unsupported filter operator.")
             return functions[type(operator)]()
         raise InvalidTransformationError(
-            "Filters allow only columns, literals, comparisons, null checks, parentheses, AND, and OR."
+            "Filters allow only columns, literals, comparisons, null checks, "
+            "parentheses, AND, and OR."
         )
 
     try:

@@ -41,11 +41,13 @@ export function WorkflowActions() {
       setMessage(`${job.kind}: ${job.message}`);
       if (job.result?.dataset) await acceptResult(job.result.dataset);
       if (job.kind === 'profile' && job.result) setReport(job.result);
-    }).then((unlisten) => {
-      stop = unlisten;
-    }).catch((cause: unknown) => {
-      setMessage(cause instanceof Error ? cause.message : getTauriRuntimeError().message);
-    });
+    })
+      .then((unlisten) => {
+        stop = unlisten;
+      })
+      .catch((cause: unknown) => {
+        setMessage(cause instanceof Error ? cause.message : getTauriRuntimeError().message);
+      });
     return () => stop?.();
   }, [acceptResult, addJob]);
 

@@ -60,6 +60,7 @@ def execute(
             raise
         except Exception as exc:
             raise InvalidTransformationError(
-                f"{operation.get('type', 'Transformation')} could not be applied; the previous result is preserved."
+                f"{operation.get('type', 'Transformation')} could not be applied; "
+                "the previous result is preserved."
             ) from exc
     return current

@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "test": "vitest run",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"tests/**/*.{ts,tsx}\" \"src-tauri/**/*.json\" vite.config.ts package.json",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"tests/**/*.{ts,tsx}\" \"src-tauri/**/*.json\" vite.config.ts package.json",
     "tauri": "tauri"
   },
   "dependencies": {
