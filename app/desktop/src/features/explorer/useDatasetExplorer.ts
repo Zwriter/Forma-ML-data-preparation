@@ -36,21 +36,21 @@ export function useDatasetExplorer() {
     [path, setBusy, setError, setSource, setPreview],
   );
   const page = useCallback(
-    async (offset: number) => {
+    async (offset: number, limit = preview?.limit ?? 100) => {
       if (!dataset) return;
       try {
         setPreview(
           await request<Preview>('dataset.preview', {
             dataset_id: dataset.dataset_id,
             offset,
-            limit: 100,
+            limit: Math.min(500, Math.max(10, limit)),
           }),
         );
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : 'Could not load this page.');
       }
     },
-    [dataset, setError, setPreview],
+    [dataset, preview?.limit, setError, setPreview],
   );
   return { path, setPath, dataset, preview, openDataset, page };
 }

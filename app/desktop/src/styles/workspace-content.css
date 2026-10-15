@@ -391,9 +391,7 @@
 }
 
 .worksheet-work-area .dataset-heading {
-  flex: 0 0 auto;
-  align-items: center;
-  margin-bottom: 8px;
+  display: none;
 }
 
 .worksheet-work-area .dataset-heading h1 {

@@ -8,7 +8,7 @@ type Props = {
   preview: Preview | null;
   selectedColumn: string | null;
   onSelectColumn: (name: string) => void;
-  onPage: (offset: number) => void;
+  onPage: (offset: number, limit?: number) => void;
 };
 
 export function DatasetPreview({
@@ -63,6 +63,7 @@ export function DatasetPreview({
         Record preview
       </h2>
       <div className="table-toolbar">
+        <span className="spreadsheet-cell-address">{activeAddress || '—'}</span>
         <label className="search-box" htmlFor="preview-search">
           <span className="search-mark" aria-hidden="true">
             ⌕
@@ -87,10 +88,6 @@ export function DatasetPreview({
         <SchemaSummary dataset={dataset} />
       </div>
       <div className="spreadsheet-formula-bar" aria-label="Selected cell value">
-        <span className="spreadsheet-cell-address">{activeAddress || '—'}</span>
-        <span className="spreadsheet-fx" aria-hidden="true">
-          fx
-        </span>
         <input aria-label="Cell value" readOnly value={String(activeValue ?? '')} />
       </div>
       {records.length ? (
@@ -158,14 +155,6 @@ export function DatasetPreview({
           {query ? 'No preview rows match this search.' : 'This dataset has no records to preview.'}
         </p>
       )}
-      <div className="worksheet-tabs" aria-label="Worksheet tabs">
-        <button type="button" className="worksheet-tab active" aria-current="page">
-          Sheet1
-        </button>
-        <button type="button" className="add-worksheet" disabled aria-label="Add worksheet">
-          +
-        </button>
-      </div>
       <div className="table-footer">
         <span>
           Rows {offset + 1}–{offset + (preview?.records.length ?? 0)} of{' '}
@@ -173,22 +162,32 @@ export function DatasetPreview({
         </span>
         <div className="pagination-controls">
           <label htmlFor="rows-per-page">Rows per page</label>
-          <select id="rows-per-page" value="100" disabled aria-label="Rows per page">
+          <select
+            id="rows-per-page"
+            value={preview?.limit ?? 100}
+            aria-label="Rows per page (10 to 500)"
+            onChange={(event) => onPage(0, Number(event.target.value))}
+          >
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
             <option value="100">100</option>
+            <option value="250">250</option>
+            <option value="500">500</option>
           </select>
           <button
-            onClick={() => onPage(Math.max(0, offset - 100))}
+            onClick={() => onPage(Math.max(0, offset - (preview?.limit ?? 100)))}
             disabled={!offset}
             aria-label="Previous page"
           >
             <span className="sr-only">Previous</span>‹
           </button>
-          <span className="page-number">{Math.floor(offset / 100) + 1}</span>
+          <span className="page-number">{Math.floor(offset / (preview?.limit ?? 100)) + 1}</span>
           <button
-            onClick={() => onPage(offset + 100)}
+            onClick={() => onPage(offset + (preview?.limit ?? 100))}
             disabled={
               !preview ||
-              preview.records.length < 100 ||
+              preview.records.length < preview.limit ||
               (!!preview.total_count && offset + preview.records.length >= preview.total_count)
             }
             aria-label="Next page"

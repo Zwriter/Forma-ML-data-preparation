@@ -102,17 +102,17 @@
 }
 
 .spreadsheet-formula-bar {
-  display: grid;
+  display: flex;
   min-height: 36px;
   align-items: center;
-  gap: 8px;
   padding: 4px 8px;
-  grid-template-columns: 64px 28px minmax(0, 1fr);
   background: #fff;
   border-bottom: 1px solid #d6dbe2;
 }
 
 .spreadsheet-cell-address {
+  flex: 0 0 64px;
+  min-width: 0;
   overflow: hidden;
   padding: 4px 7px;
   color: #35415c;
@@ -122,14 +122,6 @@
   text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.spreadsheet-fx {
-  color: #64718b;
-  font-family: Georgia, serif;
-  font-size: 13px;
-  font-style: italic;
-  text-align: center;
 }
 
 .spreadsheet-formula-bar input {
@@ -293,37 +285,6 @@
   padding: 30px 18px;
   color: var(--muted);
   text-align: center;
-}
-
-.worksheet-tabs {
-  display: flex;
-  min-height: 34px;
-  align-items: stretch;
-  gap: 3px;
-  padding: 0 10px;
-  background: #f2f4f6;
-  border-top: 1px solid #d6dbe2;
-}
-
-.worksheet-tabs button {
-  min-width: 72px;
-  padding: 0 12px;
-  color: #3d4966;
-  background: transparent;
-  border: 0;
-  font-size: 11px;
-}
-
-.worksheet-tabs .worksheet-tab.active {
-  color: #217346;
-  background: #fff;
-  border-bottom: 2px solid #217346;
-}
-
-.worksheet-tabs .add-worksheet {
-  min-width: 28px;
-  padding: 0;
-  font-size: 18px;
 }
 
 .table-footer {
