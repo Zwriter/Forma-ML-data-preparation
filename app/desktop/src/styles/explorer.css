@@ -357,3 +357,29 @@
   background: var(--purple);
   font-size: 12px;
 }
+
+.spreadsheet-stage {
+  position: relative;
+  min-width: 0;
+}
+
+.column-details-popover {
+  position: absolute;
+  z-index: 5;
+  top: 68px;
+  right: 12px;
+  width: min(300px, calc(100% - 24px));
+  max-height: min(70vh, 620px);
+  overflow: auto;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #cbd1dd;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px #1c2d4b26;
+}
+
+.column-details-popover .inspector {
+  position: static;
+  max-height: none;
+  overflow: visible;
+}

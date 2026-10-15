@@ -16,7 +16,7 @@ import type { Operation } from '../../types/transformation';
 import { getTauriRuntimeError, isTauriRuntime } from '../../services/tauriRuntime';
 
 type EventJob = Job & { result?: { dataset?: Dataset } & Record<string, unknown> };
-export function WorkflowActions() {
+export function WorkflowActions({ activeTab }: { activeTab: string }) {
   const { dataset, apply, acceptResult } = useCleaningJob();
   const profile = useProfileJob();
   const exportDataset = useExportJob();
@@ -107,31 +107,45 @@ export function WorkflowActions() {
   }
   return (
     <>
-      <section className="card workflow-card" id="profile">
-        <h2>Data profile</h2>
-        <button disabled={busy} onClick={() => void runProfile()}>
-          Profile dataset
-        </button>
-        <ProfilePanel report={report} />
-      </section>
-      <TransformationBuilder
-        onPreview={(operation) => void previewOperation(operation)}
-        onApply={(operations) => void applyOperations(operations)}
-      />
-      {comparison && (
-        <section className="card">
-          <h2>Transformation preview</h2>
-          <BeforeAfterComparison before={comparison.before} after={comparison.after} />
+      {activeTab === 'Profile' && (
+        <section className="card workflow-card" id="profile">
+          <h2>Data profile</h2>
+          <button disabled={busy} onClick={() => void runProfile()}>
+            Profile dataset
+          </button>
+          <ProfilePanel report={report} />
         </section>
       )}
-      <ExportDialog
-        busy={busy}
-        onExport={(destination, format, overwrite) =>
-          void runExport(destination, format, overwrite)
-        }
-      />
-      <JobStatus />
-      {message && (
+      {activeTab === 'Clean' && (
+        <>
+          <TransformationBuilder
+            onPreview={(operation) => void previewOperation(operation)}
+            onApply={(operations) => void applyOperations(operations)}
+          />
+          {comparison && (
+            <section className="card">
+              <h2>Transformation preview</h2>
+              <BeforeAfterComparison before={comparison.before} after={comparison.after} />
+            </section>
+          )}
+        </>
+      )}
+      {activeTab === 'Export' && (
+        <ExportDialog
+          busy={busy}
+          onExport={(destination, format, overwrite) =>
+            void runExport(destination, format, overwrite)
+          }
+        />
+      )}
+      {activeTab === 'Pipelines' && (
+        <section className="card workflow-card" id="pipelines">
+          <h2>Pipelines</h2>
+          <p>Pipeline management is not available yet.</p>
+        </section>
+      )}
+      {['Clean', 'Profile', 'Export', 'Pipelines'].includes(activeTab) && <JobStatus />}
+      {message && ['Clean', 'Profile', 'Export', 'Pipelines'].includes(activeTab) && (
         <p role="status" aria-live="polite">
           {message}
         </p>

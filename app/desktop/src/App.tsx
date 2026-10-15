@@ -61,9 +61,9 @@ export default function App() {
   const [recentFilter, setRecentFilter] = useState<'recent' | 'favorites'>('recent');
   const [recentSearch, setRecentSearch] = useState('');
   const [selectedColumn, setSelectedColumn] = useState<string | null>(null);
-  const [showColumnDetails, setShowColumnDetails] = useState(true);
+  const [showColumnDetails, setShowColumnDetails] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
-  const column = dataset?.schema.find((item) => item.name === selectedColumn) ?? dataset?.schema[0];
+  const column = dataset?.schema.find((item) => item.name === selectedColumn);
   const fileName = dataset?.source_path.split(/[\\/]/).pop() ?? '';
   const title = fileName.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ') || 'Dataset';
 
@@ -224,6 +224,7 @@ export default function App() {
         onTabChange={(tab) => {
           setActiveTab(tab);
           if (tab === 'File') setFilePage('import');
+          if (tab !== 'Data') setShowColumnDetails(false);
         }}
         onReload={() => page(preview?.offset ?? 0)}
         onSelectColumns={() => {
@@ -419,8 +420,8 @@ export default function App() {
                 </div>
                 <SchemaSummary dataset={dataset} />
               </div>
-              <div className="data-layout">
-                <div className="data-primary">
+              {activeTab === 'Data' ? (
+                <div className="spreadsheet-stage">
                   <DatasetPreview
                     preview={preview}
                     selectedColumn={column?.name ?? null}
@@ -430,7 +431,20 @@ export default function App() {
                     }}
                     onPage={page}
                   />
-                  {sourceDataset && (
+                  {showColumnDetails && column && (
+                    <div className="column-details-popover">
+                      <ColumnDetails
+                        column={column}
+                        records={preview?.records ?? []}
+                        onClose={() => setShowColumnDetails(false)}
+                      />
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <WorkflowActions activeTab={activeTab} />
+                  {activeTab === 'Clean' && sourceDataset && (
                     <section className="card source-comparison">
                       <h2>Source comparison</h2>
                       <p>Original dataset: {sourceDataset.source_path}</p>
@@ -440,16 +454,8 @@ export default function App() {
                       />
                     </section>
                   )}
-                  <WorkflowActions />
-                </div>
-                {showColumnDetails && (
-                  <ColumnDetails
-                    column={column}
-                    records={preview?.records ?? []}
-                    onClose={() => setShowColumnDetails(false)}
-                  />
-                )}
-              </div>
+                </>
+              )}
             </>
           ) : null}
         </main>
