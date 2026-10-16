@@ -189,4 +189,30 @@ describe('dataset explorer workflow', () => {
     expect(useWorkspaceStore.getState().history?.is_dirty).toBe(false);
     expect(useWorkspaceStore.getState().history?.current_index).toBe(0);
   });
+
+  it('submits filter and sort through data.apply without changing history before commit', async () => {
+    useDatasetStore.getState().setSource(dataset, firstPage);
+    useWorkspaceStore.getState().setHistory({
+      history_id: 'history-1', dataset_id: dataset.dataset_id, current_index: 0,
+      saved_index: 0, is_dirty: false, can_undo: false, can_redo: false,
+    });
+    invoke
+      .mockResolvedValueOnce({ id: 'filter-job', status: 'success', result: { job_id: 'job-1', state: 'pending' }, error: null })
+      .mockResolvedValueOnce({ id: 'sort-job', status: 'success', result: { job_id: 'job-2', state: 'pending' }, error: null });
+
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Filter row' }));
+    fireEvent.change(screen.getByLabelText('Filter value 1'), { target: { value: '4' } });
+    fireEvent.click(screen.getByText('Apply filter'));
+    await waitFor(() => expect(invoke).toHaveBeenCalledTimes(1));
+    expect(invoke.mock.calls[0][1].request.method).toBe('data.apply');
+    expect(invoke.mock.calls[0][1].request.params.operation.type).toBe('filter_rows');
+    expect(useWorkspaceStore.getState().history?.is_dirty).toBe(false);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Sort' }));
+    fireEvent.click(screen.getByText('Apply sort'));
+    await waitFor(() => expect(invoke).toHaveBeenCalledTimes(2));
+    expect(invoke.mock.calls[1][1].request.method).toBe('data.apply');
+    expect(invoke.mock.calls[1][1].request.params.operation.type).toBe('sort_rows');
+  });
 });

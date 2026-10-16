@@ -91,19 +91,19 @@ description: "Executable implementation tasks for Data Tab Operations"
 
 ### Tests for User Story 3
 
-- [ ] T032 [P] [US3] Write failing unit tests for filter rule validation and Polars execution covering every supported operator, type compatibility, null checks, case sensitivity, all/any logic, and executable-input rejection in `app/engine/tests/unit/transformations/test_filter_operations.py`.
-- [ ] T033 [P] [US3] Write failing unit tests for ordered multi-key sorting, ascending/descending direction, null placement, equal-key stability, and row preservation in `app/engine/tests/unit/transformations/test_sort_operations.py`.
-- [ ] T034 [P] [US3] Add IPC contract tests for `data.apply` filter and sort payloads and stable invalid-operation errors in `app/engine/tests/contract/test_data_operations_ipc.py`.
-- [ ] T035 [P] [US3] Add frontend component tests for FilterBuilder and SortBuilder validation, editable rules/keys, empty results, loading states, and accessible labels in `app/desktop/tests/unit/data-operations/FilterSortBuilders.test.tsx`.
+- [x] T032 [P] [US3] Write failing unit tests for filter rule validation and Polars execution covering every supported operator, type compatibility, null checks, case sensitivity, all/any logic, and executable-input rejection in `app/engine/tests/unit/transformations/test_filter_operations.py`.
+- [x] T033 [P] [US3] Write failing unit tests for ordered multi-key sorting, ascending/descending direction, null placement, equal-key stability, and row preservation in `app/engine/tests/unit/transformations/test_sort_operations.py`.
+- [x] T034 [P] [US3] Add IPC contract tests for `data.apply` filter and sort payloads and stable invalid-operation errors in `app/engine/tests/contract/test_data_operations_ipc.py`.
+- [x] T035 [P] [US3] Add frontend component tests for FilterBuilder and SortBuilder validation, editable rules/keys, empty results, loading states, and accessible labels in `app/desktop/tests/unit/data-operations/FilterSortBuilders.test.tsx`.
 
 ### Implementation for User Story 3
 
-- [ ] T036 [US3] Implement typed filter and sort validators, including the data-model enums and required-value rules, in `app/engine/forma_engine/transformations/validators.py`.
-- [ ] T037 [US3] Implement safe Polars filter expression compilation and deterministic multi-key sorting in `app/engine/forma_engine/transformations/operations.py` and `app/engine/forma_engine/transformations/filter_parser.py`.
-- [ ] T038 [US3] Add the `data.apply` handler/service path for filter and sort jobs, including current-state history commits and bounded result metadata, in `app/engine/forma_engine/ipc/data_operation_handlers.py`, `app/engine/forma_engine/ipc/router.py`, and `app/engine/forma_engine/services/data_operation_service.py`.
-- [ ] T039 [US3] Implement the non-code FilterBuilder and SortBuilder dialogs with typed controls, all/any mode, clear/edit actions, validation messages, missing-value choices, and operation status in `app/desktop/src/features/data-operations/FilterBuilder.tsx` and `app/desktop/src/features/data-operations/SortBuilder.tsx`.
-- [ ] T040 [US3] Wire Filter row and Sort ribbon commands, dialogs, operation submission, result application, row counts, and explicit empty-result states in `app/desktop/src/App.tsx`, `app/desktop/src/features/workspace/WorkflowActions.tsx`, and `app/desktop/src/features/explorer/DatasetPreview.tsx`.
-- [ ] T041 [US3] Add integration coverage for filter and sort workflows across the frontend mock engine boundary in `app/desktop/tests/integration/data-operations-workflow.test.tsx`.
+- [x] T036 [US3] Implement typed filter and sort validators, including the data-model enums and required-value rules, in `app/engine/forma_engine/transformations/validators.py`.
+- [x] T037 [US3] Implement safe Polars filter expression compilation and deterministic multi-key sorting in `app/engine/forma_engine/transformations/operations.py` and `app/engine/forma_engine/transformations/filter_parser.py`.
+- [x] T038 [US3] Add the `data.apply` handler/service path for filter and sort jobs, including current-state history commits and bounded result metadata, in `app/engine/forma_engine/ipc/data_operation_handlers.py`, `app/engine/forma_engine/ipc/router.py`, and `app/engine/forma_engine/services/data_operation_service.py`.
+- [x] T039 [US3] Implement the non-code FilterBuilder and SortBuilder dialogs with typed controls, all/any mode, clear/edit actions, validation messages, missing-value choices, and operation status in `app/desktop/src/features/data-operations/FilterBuilder.tsx` and `app/desktop/src/features/data-operations/SortBuilder.tsx`.
+- [x] T040 [US3] Wire Filter row and Sort ribbon commands, dialogs, operation submission, result application, row counts, and explicit empty-result states in `app/desktop/src/App.tsx`, `app/desktop/src/features/workspace/WorkflowActions.tsx`, and `app/desktop/src/features/explorer/DatasetPreview.tsx`.
+- [x] T041 [US3] Add integration coverage for filter and sort workflows across the frontend mock engine boundary in `app/desktop/tests/integration/data-operations-workflow.test.tsx`.
 
 **Checkpoint**: User Stories 1 through 3 work independently; filter and sort operations are safe, full-dataset, reversible changes.
 

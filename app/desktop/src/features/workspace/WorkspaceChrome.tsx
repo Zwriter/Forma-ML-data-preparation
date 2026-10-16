@@ -8,6 +8,8 @@ type Props = {
   onTabChange: (tab: string) => void;
   onReload: () => void;
   onSelectColumns: () => void;
+  onFilter: () => void;
+  onSort: () => void;
   hasDataset: boolean;
   onSave: () => void;
   onUndo: () => void;
@@ -86,6 +88,8 @@ export function WorkspaceChrome({
   onTabChange,
   onReload,
   onSelectColumns,
+  onFilter,
+  onSort,
   hasDataset,
   onSave,
   onUndo,
@@ -110,6 +114,8 @@ export function WorkspaceChrome({
       return { label, icon: commandIcons[label], onClick: onReload, disabled: !hasDataset };
     if (label === 'Select columns' || label === 'Column details')
       return { label, icon: commandIcons[label], onClick: onSelectColumns, disabled: !hasDataset };
+    if (label === 'Filter row') return { label, icon: commandIcons[label], onClick: onFilter, disabled: !hasDataset };
+    if (label === 'Sort') return { label, icon: commandIcons[label], onClick: onSort, disabled: !hasDataset };
     if (label === 'Connect to DB')
       return {
         label,

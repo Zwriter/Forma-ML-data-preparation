@@ -74,6 +74,7 @@ export default function App() {
   const [selectedColumn, setSelectedColumn] = useState<string | null>(null);
   const [showColumnDetails, setShowColumnDetails] = useState(false);
   const [showColumnSelector, setShowColumnSelector] = useState(false);
+  const [operationDialog, setOperationDialog] = useState<'filter' | 'sort' | null>(null);
   const [isMaximized, setIsMaximized] = useState(false);
   const column = dataset?.schema.find((item) => item.name === selectedColumn);
   const fileName = dataset?.source_path.split(/[\\/]/).pop() ?? '';
@@ -282,12 +283,15 @@ export default function App() {
           if (tab !== 'Data') {
             setShowColumnDetails(false);
             setShowColumnSelector(false);
+            setOperationDialog(null);
           }
         }}
         onReload={() => page(preview?.offset ?? 0)}
         onSelectColumns={() => {
           setShowColumnSelector(true);
         }}
+        onFilter={() => setOperationDialog('filter')}
+        onSort={() => setOperationDialog('sort')}
         hasDataset={Boolean(dataset)}
         onSave={() => {
           closeAfterSave.current = false;
@@ -538,7 +542,12 @@ export default function App() {
             </>
           ) : null}
         </main>
-        <WorkflowActions activeTab={activeTab} onSaveComplete={onSaveComplete} />
+        <WorkflowActions
+          activeTab={activeTab}
+          onSaveComplete={onSaveComplete}
+          operationDialog={operationDialog}
+          onCloseOperationDialog={() => setOperationDialog(null)}
+        />
       </div>
       {saveDialogMode && (
         <SaveConfirmDialog

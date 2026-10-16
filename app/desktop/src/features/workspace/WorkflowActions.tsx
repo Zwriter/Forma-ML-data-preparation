@@ -16,6 +16,10 @@ import { request } from '../../services/ipcClient';
 import type { Operation } from '../../types/transformation';
 import { getTauriRuntimeError, isTauriRuntime } from '../../services/tauriRuntime';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
+import { FilterBuilder } from '../data-operations/FilterBuilder';
+import { SortBuilder } from '../data-operations/SortBuilder';
+import { applyDataOperation } from '../../services/dataOperationClient';
+import type { DataOperation } from '../../types/dataOperations';
 
 type EventJob = Job & {
   result?: { dataset?: Dataset; history?: HistoryMetadata } & Record<string, unknown>;
@@ -24,9 +28,13 @@ type EventJob = Job & {
 export function WorkflowActions({
   activeTab,
   onSaveComplete,
+  operationDialog,
+  onCloseOperationDialog,
 }: {
   activeTab: string;
   onSaveComplete?: (success: boolean) => void;
+  operationDialog?: 'filter' | 'sort' | null;
+  onCloseOperationDialog?: () => void;
 }) {
   const { dataset, apply, acceptResult } = useCleaningJob();
   const profile = useProfileJob();
@@ -44,6 +52,7 @@ export function WorkflowActions({
   const [report, setReport] = useState<Record<string, unknown> | null>(null);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  const setStoreBusy = useWorkspaceStore((state) => state.setBusy);
 
   useEffect(() => {
     if (!isTauriRuntime()) {
@@ -154,6 +163,22 @@ export function WorkflowActions({
       setBusy(false);
     }
   }
+  async function runDataOperation(operation: DataOperation) {
+    if (!dataset) return;
+    setBusy(true);
+    setStoreBusy(true);
+    try {
+      const job = await applyDataOperation(dataset.dataset_id, operation);
+      addJob({ ...job, kind: operation.type, progress: null, message: 'Queued' });
+      onCloseOperationDialog?.();
+      setMessage(`${operation.type === 'filter_rows' ? 'Filter' : 'Sort'} job queued.`);
+    } catch (cause) {
+      setStoreBusy(false);
+      setWorkspaceError(cause instanceof Error ? cause.message : 'Could not start this operation.');
+    } finally {
+      setBusy(false);
+    }
+  }
   return (
     <>
       {activeTab === 'Profile' && (
@@ -187,14 +212,20 @@ export function WorkflowActions({
           }
         />
       )}
+      {activeTab === 'Data' && operationDialog === 'filter' && (
+        <FilterBuilder columns={dataset.schema} onApply={(operation) => void runDataOperation(operation)} onClose={() => onCloseOperationDialog?.()} />
+      )}
+      {activeTab === 'Data' && operationDialog === 'sort' && (
+        <SortBuilder columns={dataset.schema} onApply={(operation) => void runDataOperation(operation)} onClose={() => onCloseOperationDialog?.()} />
+      )}
       {activeTab === 'Pipelines' && (
         <section className="card workflow-card" id="pipelines">
           <h2>Pipelines</h2>
           <p>Pipeline management is not available yet.</p>
         </section>
       )}
-      {['Clean', 'Profile', 'Export', 'Pipelines'].includes(activeTab) && <JobStatus />}
-      {message && ['Clean', 'Profile', 'Export', 'Pipelines'].includes(activeTab) && (
+      {['Data', 'Clean', 'Profile', 'Export', 'Pipelines'].includes(activeTab) && <JobStatus />}
+      {message && ['Data', 'Clean', 'Profile', 'Export', 'Pipelines'].includes(activeTab) && (
         <p role="status" aria-live="polite">
           {message}
         </p>

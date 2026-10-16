@@ -4,12 +4,13 @@ from forma_engine.ipc.profile_handlers import ProfileHandlers
 from forma_engine.ipc.cleaning_handlers import CleaningHandlers
 from forma_engine.ipc.export_handlers import ExportHandlers
 from forma_engine.ipc.job_handlers import JobHandlers
+from forma_engine.ipc.data_operation_handlers import DataOperationHandlers
 
 
 class Router:
     """Dispatch namespaced IPC methods to focused handler classes."""
 
-    def __init__(self, datasets, cleaning, profile_service, jobs, exports, saves=None):
+    def __init__(self, datasets, cleaning, profile_service, jobs, exports, saves=None, data_operations=None):
         self.datasets, self.cleaning, self.jobs, self.exports = (
             datasets,
             cleaning,
@@ -21,6 +22,7 @@ class Router:
         clean = CleaningHandlers(datasets, cleaning)
         export = ExportHandlers(datasets, jobs, exports)
         job = JobHandlers(jobs)
+        data_operation = DataOperationHandlers(datasets, data_operations)
         self.handlers = {
             "dataset.open": dataset.open,
             "dataset.preview": dataset.preview,
@@ -28,6 +30,7 @@ class Router:
             "dataset.undo": dataset.undo,
             "dataset.redo": dataset.redo,
             "dataset.save": dataset.save,
+            "data.apply": data_operation.apply,
             "dataset.profile": profile.profile,
             "cleaning.preview": clean.preview,
             "cleaning.apply": clean.apply,

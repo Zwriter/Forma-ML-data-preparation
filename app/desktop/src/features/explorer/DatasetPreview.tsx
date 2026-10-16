@@ -149,13 +149,18 @@ export function DatasetPreview({
         </div>
       ) : (
         <p className="table-empty">
-          {query ? 'No preview rows match this search.' : 'This dataset has no records to preview.'}
+          {query
+            ? 'No preview rows match this search.'
+            : preview?.total_count === 0
+              ? 'No rows match the active filter.'
+              : 'This dataset has no records to preview.'}
         </p>
       )}
       <div className="table-footer">
         <span>
-          Rows {offset + 1}–{offset + (preview?.records.length ?? 0)} of{' '}
-          {preview?.total_count ?? 'unknown'}
+          {preview?.total_count === 0
+            ? '0 rows'
+            : `Rows ${offset + 1}–${offset + (preview?.records.length ?? 0)} of ${preview?.total_count ?? 'unknown'}`}
         </span>
         <div className="pagination-controls">
           <label htmlFor="rows-per-page">Rows per page</label>

@@ -37,10 +37,14 @@ export function useCleaningJob() {
   );
   const acceptResult = useCallback(
     async (derived: Dataset, history?: HistoryMetadata) => {
+      const visible = useDatasetStore.getState().selectedColumns.filter((name) =>
+        derived.schema.some((column) => column.name === name),
+      );
       const preview = await request<Preview>('dataset.preview', {
           dataset_id: derived.dataset_id,
           offset: 0,
           limit: 100,
+          ...(visible.length ? { columns: visible } : {}),
         });
       setDataset(derived);
       setPreview(preview);

@@ -526,6 +526,76 @@
   outline-offset: 2px;
 }
 
+.data-operation-dialog {
+  display: flex;
+  width: min(48rem, 100%);
+  max-height: min(88vh, 52rem);
+  flex-direction: column;
+  gap: 0.9rem;
+  overflow: auto;
+  padding: 1.25rem;
+  background: var(--surface, white);
+  box-shadow: 0 1rem 3rem rgb(18 16 28 / 24%);
+}
+
+.data-operation-dialog header,
+.filter-rule,
+.sort-key {
+  display: flex;
+  align-items: end;
+  gap: 0.65rem;
+}
+
+.data-operation-dialog header {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.data-operation-dialog h2 {
+  margin: 0;
+}
+
+.filter-rule,
+.sort-key {
+  flex-wrap: wrap;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.filter-rule label,
+.sort-key label,
+.data-operation-dialog > label {
+  display: grid;
+  min-width: 8rem;
+  flex: 1;
+  gap: 0.3rem;
+}
+
+.filter-rule select,
+.filter-rule input:not([type='checkbox']),
+.sort-key select,
+.data-operation-dialog > label select {
+  min-height: 2.2rem;
+  min-width: 0;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #cfd5e1;
+  border-radius: 5px;
+}
+
+.filter-rule .filter-case-check {
+  display: flex;
+  min-width: auto;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.data-operation-dialog button:focus-visible,
+.data-operation-dialog input:focus-visible,
+.data-operation-dialog select:focus-visible {
+  outline: 2px solid var(--purple);
+  outline-offset: 2px;
+}
+
 @media (max-width: 620px) {
   .column-selector {
     max-height: 90vh;
@@ -534,6 +604,17 @@
 
   .column-selector-list small {
     display: none;
+  }
+
+  .data-operation-dialog {
+    max-height: 92vh;
+    padding: 0.9rem;
+  }
+
+  .filter-rule,
+  .sort-key {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
 .dialog-backdrop {

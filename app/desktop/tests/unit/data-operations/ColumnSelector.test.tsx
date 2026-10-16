@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ColumnSelector } from '../../../src/features/data-operations/ColumnSelector';
 
 const columns = [
@@ -7,6 +7,8 @@ const columns = [
   { name: 'amount', type: 'Int64', nullable: false },
   { name: 'period', type: 'Date', nullable: true },
 ];
+
+afterEach(cleanup);
 
 describe('ColumnSelector', () => {
   it('searches, selects, clears, orders, and confirms columns', () => {

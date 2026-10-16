@@ -7,6 +7,10 @@ import type { Dataset, Preview } from '../../../src/types/dataset';
 afterEach(cleanup);
 
 const column = { name: 'value', type: 'Int64', nullable: true };
+const dataset: Dataset = {
+  dataset_id: 'dataset-1', source_path: 'source.csv', format: 'csv', columns: 1,
+  rows: 200, state: 'open', schema: [column],
+};
 
 function preview(
   records: Array<Record<string, unknown>>,
@@ -27,8 +31,11 @@ describe('dataset preview', () => {
   it('shows empty state and disables both paging controls', () => {
     render(
       <DatasetPreview
+        dataset={dataset}
         preview={preview([])}
         selectedColumn="value"
+        selectedColumns={['value']}
+        onOpenColumnSelector={() => undefined}
         onSelectColumn={() => undefined}
         onPage={() => undefined}
       />,
@@ -45,14 +52,17 @@ describe('dataset preview', () => {
     const onPage = vi.fn();
     render(
       <DatasetPreview
+        dataset={dataset}
         preview={preview(Array.from({ length: 100 }, (_, value) => ({ value })))}
         selectedColumn="value"
+        selectedColumns={['value']}
+        onOpenColumnSelector={() => undefined}
         onSelectColumn={() => undefined}
         onPage={onPage}
       />,
     );
 
-    expect(screen.getAllByRole('row')).toHaveLength(101);
+    expect(screen.getAllByRole('row')).toHaveLength(102);
     fireEvent.click(screen.getByText('Next'));
 
     expect(onPage).toHaveBeenCalledWith(100);
@@ -62,8 +72,11 @@ describe('dataset preview', () => {
     const onPage = vi.fn();
     const { rerender } = render(
       <DatasetPreview
+        dataset={dataset}
         preview={preview([{ value: 100 }], 100, 101)}
         selectedColumn="value"
+        selectedColumns={['value']}
+        onOpenColumnSelector={() => undefined}
         onSelectColumn={() => undefined}
         onPage={onPage}
       />,
@@ -75,8 +88,11 @@ describe('dataset preview', () => {
 
     rerender(
       <DatasetPreview
+        dataset={dataset}
         preview={preview([{ value: 100 }], 100, null)}
         selectedColumn="value"
+        selectedColumns={['value']}
+        onOpenColumnSelector={() => undefined}
         onSelectColumn={() => undefined}
         onPage={onPage}
       />,
@@ -97,7 +113,7 @@ describe('schema summary', () => {
       schema: [column],
     };
 
-    render(<SchemaSummary dataset={dataset} />);
+    render(<SchemaSummary dataset={dataset} visibleColumns={1} />);
 
     expect(screen.getByText(/Unknown rows/)).toBeTruthy();
     expect(screen.getByText('CSV')).toBeTruthy();
