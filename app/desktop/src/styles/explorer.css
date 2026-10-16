@@ -10,11 +10,15 @@
 }
 
 .data-card {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
   overflow: hidden;
   background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  box-shadow: 0 2px 8px #1c2d4b08;
+  border: 1px solid #c9d0d9;
+  border-radius: 0;
 }
 
 .table-toolbar {
@@ -97,9 +101,35 @@
   height: 16px;
 }
 
+.spreadsheet-cell-address {
+  flex: 0 0 64px;
+  min-width: 0;
+  overflow: hidden;
+  padding: 4px 7px;
+  color: #35415c;
+  border: 1px solid #d6dbe2;
+  border-radius: 2px;
+  font-size: 11px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .table-wrap {
-  max-height: min(55vh, 640px);
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
   overflow: auto;
+}
+
+.table-toolbar .dataset-meta {
+  flex: 0 0 auto;
+  gap: 5px;
+}
+
+.table-toolbar .meta-chip {
+  padding: 4px 7px;
+  font-size: 10px;
 }
 
 .table-wrap table {
@@ -114,7 +144,8 @@
 .table-wrap td {
   min-width: 104px;
   max-width: 220px;
-  padding: 8px 11px;
+  height: 30px;
+  padding: 5px 9px;
   overflow: hidden;
   border-right: 1px solid #e5e8ef;
   border-bottom: 1px solid #e5e8ef;
@@ -132,8 +163,24 @@
   text-align: left;
 }
 
+.table-wrap thead tr:first-child th {
+  top: 0;
+  height: 26px;
+  min-width: 42px;
+  padding: 3px 8px;
+  color: #59647d;
+  background: #edf0f3;
+  font-size: 10px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.table-wrap thead tr:nth-child(2) th {
+  top: 26px;
+}
+
 .table-wrap th.selected,
-.table-wrap td.selected {
+.table-wrap td.selected-column {
   background: #f0efff;
 }
 
@@ -143,6 +190,15 @@
 
 .table-wrap td {
   color: #35415c;
+  text-align: left;
+}
+
+.table-wrap td.active-cell {
+  position: relative;
+  z-index: 1;
+  outline: 2px solid #217346;
+  outline-offset: -2px;
+  background: #f3faf5;
 }
 
 .table-wrap tbody tr:hover td {
@@ -258,4 +314,33 @@
   color: #fff;
   background: var(--purple);
   font-size: 12px;
+}
+
+.spreadsheet-stage {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.column-details-popover {
+  position: absolute;
+  z-index: 5;
+  top: 68px;
+  right: 12px;
+  width: min(300px, calc(100% - 24px));
+  max-height: min(70vh, 620px);
+  overflow: auto;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #cbd1dd;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px #1c2d4b26;
+}
+
+.column-details-popover .inspector {
+  position: static;
+  max-height: none;
+  overflow: visible;
 }
