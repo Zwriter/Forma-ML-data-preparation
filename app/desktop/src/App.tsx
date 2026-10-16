@@ -61,8 +61,27 @@ export default function App() {
   const setError = useWorkspaceStore((state) => state.setError);
   const [saveDialogMode, setSaveDialogMode] = useState<'close' | 'overwrite' | null>(null);
   const closeAfterSave = useRef(false);
-  const allowClose = useRef(false);
   const dirtyRef = useRef(false);
+  const closeWindow = useCallback(async () => {
+    const window = getDesktopWindow();
+    if (!window) {
+      setError(getTauriRuntimeError().message);
+      return;
+    }
+    try {
+      await window.destroy();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not close the window.');
+    }
+  }, [setError]);
+  const requestClose = useCallback(() => {
+    if (dirtyRef.current) {
+      closeAfterSave.current = true;
+      setSaveDialogMode('close');
+      return;
+    }
+    void closeWindow();
+  }, [closeWindow]);
   const openOverwriteDialog = useCallback(() => setSaveDialogMode('overwrite'), []);
   const { save, undo, redo } = useWorkspaceHistory({ onOverwriteRequired: openOverwriteDialog });
   dirtyRef.current = history?.is_dirty ?? false;
@@ -148,7 +167,7 @@ export default function App() {
     if (!window) return;
     let unlisten: (() => void) | undefined;
     void window.onCloseRequested((event) => {
-      if (allowClose.current || !dirtyRef.current) return;
+      if (!dirtyRef.current) return;
       event.preventDefault();
       closeAfterSave.current = true;
       setSaveDialogMode('close');
@@ -163,16 +182,14 @@ export default function App() {
     setSaveDialogMode(null);
     if (closeAfterSave.current) {
       closeAfterSave.current = false;
-      allowClose.current = true;
-      void getDesktopWindow()?.close();
+      void closeWindow();
     }
-  }, []);
+  }, [closeWindow]);
 
   function discardAndClose() {
     closeAfterSave.current = false;
     setSaveDialogMode(null);
-    allowClose.current = true;
-    void getDesktopWindow()?.close();
+    void closeWindow();
   }
 
   function saveFromDialog(forceOverwrite: boolean) {
@@ -266,9 +283,7 @@ export default function App() {
             type="button"
             aria-label="Close window"
             title="Close"
-            onClick={() => {
-              void getDesktopWindow()?.close();
-            }}
+            onClick={requestClose}
           >
             <span aria-hidden="true">×</span>
           </button>
