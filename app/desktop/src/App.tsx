@@ -4,6 +4,7 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 import { open } from '@tauri-apps/plugin-dialog';
 import { Icon } from './components/Icon';
 import { ColumnDetails } from './features/explorer/ColumnDetails';
+import { ColumnSelector } from './features/data-operations/ColumnSelector';
 import { DatasetPreview } from './features/explorer/DatasetPreview';
 import { BeforeAfterComparison } from './features/cleaning/BeforeAfterComparison';
 import { WorkflowActions } from './features/workspace/WorkflowActions';
@@ -50,12 +51,13 @@ function readRecentFiles(): RecentFile[] {
 }
 
 export default function App() {
-  const { dataset, preview, openDataset, page } = useDatasetExplorer();
+  const { dataset, preview, openDataset, page, projectColumns } = useDatasetExplorer();
   const busy = useWorkspaceStore((state) => state.busy);
   const error = useWorkspaceStore((state) => state.error);
   const history = useWorkspaceStore((state) => state.history);
   const sourceDataset = useDatasetStore((state) => state.sourceDataset);
   const sourcePreview = useDatasetStore((state) => state.sourcePreview);
+  const selectedColumns = useDatasetStore((state) => state.selectedColumns);
   const setError = useWorkspaceStore((state) => state.setError);
   const [saveDialogMode, setSaveDialogMode] = useState<'close' | 'overwrite' | null>(null);
   const closeAfterSave = useRef(false);
@@ -71,6 +73,7 @@ export default function App() {
   const [recentSearch, setRecentSearch] = useState('');
   const [selectedColumn, setSelectedColumn] = useState<string | null>(null);
   const [showColumnDetails, setShowColumnDetails] = useState(false);
+  const [showColumnSelector, setShowColumnSelector] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
   const column = dataset?.schema.find((item) => item.name === selectedColumn);
   const fileName = dataset?.source_path.split(/[\\/]/).pop() ?? '';
@@ -276,12 +279,14 @@ export default function App() {
         onTabChange={(tab) => {
           setActiveTab(tab);
           if (tab === 'File') setFilePage('import');
-          if (tab !== 'Data') setShowColumnDetails(false);
+          if (tab !== 'Data') {
+            setShowColumnDetails(false);
+            setShowColumnSelector(false);
+          }
         }}
         onReload={() => page(preview?.offset ?? 0)}
         onSelectColumns={() => {
-          setSelectedColumn(dataset?.schema[0]?.name ?? null);
-          setShowColumnDetails(true);
+          setShowColumnSelector(true);
         }}
         hasDataset={Boolean(dataset)}
         onSave={() => {
@@ -487,12 +492,25 @@ export default function App() {
                     dataset={dataset}
                     preview={preview}
                     selectedColumn={column?.name ?? null}
+                    selectedColumns={selectedColumns}
+                    onOpenColumnSelector={() => setShowColumnSelector(true)}
                     onSelectColumn={(name) => {
                       setSelectedColumn(name);
                       setShowColumnDetails(true);
                     }}
                     onPage={page}
                   />
+                  {showColumnSelector && (
+                    <ColumnSelector
+                      columns={dataset.schema}
+                      selectedColumns={selectedColumns}
+                      onClose={() => setShowColumnSelector(false)}
+                      onConfirm={(columns) => {
+                        setShowColumnSelector(false);
+                        void projectColumns(columns);
+                      }}
+                    />
+                  )}
                   {showColumnDetails && column && (
                     <div className="column-details-popover">
                       <ColumnDetails

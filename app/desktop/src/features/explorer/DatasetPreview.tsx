@@ -8,6 +8,8 @@ type Props = {
   preview: Preview | null;
   selectedColumn: string | null;
   onSelectColumn: (name: string) => void;
+  selectedColumns: string[];
+  onOpenColumnSelector: () => void;
   onPage: (offset: number, limit?: number) => void;
 };
 
@@ -16,6 +18,8 @@ export function DatasetPreview({
   preview,
   selectedColumn,
   onSelectColumn,
+  selectedColumns,
+  onOpenColumnSelector,
   onPage,
 }: Props) {
   const offset = preview?.offset ?? 0;
@@ -72,16 +76,16 @@ export function DatasetPreview({
           />
         </label>
         <span className="preview-selection">
-          {selectedColumn ? '1 column selected' : 'No column selected'}
+          {`${selectedColumns.length} of ${dataset.columns} columns visible`}
         </span>
         <button
           type="button"
           className="toolbar-link"
-          onClick={() => onSelectColumn(preview?.columns[0]?.name ?? '')}
+          onClick={onOpenColumnSelector}
         >
           <Icon name="columns" /> Columns
         </button>
-        <SchemaSummary dataset={dataset} />
+        <SchemaSummary dataset={dataset} visibleColumns={selectedColumns.length} />
       </div>
       {records.length ? (
         <div className="table-wrap">

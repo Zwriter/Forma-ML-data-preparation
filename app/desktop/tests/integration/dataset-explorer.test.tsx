@@ -166,4 +166,27 @@ describe('dataset explorer workflow', () => {
     });
     expect(useDatasetStore.getState().sourcePreview?.records).toEqual(firstPage.records);
   });
+
+  it('applies a column projection with a bounded preview and no history change', async () => {
+    useDatasetStore.getState().setSource(dataset, firstPage);
+    useWorkspaceStore.getState().setHistory({
+      history_id: 'history-1', dataset_id: dataset.dataset_id, current_index: 0,
+      saved_index: 0, is_dirty: false, can_undo: false, can_redo: false,
+    });
+    invoke.mockResolvedValueOnce({
+      id: 'projection-1', status: 'success',
+      result: { ...firstPage, records: [{ value: 1 }] }, error: null,
+    });
+
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Select columns' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Apply columns' }));
+
+    await waitFor(() => expect(invoke).toHaveBeenCalledTimes(1));
+    expect(invoke.mock.calls[0][1].request.params).toMatchObject({
+      dataset_id: 'dataset-1', offset: 0, limit: 100, columns: ['value'],
+    });
+    expect(useWorkspaceStore.getState().history?.is_dirty).toBe(false);
+    expect(useWorkspaceStore.getState().history?.current_index).toBe(0);
+  });
 });

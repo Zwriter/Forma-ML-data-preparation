@@ -28,7 +28,7 @@ type RibbonGroup = { group: string; commands: string[] };
 const ribbonCommands: Record<string, RibbonGroup[]> = {
   Data: [
     { group: 'File', commands: ['Save', 'Undo', 'Redo'] },
-    { group: 'Table', commands: ['Select column', 'Filter row', 'Sort'] },
+    { group: 'Table', commands: ['Select columns', 'Filter row', 'Sort'] },
     { group: 'Reshape', commands: ['Group by', 'Pivot', 'Unpivot'] },
   ],
   Clean: [
@@ -52,7 +52,7 @@ const commandIcons: Record<string, IconName> = {
   Save: 'save',
   Undo: 'undo',
   Redo: 'redo',
-  'Select column': 'columns',
+  'Select columns': 'columns',
   'Filter row': 'filter',
   Sort: 'sort',
   'Group by': 'group',
@@ -108,7 +108,7 @@ export function WorkspaceChrome({
       return { label, icon: commandIcons[label], href: '#export', disabled: !hasDataset };
     if (label === 'Refresh')
       return { label, icon: commandIcons[label], onClick: onReload, disabled: !hasDataset };
-    if (label === 'Select column' || label === 'Column details')
+    if (label === 'Select columns' || label === 'Column details')
       return { label, icon: commandIcons[label], onClick: onSelectColumns, disabled: !hasDataset };
     if (label === 'Connect to DB')
       return {

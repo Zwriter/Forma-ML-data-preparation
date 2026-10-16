@@ -35,12 +35,15 @@ export const useDatasetStore = create<State>((set) => ({
   setHistory: (history) => set({ history }),
   setSelectedColumns: (selectedColumns) => set({ selectedColumns }),
   applyResult: (dataset, history, preview) =>
-    set((state) => ({
-      dataset,
-      history,
-      preview: preview ?? state.preview,
-      selectedColumns: state.selectedColumns.filter((name) =>
+    set((state) => {
+      const retained = state.selectedColumns.filter((name) =>
         dataset.schema.some((column) => column.name === name),
-      ),
-    })),
+      );
+      return {
+        dataset,
+        history,
+        preview: preview ?? state.preview,
+        selectedColumns: retained.length ? retained : dataset.schema.map((column) => column.name),
+      };
+    }),
 }));

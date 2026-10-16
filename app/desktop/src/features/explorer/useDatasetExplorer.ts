@@ -3,7 +3,7 @@ import { request } from '../../services/ipcClient';
 import { useDatasetStore } from '../../stores/datasetStore';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
 import type { Dataset, Preview } from '../../types/dataset';
-import { getHistory } from '../../services/dataOperationClient';
+import { getHistory, getWorkingPreview } from '../../services/dataOperationClient';
 
 export function useDatasetExplorer() {
   const [path, setPath] = useState('');
@@ -12,6 +12,7 @@ export function useDatasetExplorer() {
   const setSource = useDatasetStore((state) => state.setSource);
   const setDatasetHistory = useDatasetStore((state) => state.setHistory);
   const setPreview = useDatasetStore((state) => state.setPreview);
+  const selectedColumns = useDatasetStore((state) => state.selectedColumns);
   const setBusy = useWorkspaceStore((state) => state.setBusy);
   const setError = useWorkspaceStore((state) => state.setError);
   const setHistory = useWorkspaceStore((state) => state.setHistory);
@@ -46,17 +47,34 @@ export function useDatasetExplorer() {
       if (!dataset) return;
       try {
         setPreview(
-          await request<Preview>('dataset.preview', {
-            dataset_id: dataset.dataset_id,
+          await getWorkingPreview(dataset.dataset_id, {
             offset,
             limit: Math.min(500, Math.max(10, limit)),
+            columns: selectedColumns,
           }),
         );
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : 'Could not load this page.');
       }
     },
+    [dataset, preview?.limit, selectedColumns, setError, setPreview],
+  );
+  const projectColumns = useCallback(
+    async (columns: string[]) => {
+      if (!dataset || !columns.length) return;
+      try {
+        const projected = await getWorkingPreview(dataset.dataset_id, {
+          offset: 0,
+          limit: Math.min(500, Math.max(10, preview?.limit ?? 100)),
+          columns,
+        });
+        useDatasetStore.getState().setSelectedColumns(columns);
+        setPreview(projected);
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : 'Could not select these columns.');
+      }
+    },
     [dataset, preview?.limit, setError, setPreview],
   );
-  return { path, setPath, dataset, preview, openDataset, page };
+  return { path, setPath, dataset, preview, openDataset, page, projectColumns };
 }

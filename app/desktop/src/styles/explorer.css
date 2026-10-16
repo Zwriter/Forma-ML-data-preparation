@@ -72,6 +72,12 @@
   white-space: nowrap;
 }
 
+@media (max-width: 900px) {
+  .table-toolbar .preview-selection {
+    display: none;
+  }
+}
+
 .toolbar-link {
   display: inline-flex;
   align-items: center;

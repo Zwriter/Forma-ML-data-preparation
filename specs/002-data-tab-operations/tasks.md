@@ -70,16 +70,16 @@ description: "Executable implementation tasks for Data Tab Operations"
 
 ### Tests for User Story 2
 
-- [ ] T025 [P] [US2] Add component tests for multi-select, search, Select all, Clear all, confirmation, empty-selection validation, keyboard navigation, and accessible states in `app/desktop/tests/unit/data-operations/ColumnSelector.test.tsx`.
-- [ ] T026 [P] [US2] Add integration tests proving confirmed column projections affect bounded previews but do not create history entries or dirty state in `app/desktop/tests/integration/dataset-explorer.test.tsx`.
+- [x] T025 [P] [US2] Add component tests for multi-select, search, Select all, Clear all, confirmation, empty-selection validation, keyboard navigation, and accessible states in `app/desktop/tests/unit/data-operations/ColumnSelector.test.tsx`.
+- [x] T026 [P] [US2] Add integration tests proving confirmed column projections affect bounded previews but do not create history entries or dirty state in `app/desktop/tests/integration/dataset-explorer.test.tsx`.
 
 ### Implementation for User Story 2
 
-- [ ] T027 [US2] Implement the accessible multi-column selection popup with draft selection, search, Select all, Clear all, ordered confirmation, and validation in `app/desktop/src/features/data-operations/ColumnSelector.tsx`.
-- [ ] T028 [US2] Store confirmed projection columns and request bounded projected previews through `app/desktop/src/features/explorer/useDatasetExplorer.ts`, `app/desktop/src/stores/datasetStore.ts`, and `app/desktop/src/services/dataOperationClient.ts`.
-- [ ] T029 [US2] Replace single-column selection wording and behavior with multi-column selection state in `app/desktop/src/features/explorer/DatasetPreview.tsx` and `app/desktop/src/features/explorer/SchemaSummary.tsx`.
-- [ ] T030 [US2] Wire the Select column ribbon command and Data-tab table control to open and close the selector without changing the working history in `app/desktop/src/App.tsx` and `app/desktop/src/features/workspace/WorkspaceChrome.tsx`.
-- [ ] T031 [US2] Add responsive and keyboard-accessible styling for the selector popup in `app/desktop/src/styles/explorer.css` and `app/desktop/src/styles/workspace-content.css`.
+- [x] T027 [US2] Implement the accessible multi-column selection popup with draft selection, search, Select all, Clear all, ordered confirmation, and validation in `app/desktop/src/features/data-operations/ColumnSelector.tsx`.
+- [x] T028 [US2] Store confirmed projection columns and request bounded projected previews through `app/desktop/src/features/explorer/useDatasetExplorer.ts`, `app/desktop/src/stores/datasetStore.ts`, and `app/desktop/src/services/dataOperationClient.ts`.
+- [x] T029 [US2] Replace single-column selection wording and behavior with multi-column selection state in `app/desktop/src/features/explorer/DatasetPreview.tsx` and `app/desktop/src/features/explorer/SchemaSummary.tsx`.
+- [x] T030 [US2] Wire the Select column ribbon command and Data-tab table control to open and close the selector without changing the working history in `app/desktop/src/App.tsx` and `app/desktop/src/features/workspace/WorkspaceChrome.tsx`.
+- [x] T031 [US2] Add responsive and keyboard-accessible styling for the selector popup in `app/desktop/src/styles/explorer.css` and `app/desktop/src/styles/workspace-content.css`.
 
 **Checkpoint**: User Story 2 works independently and leaves Save/Undo/Redo history unchanged.
 
