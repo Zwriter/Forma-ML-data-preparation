@@ -41,5 +41,17 @@ class ExportError(FormaError):
     code = "EXPORT_FAILED"
 
 
+class HistoryBoundaryError(FormaError):
+    code = "HISTORY_BOUNDARY"
+
+
+class SaveRequiredError(FormaError):
+    code = "SAVE_REQUIRED"
+
+
+class SaveError(FormaError):
+    code = "SAVE_FAILED"
+
+
 class CancelledError(FormaError):
     code = "CANCELLED"

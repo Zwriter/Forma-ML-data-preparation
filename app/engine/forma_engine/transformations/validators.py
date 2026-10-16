@@ -9,6 +9,10 @@ SUPPORTED = {
     "drop_columns",
     "convert_type",
     "filter_rows",
+    "sort_rows",
+    "group_by",
+    "pivot",
+    "unpivot",
 }
 
 
@@ -80,3 +84,12 @@ def validate(operation: dict, columns: list[str]) -> None:
         raise InvalidTransformationError("Choose a supported conversion type.")
     if kind == "filter_rows":
         parse_filter(params.get("expression"), columns)
+    if kind in {"sort_rows", "group_by", "pivot", "unpivot"}:
+        required = {
+            "sort_rows": ("keys",),
+            "group_by": ("group_columns", "aggregations"),
+            "pivot": ("row_columns", "category_column", "value_column", "function"),
+            "unpivot": ("identifier_columns", "value_columns", "attribute_name", "value_name"),
+        }[kind]
+        if any(key not in params for key in required):
+            raise InvalidTransformationError("Provide all required operation settings.")

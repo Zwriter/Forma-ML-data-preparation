@@ -36,7 +36,8 @@ class JobManager:
             self._emit(job)
             result = work(lambda: job.cancel_requested)
             with self.lock:
-                if job.cancel_requested:
+                committed = isinstance(result, dict) and result.pop("_committed", False)
+                if job.cancel_requested and not committed:
                     job.transition(JobState.CANCELLED, "Cancelled")
                 else:
                     job.result = result

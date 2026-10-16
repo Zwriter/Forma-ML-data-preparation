@@ -1,4 +1,5 @@
 import polars as pl
+from forma_engine.domain.errors import InvalidTransformationError
 from forma_engine.transformations.filter_parser import parse_filter
 
 
@@ -35,5 +36,9 @@ def apply(frame: pl.LazyFrame, operation: dict) -> pl.LazyFrame:
     if kind == "filter_rows":
         return frame.filter(
             parse_filter(p["expression"], frame.collect_schema().names())
+        )
+    if kind in {"sort_rows", "group_by", "pivot", "unpivot"}:
+        raise InvalidTransformationError(
+            "This data operation is not available yet; the current dataset is unchanged."
         )
     return frame

@@ -4,6 +4,7 @@ import { WorkflowActions } from '../../src/features/workspace/WorkflowActions';
 import { useDatasetStore } from '../../src/stores/datasetStore';
 import { useJobStore } from '../../src/stores/jobStore';
 import { useTransformationStore } from '../../src/stores/transformationStore';
+import { useWorkspaceStore } from '../../src/stores/workspaceStore';
 
 const eventBus = vi.hoisted(() => ({
   handlers: {} as Record<string, (event: { payload: any }) => unknown>,
@@ -49,9 +50,14 @@ describe('profile and cleaning workflow', () => {
       preview: null,
       sourceDataset: null,
       sourcePreview: null,
+      history: null,
+      selectedColumns: [],
     });
     useJobStore.setState({ jobs: [] });
     useTransformationStore.setState({ operations: [] });
+    useWorkspaceStore.setState({
+      busy: false, error: null, history: null, saveStatus: 'idle', commands: {},
+    });
   });
 
   it('shows visible profile state immediately, progress, completion, and statistics', async () => {

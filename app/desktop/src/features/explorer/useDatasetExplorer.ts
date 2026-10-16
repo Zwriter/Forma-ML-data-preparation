@@ -3,15 +3,18 @@ import { request } from '../../services/ipcClient';
 import { useDatasetStore } from '../../stores/datasetStore';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
 import type { Dataset, Preview } from '../../types/dataset';
+import { getHistory } from '../../services/dataOperationClient';
 
 export function useDatasetExplorer() {
   const [path, setPath] = useState('');
   const dataset = useDatasetStore((state) => state.dataset);
   const preview = useDatasetStore((state) => state.preview);
   const setSource = useDatasetStore((state) => state.setSource);
+  const setDatasetHistory = useDatasetStore((state) => state.setHistory);
   const setPreview = useDatasetStore((state) => state.setPreview);
   const setBusy = useWorkspaceStore((state) => state.setBusy);
   const setError = useWorkspaceStore((state) => state.setError);
+  const setHistory = useWorkspaceStore((state) => state.setHistory);
   const openDataset = useCallback(
     async (sourcePath = path) => {
       setBusy(true);
@@ -23,7 +26,10 @@ export function useDatasetExplorer() {
           offset: 0,
           limit: 100,
         });
+        const history = await getHistory(opened.dataset_id);
         setSource(opened, firstPage);
+        setDatasetHistory(history);
+        setHistory(history);
         setPreview(firstPage);
         return true;
       } catch (cause) {
@@ -33,7 +39,7 @@ export function useDatasetExplorer() {
         setBusy(false);
       }
     },
-    [path, setBusy, setError, setSource, setPreview],
+    [path, setBusy, setError, setSource, setPreview, setHistory, setDatasetHistory],
   );
   const page = useCallback(
     async (offset: number, limit = preview?.limit ?? 100) => {

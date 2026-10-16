@@ -383,6 +383,31 @@
   }
 }
 
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(18 16 28 / 48%);
+}
+
+.confirm-dialog {
+  width: min(28rem, 100%);
+  padding: 1.5rem;
+  background: var(--surface, white);
+  box-shadow: 0 1rem 3rem rgb(18 16 28 / 24%);
+}
+
+.dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
 .worksheet-work-area {
   display: flex;
   flex-direction: column;
@@ -396,4 +421,28 @@
 
 .worksheet-work-area .dataset-heading h1 {
   font-size: 22px;
+}
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(18 16 28 / 48%);
+}
+
+.confirm-dialog {
+  width: min(28rem, 100%);
+  padding: 1.5rem;
+  background: var(--surface, white);
+  box-shadow: 0 1rem 3rem rgb(18 16 28 / 24%);
+}
+
+.dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
 }

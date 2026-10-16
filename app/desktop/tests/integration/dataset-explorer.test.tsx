@@ -36,8 +36,12 @@ describe('dataset explorer workflow', () => {
       preview: null,
       sourceDataset: null,
       sourcePreview: null,
+      history: null,
+      selectedColumns: [],
     });
-    useWorkspaceStore.setState({ busy: false, error: null });
+    useWorkspaceStore.setState({
+      busy: false, error: null, history: null, saveStatus: 'idle', commands: {},
+    });
   });
 
   it('shows the full ribbon and workspace navigation with the purple accent controls', () => {
@@ -68,7 +72,13 @@ describe('dataset explorer workflow', () => {
   it('opens file, shows schema and bounded records', async () => {
     invoke
       .mockResolvedValueOnce({ id: 'ui-1', status: 'success', result: dataset, error: null })
-      .mockResolvedValueOnce({ id: 'ui-2', status: 'success', result: firstPage, error: null });
+      .mockResolvedValueOnce({ id: 'ui-2', status: 'success', result: firstPage, error: null })
+      .mockResolvedValueOnce({
+        id: 'ui-3', status: 'success', result: {
+          history_id: 'history-1', dataset_id: dataset.dataset_id, current_index: 0,
+          saved_index: 0, is_dirty: false, can_undo: false, can_redo: false,
+        }, error: null,
+      });
 
     render(<App />);
     fireEvent.change(screen.getByLabelText('CSV or Parquet file'), {
@@ -80,7 +90,7 @@ describe('dataset explorer workflow', () => {
     expect(screen.getByText('source.csv')).toBeTruthy();
     expect(screen.getAllByText('Int64').length).toBeGreaterThan(0);
     expect(screen.getAllByRole('row')).toHaveLength(101);
-    expect(invoke).toHaveBeenCalledTimes(2);
+    expect(invoke).toHaveBeenCalledTimes(3);
     expect(invoke.mock.calls[1][1].request.params).toMatchObject({ offset: 0, limit: 100 });
   });
 

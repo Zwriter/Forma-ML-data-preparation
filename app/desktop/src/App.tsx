@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { open } from '@tauri-apps/plugin-dialog';
@@ -8,6 +8,8 @@ import { DatasetPreview } from './features/explorer/DatasetPreview';
 import { BeforeAfterComparison } from './features/cleaning/BeforeAfterComparison';
 import { WorkflowActions } from './features/workspace/WorkflowActions';
 import { WorkspaceChrome } from './features/workspace/WorkspaceChrome';
+import { SaveConfirmDialog } from './features/workspace/SaveConfirmDialog';
+import { useWorkspaceHistory } from './features/workspace/useWorkspaceHistory';
 import { useDatasetExplorer } from './features/explorer/useDatasetExplorer';
 import { useDatasetStore } from './stores/datasetStore';
 import { useWorkspaceStore } from './stores/workspaceStore';
@@ -51,9 +53,17 @@ export default function App() {
   const { dataset, preview, openDataset, page } = useDatasetExplorer();
   const busy = useWorkspaceStore((state) => state.busy);
   const error = useWorkspaceStore((state) => state.error);
+  const history = useWorkspaceStore((state) => state.history);
   const sourceDataset = useDatasetStore((state) => state.sourceDataset);
   const sourcePreview = useDatasetStore((state) => state.sourcePreview);
   const setError = useWorkspaceStore((state) => state.setError);
+  const [saveDialogMode, setSaveDialogMode] = useState<'close' | 'overwrite' | null>(null);
+  const closeAfterSave = useRef(false);
+  const allowClose = useRef(false);
+  const dirtyRef = useRef(false);
+  const openOverwriteDialog = useCallback(() => setSaveDialogMode('overwrite'), []);
+  const { save, undo, redo } = useWorkspaceHistory({ onOverwriteRequired: openOverwriteDialog });
+  dirtyRef.current = history?.is_dirty ?? false;
   const [activeTab, setActiveTab] = useState('Data');
   const [filePage, setFilePage] = useState<'import' | 'settings' | 'settings-about'>('import');
   const [recentFiles, setRecentFiles] = useState<RecentFile[]>(readRecentFiles);
@@ -130,6 +140,43 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    const window = getDesktopWindow();
+    if (!window) return;
+    let unlisten: (() => void) | undefined;
+    void window.onCloseRequested((event) => {
+      if (allowClose.current || !dirtyRef.current) return;
+      event.preventDefault();
+      closeAfterSave.current = true;
+      setSaveDialogMode('close');
+    }).then((stop) => {
+      unlisten = stop;
+    });
+    return () => unlisten?.();
+  }, []);
+
+  const onSaveComplete = useCallback((success: boolean) => {
+    if (!success) return;
+    setSaveDialogMode(null);
+    if (closeAfterSave.current) {
+      closeAfterSave.current = false;
+      allowClose.current = true;
+      void getDesktopWindow()?.close();
+    }
+  }, []);
+
+  function discardAndClose() {
+    closeAfterSave.current = false;
+    setSaveDialogMode(null);
+    allowClose.current = true;
+    void getDesktopWindow()?.close();
+  }
+
+  function saveFromDialog(forceOverwrite: boolean) {
+    if (saveDialogMode === 'close') closeAfterSave.current = true;
+    void save(forceOverwrite);
+  }
+
+  useEffect(() => {
     if (!isTauriRuntime()) {
       setError(runtimeMessage);
       return;
@@ -182,7 +229,13 @@ export default function App() {
         <span className="active-file">{fileName || 'No dataset open'}</span>
         <span className="file-status">
           <i aria-hidden="true" />
-          {busy ? 'Processing locally' : dataset ? 'Local file — Ready' : 'Local workspace'}
+          {busy
+            ? 'Processing locally'
+            : history?.is_dirty
+              ? 'Unsaved changes'
+              : dataset
+                ? 'Saved'
+                : 'Local workspace'}
         </span>
         <div className="window-controls">
           <button
@@ -231,6 +284,14 @@ export default function App() {
           setShowColumnDetails(true);
         }}
         hasDataset={Boolean(dataset)}
+        onSave={() => {
+          closeAfterSave.current = false;
+          void save();
+        }}
+        onUndo={() => void undo()}
+        onRedo={() => void redo()}
+        canUndo={history?.can_undo ?? false}
+        canRedo={history?.can_redo ?? false}
       />
 
       <div className="workspace-body">
@@ -444,7 +505,6 @@ export default function App() {
                 </div>
               ) : (
                 <>
-                  <WorkflowActions activeTab={activeTab} />
                   {activeTab === 'Clean' && sourceDataset && (
                     <section className="card source-comparison">
                       <h2>Source comparison</h2>
@@ -460,7 +520,19 @@ export default function App() {
             </>
           ) : null}
         </main>
+        <WorkflowActions activeTab={activeTab} onSaveComplete={onSaveComplete} />
       </div>
+      {saveDialogMode && (
+        <SaveConfirmDialog
+          mode={saveDialogMode}
+          onSave={saveFromDialog}
+          onDiscard={discardAndClose}
+          onCancel={() => {
+            closeAfterSave.current = false;
+            setSaveDialogMode(null);
+          }}
+        />
+      )}
     </div>
   );
 }

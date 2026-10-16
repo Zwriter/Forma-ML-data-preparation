@@ -9,6 +9,11 @@ type Props = {
   onReload: () => void;
   onSelectColumns: () => void;
   hasDataset: boolean;
+  onSave: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 };
 
 type Tool = {
@@ -82,16 +87,25 @@ export function WorkspaceChrome({
   onReload,
   onSelectColumns,
   hasDataset,
+  onSave,
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo,
 }: Props) {
   const [showDbPanel, setShowDbPanel] = useState(false);
   const [connectionMessage, setConnectionMessage] = useState('');
   const groups = ribbonCommands[activeTab] ?? [];
 
   function toolFor(label: string): Tool {
-    if (label === 'Save' || label === 'Export')
+    if (label === 'Save')
+      return { label, icon: commandIcons[label], onClick: onSave, disabled: !hasDataset };
+    if (label === 'Undo')
+      return { label, icon: commandIcons[label], onClick: onUndo, disabled: !canUndo };
+    if (label === 'Redo')
+      return { label, icon: commandIcons[label], onClick: onRedo, disabled: !canRedo };
+    if (label === 'Export')
       return { label, icon: commandIcons[label], href: '#export', disabled: !hasDataset };
-    if (label === 'Undo' || label === 'Redo')
-      return { label, icon: commandIcons[label], disabled: true };
     if (label === 'Refresh')
       return { label, icon: commandIcons[label], onClick: onReload, disabled: !hasDataset };
     if (label === 'Select column' || label === 'Column details')

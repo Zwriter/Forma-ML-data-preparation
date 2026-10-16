@@ -67,11 +67,15 @@ describe('import-clean-export desktop flow', () => {
       preview: null,
       sourceDataset: null,
       sourcePreview: null,
+      history: null,
+      selectedColumns: [],
     });
     useExportStore.setState({ destination: '', overwrite: false });
     useJobStore.setState({ jobs: [] });
     useTransformationStore.setState({ operations: [] });
-    useWorkspaceStore.setState({ busy: false, error: null });
+    useWorkspaceStore.setState({
+      busy: false, error: null, history: null, saveStatus: 'idle', commands: {},
+    });
   });
 
   it('cleans and reopens CSV and Parquet, preserves source, rejects bad conversion and overwrite, and cancels export', async () => {
@@ -91,6 +95,16 @@ describe('import-clean-export desktop flow', () => {
                 : parquetOutput;
           return success(file, `open-${file.dataset_id}`);
         }
+        if (method === 'dataset.history')
+          return success({
+            history_id: `history-${params.dataset_id}`,
+            dataset_id: params.dataset_id,
+            current_index: 0,
+            saved_index: 0,
+            is_dirty: false,
+            can_undo: false,
+            can_redo: false,
+          });
         if (method === 'dataset.preview') {
           const rows = previews[params.dataset_id] ?? [];
           return success({
@@ -166,7 +180,13 @@ describe('import-clean-export desktop flow', () => {
       state: 'completed',
       progress: 1,
       message: 'Cleaned',
-      result: { dataset: derived },
+      result: {
+        dataset: derived,
+        history: {
+          history_id: 'history-source-1', dataset_id: derived.dataset_id,
+          current_index: 1, saved_index: 0, is_dirty: true, can_undo: true, can_redo: false,
+        },
+      },
     });
     await waitFor(() => expect(useDatasetStore.getState().dataset?.dataset_id).toBe('derived-1'));
     expect(useDatasetStore.getState().sourceDataset).toEqual(sourceSnapshot);

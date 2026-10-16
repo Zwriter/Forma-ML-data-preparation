@@ -5,6 +5,7 @@ from forma_engine.services.dataset_service import DatasetService
 from forma_engine.services.cleaning_service import CleaningService
 from forma_engine.services.export_service import ExportService
 from forma_engine.services.profile_service import ProfileService
+from forma_engine.services.save_service import SaveService
 from forma_engine.ipc.router import Router
 from forma_engine.ipc.server import serve
 
@@ -19,6 +20,7 @@ def build_router(publisher=None):
         ProfileService(datasets, jobs),
         jobs,
         ExportService(datasets),
+        SaveService(datasets),
     ), jobs
 
 

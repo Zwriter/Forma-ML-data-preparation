@@ -3,12 +3,15 @@ import { request } from '../../services/ipcClient';
 import type { Operation } from '../../types/transformation';
 import { useJobStore } from '../../stores/jobStore';
 import { useDatasetStore } from '../../stores/datasetStore';
-import type { Dataset, Preview } from '../../types/dataset';
+import type { Dataset, HistoryMetadata, Preview } from '../../types/dataset';
+import { useWorkspaceStore } from '../../stores/workspaceStore';
 
 export function useCleaningJob() {
   const dataset = useDatasetStore((state) => state.dataset);
   const setDataset = useDatasetStore((state) => state.setDataset);
   const setPreview = useDatasetStore((state) => state.setPreview);
+  const applyResult = useDatasetStore((state) => state.applyResult);
+  const setHistory = useWorkspaceStore((state) => state.setHistory);
   const add = useJobStore((state) => state.add);
   const preview = useCallback(
     async (operation: Operation) => {
@@ -33,17 +36,20 @@ export function useCleaningJob() {
     [dataset, add],
   );
   const acceptResult = useCallback(
-    async (derived: Dataset) => {
-      setDataset(derived);
-      setPreview(
-        await request<Preview>('dataset.preview', {
+    async (derived: Dataset, history?: HistoryMetadata) => {
+      const preview = await request<Preview>('dataset.preview', {
           dataset_id: derived.dataset_id,
           offset: 0,
           limit: 100,
-        }),
-      );
+        });
+      setDataset(derived);
+      setPreview(preview);
+      if (history) {
+        applyResult(derived, history, preview);
+        setHistory(history);
+      }
     },
-    [setDataset, setPreview],
+    [setDataset, setPreview, applyResult, setHistory],
   );
   return { dataset, preview, apply, acceptResult };
 }

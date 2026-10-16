@@ -43,11 +43,15 @@ afterEach(() => {
     preview: null,
     sourceDataset: null,
     sourcePreview: null,
+    history: null,
+    selectedColumns: [],
   });
   useExportStore.setState({ destination: '', overwrite: false });
   useJobStore.setState({ jobs: [] });
   useTransformationStore.setState({ operations: [] });
-  useWorkspaceStore.setState({ busy: false, error: null });
+  useWorkspaceStore.setState({
+    busy: false, error: null, history: null, saveStatus: 'idle', commands: {},
+  });
 });
 
 describe('desktop accessibility and responsive shell', () => {
