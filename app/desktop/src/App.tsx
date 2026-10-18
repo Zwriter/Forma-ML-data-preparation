@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { open } from '@tauri-apps/plugin-dialog';
@@ -7,11 +7,19 @@ import { WorkspaceChrome } from './features/workspace/WorkspaceChrome';
 import { SaveConfirmDialog } from './features/workspace/SaveConfirmDialog';
 import { WorkspaceTitlebar } from './features/workspace/WorkspaceTitlebar';
 import { WorkspaceContent } from './features/workspace/WorkspaceContent';
+import { NotificationPopup } from './components/NotificationPopup';
+import { useDraggablePopups } from './hooks/useDraggablePopups';
 import { useWorkspaceHistory } from './features/workspace/useWorkspaceHistory';
 import { useDatasetExplorer } from './features/explorer/useDatasetExplorer';
+import { useOpenFileTabs } from './features/workspace/useOpenFileTabs';
 import { useDatasetStore } from './stores/datasetStore';
 import { useWorkspaceStore } from './stores/workspaceStore';
-import { getTauriRuntimeError, isTauriRuntime, runtimeMessage } from './services/tauriRuntime';
+import {
+  getTauriRuntimeError,
+  isDemoRuntime,
+  isTauriRuntime,
+  runtimeMessage,
+} from './services/tauriRuntime';
 import './styles/globals.css';
 import './styles/workspace.css';
 import './styles/workspace-content.css';
@@ -28,17 +36,15 @@ function getDesktopWindow() {
 }
 
 export default function App() {
+  useDraggablePopups();
   const { dataset, preview, openDataset, page, projectColumns } = useDatasetExplorer();
   const busy = useWorkspaceStore((state) => state.busy);
-  const error = useWorkspaceStore((state) => state.error);
   const history = useWorkspaceStore((state) => state.history);
   const sourceDataset = useDatasetStore((state) => state.sourceDataset);
   const sourcePreview = useDatasetStore((state) => state.sourcePreview);
   const selectedColumns = useDatasetStore((state) => state.selectedColumns);
   const setError = useWorkspaceStore((state) => state.setError);
   const [saveDialogMode, setSaveDialogMode] = useState<'close' | 'overwrite' | null>(null);
-  const closeAfterSave = useRef(false);
-  const dirtyRef = useRef(false);
   const closeWindow = useCallback(async () => {
     const window = getDesktopWindow();
     if (!window) {
@@ -51,65 +57,41 @@ export default function App() {
       setError(cause instanceof Error ? cause.message : 'Could not close the window.');
     }
   }, [setError]);
+  const fileTabs = useOpenFileTabs(setSaveDialogMode, closeWindow);
   const requestClose = useCallback(() => {
-    if (dirtyRef.current) {
-      closeAfterSave.current = true;
-      setSaveDialogMode('close');
-      return;
-    }
-    void closeWindow();
-  }, [closeWindow]);
+    if (!fileTabs.requestCloseWindow()) void closeWindow();
+  }, [closeWindow, fileTabs.requestCloseWindow]);
   const openOverwriteDialog = useCallback(() => setSaveDialogMode('overwrite'), []);
   const { save, undo, redo } = useWorkspaceHistory({ onOverwriteRequired: openOverwriteDialog });
-  dirtyRef.current = history?.is_dirty ?? false;
+
   const [activeTab, setActiveTab] = useState('Data');
   const [showColumnSelector, setShowColumnSelector] = useState(false);
   const [operationDialog, setOperationDialog] = useState<
     'filter' | 'sort' | 'group_by' | 'pivot' | 'unpivot' | null
   >(null);
-  const fileName = dataset?.source_path.split(/[\\/]/).pop() ?? '';
-
   useEffect(() => {
     const window = getDesktopWindow();
     if (!window) return;
     let unlisten: (() => void) | undefined;
     void window
       .onCloseRequested((event) => {
-        if (!dirtyRef.current) return;
-        event.preventDefault();
-        closeAfterSave.current = true;
-        setSaveDialogMode('close');
+        if (fileTabs.requestCloseWindow()) event.preventDefault();
       })
       .then((stop) => {
         unlisten = stop;
       });
     return () => unlisten?.();
-  }, []);
-
-  const onSaveComplete = useCallback(
-    (success: boolean) => {
-      if (!success) return;
-      setSaveDialogMode(null);
-      if (closeAfterSave.current) {
-        closeAfterSave.current = false;
-        void closeWindow();
-      }
-    },
-    [closeWindow],
-  );
-
-  function discardAndClose() {
-    closeAfterSave.current = false;
-    setSaveDialogMode(null);
-    void closeWindow();
-  }
+  }, [fileTabs.requestCloseWindow]);
 
   function saveFromDialog(forceOverwrite: boolean) {
-    if (saveDialogMode === 'close') closeAfterSave.current = true;
     void save(forceOverwrite);
   }
 
   useEffect(() => {
+    if (isDemoRuntime()) {
+      void openDataset('sample.csv');
+      return;
+    }
     if (!isTauriRuntime()) {
       setError(runtimeMessage);
       return;
@@ -123,7 +105,7 @@ export default function App() {
         setError(cause instanceof Error ? cause.message : getTauriRuntimeError().message);
       });
     return () => stop?.();
-  }, [setError]);
+  }, [openDataset, setError]);
 
   async function browse() {
     if (!isTauriRuntime()) {
@@ -143,10 +125,14 @@ export default function App() {
 
   return (
     <div className="app-shell" id="workspace-top">
+      <NotificationPopup />
       <WorkspaceTitlebar
-        fileName={fileName}
+        files={fileTabs.files}
+        activeFileId={fileTabs.activeFileId}
         busy={busy}
         isDirty={history?.is_dirty ?? false}
+        onSelectFile={fileTabs.activate}
+        onCloseFile={fileTabs.requestCloseFile}
         onClose={requestClose}
       />
 
@@ -170,7 +156,6 @@ export default function App() {
         onUnpivot={() => setOperationDialog('unpivot')}
         hasDataset={Boolean(dataset)}
         onSave={() => {
-          closeAfterSave.current = false;
           void save();
         }}
         onUndo={() => void undo()}
@@ -188,7 +173,6 @@ export default function App() {
           sourcePreview={sourcePreview}
           selectedColumns={selectedColumns}
           busy={busy}
-          error={error}
           showColumnSelector={showColumnSelector}
           onShowColumnSelector={setShowColumnSelector}
           onBack={() => setActiveTab('Data')}
@@ -203,7 +187,7 @@ export default function App() {
         />
         <WorkflowActions
           activeTab={activeTab}
-          onSaveComplete={onSaveComplete}
+          onSaveComplete={fileTabs.onSaveComplete}
           operationDialog={operationDialog}
           onCloseOperationDialog={() => setOperationDialog(null)}
         />
@@ -212,11 +196,8 @@ export default function App() {
         <SaveConfirmDialog
           mode={saveDialogMode}
           onSave={saveFromDialog}
-          onDiscard={discardAndClose}
-          onCancel={() => {
-            closeAfterSave.current = false;
-            setSaveDialogMode(null);
-          }}
+          onDiscard={fileTabs.discardClose}
+          onCancel={fileTabs.cancelClose}
         />
       )}
     </div>

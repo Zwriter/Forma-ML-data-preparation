@@ -81,6 +81,8 @@ describe('import-clean-export desktop flow', () => {
       sourcePreview: null,
       history: null,
       selectedColumns: [],
+      openFiles: [],
+      activeFileId: null,
     });
     useExportStore.setState({ destination: '', overwrite: false });
     useJobStore.setState({ jobs: [] });

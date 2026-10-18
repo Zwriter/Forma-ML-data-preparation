@@ -40,10 +40,13 @@ describe('dataset explorer workflow', () => {
       sourcePreview: null,
       history: null,
       selectedColumns: [],
+      openFiles: [],
+      activeFileId: null,
     });
     useWorkspaceStore.setState({
       busy: false,
       error: null,
+      notification: null,
       history: null,
       saveStatus: 'idle',
       commands: {},

@@ -52,6 +52,8 @@ describe('profile and cleaning workflow', () => {
       sourcePreview: null,
       history: null,
       selectedColumns: [],
+      openFiles: [],
+      activeFileId: null,
     });
     useJobStore.setState({ jobs: [] });
     useTransformationStore.setState({ operations: [] });

@@ -22,12 +22,22 @@
 
 @media (max-width: 620px) {
   .app-titlebar {
-    gap: 12px;
-    padding: 0 12px;
+    gap: 8px;
+    padding: 0 8px;
   }
 
-  .active-file {
-    max-width: 130px;
+  .opened-file-tab {
+    min-width: 68px;
+    flex-basis: 100px;
+  }
+
+  .window-controls {
+    margin-right: -8px;
+  }
+
+  .window-controls button {
+    width: 34px;
+    flex-basis: 34px;
   }
 
   .file-status {

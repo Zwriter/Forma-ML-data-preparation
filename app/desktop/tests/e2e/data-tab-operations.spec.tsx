@@ -109,6 +109,8 @@ describe('Data tab reshape operations', () => {
       sourcePreview: null,
       history: null,
       selectedColumns: [],
+      openFiles: [],
+      activeFileId: null,
     });
     useWorkspaceStore.setState({
       busy: false,

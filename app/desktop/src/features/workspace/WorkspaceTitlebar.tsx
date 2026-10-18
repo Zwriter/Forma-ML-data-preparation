@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { Icon } from '../../components/Icon';
 import { isTauriRuntime } from '../../services/tauriRuntime';
+import type { OpenFileTab } from '../../stores/datasetStore';
 
 function desktopWindow() {
   if (!isTauriRuntime()) return undefined;
@@ -13,14 +14,20 @@ function desktopWindow() {
 }
 
 export function WorkspaceTitlebar({
-  fileName,
+  files,
+  activeFileId,
   busy,
   isDirty,
+  onSelectFile,
+  onCloseFile,
   onClose,
 }: {
-  fileName: string;
+  files: OpenFileTab[];
+  activeFileId: string | null;
   busy: boolean;
   isDirty: boolean;
+  onSelectFile: (id: string) => void;
+  onCloseFile: (id: string) => void;
   onClose: () => void;
 }) {
   const [isMaximized, setIsMaximized] = useState(false);
@@ -66,14 +73,48 @@ export function WorkspaceTitlebar({
         <span>Forma</span>
       </a>
       <span className="titlebar-divider" />
-      <span className="active-file">{fileName || 'No dataset open'}</span>
+      <nav className="opened-file-tabs" aria-label="Open files" role="tablist">
+        {files.map((file) => {
+          const name = file.dataset.source_path.split(/[\\/]/).pop() ?? file.dataset.source_path;
+          const dirty = file.history?.is_dirty ?? false;
+          return (
+            <div
+              className={`opened-file-tab${activeFileId === file.id ? ' active' : ''}`}
+              key={file.id}
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeFileId === file.id}
+                className={`opened-file-name${activeFileId === file.id ? ' active' : ''}`}
+                onClick={() => onSelectFile(file.id)}
+                title={file.dataset.source_path}
+              >
+                {name}
+              </button>
+              <button
+                type="button"
+                className={`opened-file-close${dirty ? ' unsaved' : ''}`}
+                aria-label={`Close ${name}`}
+                title={dirty ? `${name} has unsaved changes` : `Close ${name}`}
+                onClick={() => onCloseFile(file.id)}
+              >
+                {dirty && <span className="unsaved-file-dot" aria-hidden="true" />}
+                <span className="close-file-x" aria-hidden="true">
+                  ×
+                </span>
+              </button>
+            </div>
+          );
+        })}
+      </nav>
       <span className="file-status">
         <i aria-hidden="true" />
         {busy
           ? 'Processing locally'
           : isDirty
             ? 'Unsaved changes'
-            : fileName
+            : files.length
               ? 'Saved'
               : 'Local workspace'}
       </span>

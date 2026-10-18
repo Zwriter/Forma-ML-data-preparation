@@ -5,6 +5,10 @@ export function isTauriRuntime(): boolean {
   return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
 }
 
+export function isDemoRuntime(): boolean {
+  return import.meta.env.MODE === 'demo';
+}
+
 export function getTauriRuntimeError(): Error {
   return new Error(runtimeMessage);
 }

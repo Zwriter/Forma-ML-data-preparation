@@ -64,6 +64,8 @@ describe('workspace Save, Undo, and Redo', () => {
       sourcePreview: null,
       history: null,
       selectedColumns: [],
+      openFiles: [],
+      activeFileId: null,
     });
     useWorkspaceStore.setState({
       busy: false,

@@ -8,6 +8,24 @@
   background: rgb(18 16 28 / 48%);
 }
 
+.draggable-popup {
+  translate: var(--popup-x, 0px) var(--popup-y, 0px);
+}
+
+[role='dialog'] header,
+.confirm-dialog h2,
+.inspector-heading {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+[role='dialog'] header:active,
+.confirm-dialog h2:active,
+.inspector-heading:active {
+  cursor: grabbing;
+}
+
 .confirm-dialog {
   width: min(28rem, 100%);
   padding: 1.5rem;

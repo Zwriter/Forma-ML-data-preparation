@@ -21,6 +21,8 @@ describe('filter and sort workflow', () => {
       sourcePreview: null,
       history: null,
       selectedColumns: [],
+      openFiles: [],
+      activeFileId: null,
     });
     useWorkspaceStore.setState({
       busy: false,

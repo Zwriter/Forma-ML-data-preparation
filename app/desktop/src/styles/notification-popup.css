@@ -1,0 +1,57 @@
+.notification-popup {
+  position: fixed;
+  z-index: 1000;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: min(520px, calc(100vw - 32px));
+  padding: 14px 16px;
+  border: 1px solid;
+  border-radius: 8px;
+  box-shadow: 0 8px 28px #17213f2b;
+  animation: notification-enter 160ms ease-out;
+}
+
+.notification-popup.error {
+  color: #9a2f34;
+  background: #fff0f0;
+  border-color: #f2c9cb;
+}
+
+.notification-popup.success {
+  color: #175b39;
+  background: #effaf3;
+  border-color: #b9e5c8;
+}
+
+.notification-popup span {
+  flex: 1;
+}
+
+.notification-popup button {
+  padding: 0 2px;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  font-size: 22px;
+  line-height: 1;
+}
+
+@keyframes notification-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notification-popup {
+    animation: none;
+  }
+}

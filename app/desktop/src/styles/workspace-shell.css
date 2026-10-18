@@ -12,10 +12,10 @@
 
 .app-titlebar {
   display: flex;
-  flex: 0 0 44px;
+  flex: 0 0 34px;
   align-items: center;
-  gap: 22px;
-  padding: 0 20px;
+  gap: 14px;
+  padding: 0 14px;
   background: #fff;
   border-bottom: 1px solid var(--line);
   user-select: none;
@@ -49,17 +49,97 @@
 
 .titlebar-divider {
   width: 1px;
-  height: 24px;
+  height: 18px;
   background: #cfd4df;
 }
 
-.active-file {
-  max-width: 300px;
+.opened-file-tabs {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-self: stretch;
+  align-items: stretch;
+  gap: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.opened-file-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.opened-file-tab {
+  display: flex;
+  min-width: 104px;
+  max-width: 230px;
+  flex: 0 1 190px;
+  align-items: center;
+  border-right: 1px solid #e8eaf0;
+}
+
+.opened-file-name,
+.opened-file-close {
+  height: 100%;
+  border: 0;
+  background: transparent;
+}
+
+.opened-file-name {
+  min-width: 0;
+  flex: 1;
   overflow: hidden;
+  padding: 0 4px;
+  color: var(--muted);
   font-size: 13px;
-  font-weight: 650;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.opened-file-name.active {
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.opened-file-tab.active {
+  background: #f4f3f8;
+}
+
+.opened-file-close {
+  display: grid;
+  width: 28px;
+  flex: 0 0 28px;
+  place-items: center;
+  padding: 0;
+  color: #606b80;
+  border-radius: 4px;
+  font-size: 18px;
+}
+
+.opened-file-close:hover {
+  background: #e4e7ef;
+}
+
+.unsaved-file-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #697590;
+}
+
+.close-file-x {
+  display: none;
+  line-height: 1;
+}
+
+.opened-file-close:not(.unsaved) .close-file-x,
+.opened-file-tab:hover .close-file-x,
+.opened-file-close:focus-visible .close-file-x {
+  display: inline;
+}
+
+.opened-file-tab:hover .unsaved-file-dot,
+.opened-file-close:focus-visible .unsaved-file-dot {
+  display: none;
 }
 
 .file-status {

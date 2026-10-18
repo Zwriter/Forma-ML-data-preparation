@@ -1,7 +1,4 @@
-import { useEffect, useState } from 'react';
-import { listen } from '@tauri-apps/api/event';
-import type { Dataset, HistoryMetadata } from '../../types/dataset';
-import type { Job } from '../../types/job';
+import { useState } from 'react';
 import { TransformationBuilder } from '../cleaning/TransformationBuilder';
 import { BeforeAfterComparison } from '../cleaning/BeforeAfterComparison';
 import { ProfilePanel } from '../profiling/ProfilePanel';
@@ -10,20 +7,16 @@ import { JobStatus } from '../jobs/JobStatus';
 import { useCleaningJob } from '../cleaning/useCleaningJob';
 import { useProfileJob } from '../profiling/useProfileJob';
 import { useExportJob } from '../export/useExportJob';
-import { useJobStore } from '../../stores/jobStore';
-import { useDatasetStore } from '../../stores/datasetStore';
 import { request } from '../../services/ipcClient';
 import type { Operation } from '../../types/transformation';
-import { getTauriRuntimeError, isTauriRuntime } from '../../services/tauriRuntime';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
+import { useJobStore } from '../../stores/jobStore';
 import { DataOperationDialog } from './DataOperationDialog';
 import { applyDataOperation } from '../../services/dataOperationClient';
 import type { DataOperation } from '../../types/dataOperations';
 
-type EventJob = Job & {
-  result?: { dataset?: Dataset; history?: HistoryMetadata } & Record<string, unknown>;
-  error?: { code: string; message: string } | null;
-};
+import { useWorkflowJobEvents } from './useWorkflowJobEvents';
+
 export function WorkflowActions({
   activeTab,
   onSaveComplete,
@@ -35,15 +28,12 @@ export function WorkflowActions({
   operationDialog?: 'filter' | 'sort' | 'group_by' | 'pivot' | 'unpivot' | null;
   onCloseOperationDialog?: () => void;
 }) {
-  const { dataset, apply, acceptResult } = useCleaningJob();
+  const { dataset, apply } = useCleaningJob();
   const profile = useProfileJob();
   const exportDataset = useExportJob();
   const addJob = useJobStore((state) => state.add);
-  const setHistory = useWorkspaceStore((state) => state.setHistory);
-  const setDatasetHistory = useDatasetStore((state) => state.setHistory);
-  const setSaveStatus = useWorkspaceStore((state) => state.setSaveStatus);
-  const setWorkspaceBusy = useWorkspaceStore((state) => state.setBusy);
   const setWorkspaceError = useWorkspaceStore((state) => state.setError);
+  const notify = useWorkspaceStore((state) => state.notify);
   const [comparison, setComparison] = useState<{
     before: Record<string, unknown>[];
     after: Record<string, unknown>[];
@@ -52,64 +42,7 @@ export function WorkflowActions({
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const setStoreBusy = useWorkspaceStore((state) => state.setBusy);
-
-  useEffect(() => {
-    if (!isTauriRuntime()) {
-      setMessage(getTauriRuntimeError().message);
-      return;
-    }
-    let stop: (() => void) | undefined;
-    listen<EventJob>('engine-event', async (event) => {
-      const job = event.payload;
-      addJob(job);
-      setMessage(`${job.kind}: ${job.message}`);
-      if (job.state === 'completed' && job.result?.dataset)
-        await acceptResult(
-          job.result.dataset,
-          job.result.history,
-          ['group_by', 'pivot', 'unpivot'].includes(job.kind),
-        );
-      if (job.state === 'completed' && job.result?.history) {
-        setDatasetHistory(job.result.history);
-        setHistory(job.result.history);
-        if (job.kind === 'save') setSaveStatus(job.result.history.is_dirty ? 'dirty' : 'saved');
-      }
-      if (job.state === 'failed' && job.kind === 'save') {
-        setSaveStatus('failed');
-        const failure = job.error?.message ?? 'Save failed. Your changes remain unsaved.';
-        setMessage(failure);
-        setWorkspaceError(failure);
-      }
-      if (job.state === 'failed' && job.kind !== 'save') {
-        setWorkspaceError(
-          job.error?.message ?? `${job.kind} failed. The last valid state remains active.`,
-        );
-      }
-      if (job.state === 'cancelled' && job.kind === 'save') setSaveStatus('dirty');
-      if (['completed', 'failed', 'cancelled'].includes(job.state)) {
-        setWorkspaceBusy(false);
-        if (job.kind === 'save')
-          onSaveComplete?.(job.state === 'completed' && job.result?.history?.is_dirty === false);
-      }
-      if (job.kind === 'profile' && job.result) setReport(job.result);
-    })
-      .then((unlisten) => {
-        stop = unlisten;
-      })
-      .catch((cause: unknown) => {
-        setMessage(cause instanceof Error ? cause.message : getTauriRuntimeError().message);
-      });
-    return () => stop?.();
-  }, [
-    acceptResult,
-    addJob,
-    onSaveComplete,
-    setHistory,
-    setDatasetHistory,
-    setSaveStatus,
-    setWorkspaceBusy,
-    setWorkspaceError,
-  ]);
+  useWorkflowJobEvents(setMessage, onSaveComplete, setReport);
 
   if (!dataset) return null;
   async function previewOperation(operation: Operation) {
@@ -119,6 +52,7 @@ export function WorkflowActions({
       const result = await requestPreview(operation);
       setComparison(result);
       setMessage('Preview ready.');
+      notify('success', 'Transformation preview completed');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Preview failed.');
     } finally {
@@ -167,23 +101,19 @@ export function WorkflowActions({
   }
   async function runDataOperation(operation: DataOperation) {
     if (!dataset) return;
+    const rawLabel = operation.type.replaceAll('_', ' ');
+    const label = rawLabel.charAt(0).toUpperCase() + rawLabel.slice(1);
     setBusy(true);
     setStoreBusy(true);
     try {
       const job = await applyDataOperation(dataset.dataset_id, operation);
       addJob({ ...job, kind: operation.type, progress: null, message: 'Queued' });
       onCloseOperationDialog?.();
-      const label = {
-        filter_rows: 'Filter',
-        sort_rows: 'Sort',
-        group_by: 'Summary',
-        pivot: 'Pivot',
-        unpivot: 'Unpivot',
-      }[operation.type];
       setMessage(`${label} job queued.`);
     } catch (cause) {
       setStoreBusy(false);
-      setWorkspaceError(cause instanceof Error ? cause.message : 'Could not start this operation.');
+      const detail = cause instanceof Error ? cause.message : 'Could not start this operation.';
+      setWorkspaceError(`${label} failed: ${detail}`);
     } finally {
       setBusy(false);
     }

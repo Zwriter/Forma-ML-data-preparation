@@ -14,7 +14,6 @@ type Props = {
   sourcePreview: Preview | null;
   selectedColumns: string[];
   busy: boolean;
-  error: string | null;
   showColumnSelector: boolean;
   onShowColumnSelector: (show: boolean) => void;
   onBack: () => void;
@@ -32,7 +31,6 @@ export function WorkspaceContent({
   sourcePreview,
   selectedColumns,
   busy,
-  error,
   showColumnSelector,
   onShowColumnSelector,
   onBack,
@@ -56,16 +54,10 @@ export function WorkspaceContent({
 
   return (
     <main className={`work-area${activeTab === 'Data' && dataset ? ' worksheet-work-area' : ''}`}>
-      {error && activeTab !== 'File' && (
-        <p role="alert" className="error-banner">
-          {error}
-        </p>
-      )}
       {activeTab === 'File' && (
         <FileBackstage
           dataset={dataset}
           busy={busy}
-          error={error}
           showColumnDetails={showColumnDetails}
           onShowColumnDetails={setShowColumnDetails}
           onBack={onBack}

@@ -8,7 +8,6 @@ type FilePage = 'import' | 'settings' | 'settings-about';
 type Props = {
   dataset: Dataset | null;
   busy: boolean;
-  error: string | null;
   showColumnDetails: boolean;
   onShowColumnDetails: (show: boolean) => void;
   onBack: () => void;
@@ -38,7 +37,6 @@ function readRecentFiles(): RecentFile[] {
 export function FileBackstage({
   dataset,
   busy,
-  error,
   showColumnDetails,
   onShowColumnDetails,
   onBack,
@@ -115,11 +113,6 @@ export function FileBackstage({
         </div>
       </nav>
       <div className="file-content">
-        {error && (
-          <p role="alert" className="error-banner">
-            {error}
-          </p>
-        )}
         {filePage === 'import' && (
           <>
             <h1>Forma</h1>
