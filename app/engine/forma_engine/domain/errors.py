@@ -41,7 +41,7 @@ class ExportError(FormaError):
     code = "EXPORT_FAILED"
 
 
-class HistoryBoundaryError(FormaError):
+class HistoryBoundaryError(RequestError):
     code = "HISTORY_BOUNDARY"
 
 

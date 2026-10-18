@@ -69,7 +69,7 @@ describe('profile and cleaning workflow', () => {
           finishProfile = resolve;
         }),
     );
-    render(<WorkflowActions />);
+    render(<WorkflowActions activeTab="Profile" />);
 
     fireEvent.click(screen.getByText('Profile dataset'));
     expect((screen.getByText('Profile dataset') as HTMLButtonElement).disabled).toBe(true);
@@ -116,7 +116,7 @@ describe('profile and cleaning workflow', () => {
       total_count: 2,
     });
     invoke.mockResolvedValueOnce(ipcResult({ before: [{ x: 1 }], after: [{ x: 2 }] }));
-    render(<WorkflowActions />);
+    render(<WorkflowActions activeTab="Clean" />);
 
     fireEvent.click(screen.getByText('Add operation'));
     fireEvent.click(screen.getByText('Preview first enabled'));
@@ -174,7 +174,7 @@ describe('profile and cleaning workflow', () => {
       message: 'Cleaning rows',
     });
     invoke.mockResolvedValueOnce(ipcResult({ job_id: 'clean-2', state: 'running' }));
-    render(<WorkflowActions />);
+    render(<WorkflowActions activeTab="Clean" />);
 
     expect(screen.getByText('clean: Cleaning rows (20%)')).toBeTruthy();
     fireEvent.click(screen.getByText('Cancel'));

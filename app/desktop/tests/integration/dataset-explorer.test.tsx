@@ -5,8 +5,9 @@ import { useDatasetStore } from '../../src/stores/datasetStore';
 import { useWorkspaceStore } from '../../src/stores/workspaceStore';
 
 const invoke = vi.fn();
+const dialogOpen = vi.hoisted(() => vi.fn());
 vi.mock('@tauri-apps/api/core', () => ({ invoke: (...args: unknown[]) => invoke(...args) }));
-vi.mock('@tauri-apps/plugin-dialog', () => ({ open: vi.fn(), save: vi.fn() }));
+vi.mock('@tauri-apps/plugin-dialog', () => ({ open: dialogOpen, save: vi.fn() }));
 vi.mock('@tauri-apps/api/event', () => ({ listen: vi.fn(async () => () => undefined) }));
 
 const dataset = {
@@ -31,6 +32,7 @@ describe('dataset explorer workflow', () => {
   afterEach(() => {
     cleanup();
     invoke.mockReset();
+    dialogOpen.mockReset();
     useDatasetStore.setState({
       dataset: null,
       preview: null,
@@ -49,15 +51,9 @@ describe('dataset explorer workflow', () => {
 
     for (const action of [
       'Save',
-      'Reload',
       'Select columns',
-      'Filter rows',
+      'Filter row',
       'Sort',
-      'Data type',
-      'Replace',
-      'Fill',
-      'Split',
-      'Merge',
       'Group by',
       'Pivot',
       'Unpivot',
@@ -65,7 +61,8 @@ describe('dataset explorer workflow', () => {
       expect(screen.getByText(action)).toBeTruthy();
     }
     expect(screen.getByRole('link', { name: 'Pipelines' })).toBeTruthy();
-    fireEvent.click(screen.getByRole('link', { name: 'Settings' }));
+    fireEvent.click(screen.getByRole('button', { name: 'File' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     expect(screen.getByRole('heading', { name: 'Settings' })).toBeTruthy();
   });
 
@@ -80,16 +77,14 @@ describe('dataset explorer workflow', () => {
         }, error: null,
       });
 
+    dialogOpen.mockResolvedValueOnce('source.csv');
     render(<App />);
-    fireEvent.change(screen.getByLabelText('CSV or Parquet file'), {
-      target: { value: 'source.csv' },
-    });
-    fireEvent.click(screen.getByText('Open dataset'));
+    fireEvent.click(screen.getByRole('button', { name: 'Import file' }));
 
     await waitFor(() => expect(screen.getByText('Dataset overview')).toBeTruthy());
     expect(screen.getByText('source.csv')).toBeTruthy();
     expect(screen.getAllByText('Int64').length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('row')).toHaveLength(101);
+    expect(screen.getAllByRole('row')).toHaveLength(102);
     expect(invoke).toHaveBeenCalledTimes(3);
     expect(invoke.mock.calls[1][1].request.params).toMatchObject({ offset: 0, limit: 100 });
   });
@@ -103,14 +98,12 @@ describe('dataset explorer workflow', () => {
         }),
     );
 
+    dialogOpen.mockResolvedValueOnce('slow.csv');
     render(<App />);
-    fireEvent.change(screen.getByLabelText('CSV or Parquet file'), {
-      target: { value: 'slow.csv' },
-    });
-    fireEvent.click(screen.getByText('Open dataset'));
+    fireEvent.click(screen.getByRole('button', { name: 'Import file' }));
 
-    expect(screen.getByText('Opening…')).toBeTruthy();
-    expect((screen.getByText('Opening…') as HTMLButtonElement).disabled).toBe(true);
+    await waitFor(() => expect(screen.getByText('Importing…')).toBeTruthy());
+    expect((screen.getByText('Importing…') as HTMLButtonElement).disabled).toBe(true);
     finishOpen?.({
       id: 'ui-3',
       status: 'error',
@@ -132,14 +125,13 @@ describe('dataset explorer workflow', () => {
       error: { code: 'INVALID_DATASET', message: 'The file has no columns.' },
     });
 
+    dialogOpen.mockResolvedValueOnce('invalid.csv');
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: 'Open another dataset' }));
-    fireEvent.change(screen.getByLabelText('CSV or Parquet file'), {
-      target: { value: 'invalid.csv' },
-    });
-    fireEvent.click(screen.getByText('Open dataset'));
+    fireEvent.click(screen.getByRole('button', { name: 'File' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Import file' }));
 
     expect((await screen.findByRole('alert')).textContent).toContain('The file has no columns.');
+    fireEvent.click(screen.getByRole('button', { name: 'Back to workspace' }));
     expect(screen.getByText('Dataset overview')).toBeTruthy();
     expect(screen.getByText('source.csv')).toBeTruthy();
     expect(useDatasetStore.getState().dataset?.dataset_id).toBe('dataset-1');

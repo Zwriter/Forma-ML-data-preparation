@@ -16,6 +16,7 @@ def test_billion_row_lazy_preview_stays_bounded():
     service.frames[dataset.dataset_id] = pl.select(
         pl.int_range(0, 1_000_000_000).alias("value")
     ).lazy()
+    service.history_service.open(dataset, service.frames[dataset.dataset_id])
     started = time.perf_counter()
     result = service.preview(dataset.dataset_id, offset=1000, limit=500)
     elapsed = time.perf_counter() - started

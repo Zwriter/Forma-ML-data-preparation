@@ -9,11 +9,12 @@ import { useWorkspaceStore } from '../../src/stores/workspaceStore';
 
 const bridge = vi.hoisted(() => ({
   invoke: vi.fn(),
+  dialog: vi.fn(),
   listeners: {} as Record<string, (event: { payload: unknown }) => unknown>,
 }));
 
 vi.mock('@tauri-apps/api/core', () => ({ invoke: (...args: unknown[]) => bridge.invoke(...args) }));
-vi.mock('@tauri-apps/plugin-dialog', () => ({ open: vi.fn(), save: vi.fn() }));
+vi.mock('@tauri-apps/plugin-dialog', () => ({ open: (...args: unknown[]) => bridge.dialog(...args), save: vi.fn() }));
 vi.mock('@tauri-apps/api/event', () => ({
   listen: vi.fn(async (name: string, handler: (event: { payload: unknown }) => unknown) => {
     bridge.listeners[name] = handler;
@@ -57,10 +58,18 @@ async function emit(event: Record<string, unknown>) {
   });
 }
 
+function importFile(path: string) {
+  bridge.dialog.mockResolvedValueOnce(path);
+  const importButton = screen.queryByRole('button', { name: 'Import file' });
+  if (!importButton) fireEvent.click(screen.getByRole('button', { name: 'File' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Import file' }));
+}
+
 describe('import-clean-export desktop flow', () => {
   afterEach(() => {
     cleanup();
     bridge.invoke.mockReset();
+    bridge.dialog.mockReset();
     bridge.listeners = {};
     useDatasetStore.setState({
       dataset: null,
@@ -151,15 +160,12 @@ describe('import-clean-export desktop flow', () => {
     );
 
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: 'Open another dataset' }));
-    fireEvent.change(screen.getByLabelText('CSV or Parquet file'), {
-      target: { value: 'source.csv' },
-    });
-    fireEvent.click(screen.getByText('Open dataset'));
+    importFile('source.csv');
     await screen.findByText('Dataset overview');
-    expect(screen.getAllByRole('row')).toHaveLength(3);
+    expect(screen.getAllByRole('row')).toHaveLength(4);
     const sourceSnapshot = useDatasetStore.getState().sourceDataset;
 
+    fireEvent.click(screen.getByRole('link', { name: 'Clean' }));
     fireEvent.click(screen.getByText('Add operation'));
     fireEvent.click(screen.getByText('Preview first enabled'));
     await screen.findByText('Transformation preview');
@@ -192,6 +198,7 @@ describe('import-clean-export desktop flow', () => {
     expect(useDatasetStore.getState().sourceDataset).toEqual(sourceSnapshot);
     expect(useDatasetStore.getState().sourceDataset?.source_path).toBe('source.csv');
 
+    fireEvent.click(screen.getByRole('link', { name: 'Export' }));
     fireEvent.change(screen.getByLabelText('Destination path'), {
       target: { value: 'cleaned.csv' },
     });
@@ -225,16 +232,13 @@ describe('import-clean-export desktop flow', () => {
       'completed',
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Open another dataset' }));
-    fireEvent.change(screen.getByLabelText('CSV or Parquet file'), {
-      target: { value: 'cleaned.csv' },
-    });
-    fireEvent.click(screen.getByText('Open dataset'));
+    importFile('cleaned.csv');
     await waitFor(() =>
       expect(useDatasetStore.getState().dataset?.dataset_id).toBe('csv-output-1'),
     );
-    expect(screen.getAllByRole('row')).toHaveLength(2);
+    expect(screen.getAllByRole('row')).toHaveLength(3);
 
+    fireEvent.click(screen.getByRole('link', { name: 'Export' }));
     fireEvent.change(screen.getByLabelText('Destination path'), {
       target: { value: 'cleaned.parquet' },
     });
@@ -264,16 +268,13 @@ describe('import-clean-export desktop flow', () => {
         validated: true,
       },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Open another dataset' }));
-    fireEvent.change(screen.getByLabelText('CSV or Parquet file'), {
-      target: { value: 'cleaned.parquet' },
-    });
-    fireEvent.click(screen.getByText('Open dataset'));
+    importFile('cleaned.parquet');
     await waitFor(() =>
       expect(useDatasetStore.getState().dataset?.dataset_id).toBe('parquet-output-1'),
     );
     expect(useDatasetStore.getState().preview?.records).toEqual([{ x: 1 }]);
 
+    fireEvent.click(screen.getByRole('link', { name: 'Clean' }));
     fireEvent.click(screen.getByLabelText('Remove operation 1'));
     fireEvent.change(screen.getByLabelText('Operation'), { target: { value: 'convert_type' } });
     fireEvent.change(screen.getByLabelText('Parameters (JSON)'), {
@@ -284,6 +285,7 @@ describe('import-clean-export desktop flow', () => {
     expect(await screen.findByText('Invalid value in column x.')).toBeTruthy();
     expect(useDatasetStore.getState().dataset?.dataset_id).toBe('parquet-output-1');
 
+    fireEvent.click(screen.getByRole('link', { name: 'Export' }));
     fireEvent.change(screen.getByLabelText('Destination path'), {
       target: { value: 'existing.csv' },
     });

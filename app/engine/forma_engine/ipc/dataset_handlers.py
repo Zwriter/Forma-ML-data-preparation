@@ -68,3 +68,4 @@ class DatasetHandlers:
     def _dataset_id(self, params):
         if not isinstance(params.get("dataset_id"), str) or not params["dataset_id"]:
             raise RequestError("Provide a dataset_id.")
+        return params["dataset_id"]

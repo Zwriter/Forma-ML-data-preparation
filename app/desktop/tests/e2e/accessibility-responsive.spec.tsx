@@ -9,8 +9,9 @@ import { useTransformationStore } from '../../src/stores/transformationStore';
 import { useWorkspaceStore } from '../../src/stores/workspaceStore';
 
 const invoke = vi.hoisted(() => vi.fn());
+const dialogOpen = vi.hoisted(() => vi.fn());
 vi.mock('@tauri-apps/api/core', () => ({ invoke }));
-vi.mock('@tauri-apps/plugin-dialog', () => ({ open: vi.fn(), save: vi.fn() }));
+vi.mock('@tauri-apps/plugin-dialog', () => ({ open: dialogOpen, save: vi.fn() }));
 vi.mock('@tauri-apps/api/event', () => ({ listen: vi.fn(async () => () => undefined) }));
 
 const originalWidth = window.innerWidth;
@@ -38,6 +39,7 @@ afterEach(() => {
   cleanup();
   Object.defineProperty(window, 'innerWidth', { configurable: true, value: originalWidth });
   invoke.mockReset();
+  dialogOpen.mockReset();
   useDatasetStore.setState({
     dataset: null,
     preview: null,
@@ -60,14 +62,7 @@ describe('desktop accessibility and responsive shell', () => {
     render(<App />);
 
     expect(screen.getByRole('heading', { name: 'Start with a dataset' })).toBeTruthy();
-    fireEvent.change(screen.getByLabelText('CSV or Parquet file'), {
-      target: { value: 'data.csv' },
-    });
-    const controls = [
-      screen.getByLabelText('CSV or Parquet file'),
-      screen.getByRole('button', { name: 'Browse files' }),
-      screen.getByRole('button', { name: 'Open dataset' }),
-    ];
+    const controls = [screen.getByRole('button', { name: 'Import file' })];
     for (const control of controls) {
       expect(control.tabIndex).toBe(0);
       control.focus();
@@ -75,7 +70,8 @@ describe('desktop accessibility and responsive shell', () => {
     }
   });
 
-  it('shows an actionable file error', async () => {
+  it('routes selected files through the import dialog', async () => {
+    dialogOpen.mockResolvedValueOnce(null);
     invoke.mockResolvedValueOnce({
       id: 'open-1',
       status: 'error',
@@ -83,14 +79,9 @@ describe('desktop accessibility and responsive shell', () => {
       error: { code: 'UNSUPPORTED_FORMAT', message: 'Choose a CSV or Parquet file.' },
     });
     render(<App />);
-    fireEvent.change(screen.getByLabelText('CSV or Parquet file'), {
-      target: { value: 'data.txt' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Open dataset' }));
-
-    expect((await screen.findByRole('alert')).textContent).toContain(
-      'Choose a CSV or Parquet file.',
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Import file' }));
+    await waitFor(() => expect(dialogOpen).toHaveBeenCalled());
+    expect(invoke).not.toHaveBeenCalled();
   });
 
   it('shows pending profile state within one second', async () => {
@@ -98,7 +89,7 @@ describe('desktop accessibility and responsive shell', () => {
     invoke.mockImplementation(async (_command: string, args: { request: { method: string } }) =>
       response(args.request.method),
     );
-    render(<WorkflowActions />);
+    render(<WorkflowActions activeTab="Profile" />);
     const started = performance.now();
 
     fireEvent.click(screen.getByText('Profile dataset'));
@@ -114,7 +105,7 @@ describe('desktop accessibility and responsive shell', () => {
     invoke.mockImplementation(async (_command: string, args: { request: { method: string } }) =>
       response(args.request.method),
     );
-    render(<WorkflowActions />);
+    render(<WorkflowActions activeTab="Clean" />);
     fireEvent.click(screen.getByText('Add operation'));
     const started = performance.now();
 
@@ -130,7 +121,7 @@ describe('desktop accessibility and responsive shell', () => {
     invoke.mockImplementation(async (_command: string, args: { request: { method: string } }) =>
       response(args.request.method),
     );
-    render(<WorkflowActions />);
+    render(<WorkflowActions activeTab="Export" />);
     const started = performance.now();
 
     fireEvent.click(screen.getByText('Export CSV'));
