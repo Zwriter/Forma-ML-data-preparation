@@ -23,6 +23,10 @@ def test_open_and_preview_correlate_and_cap_limit(tmp_path):
     )
     assert len(response["records"]) == 500
     assert response["limit"] == 500
+    history = router.dispatch(
+        "dataset.history", {"dataset_id": opened["dataset_id"]}
+    )
+    assert history["dataset_id"] == opened["dataset_id"]
     jobs.shutdown()
 
 
