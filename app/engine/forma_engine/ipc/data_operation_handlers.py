@@ -17,10 +17,12 @@ class DataOperationHandlers:
             raise RequestError("operation must be an object.")
         if self.operations is None:
             raise RequestError("Data operations are not available.")
-        if operation.get("type") not in {"filter_rows", "sort_rows"}:
+        if operation.get("type") not in {
+            "filter_rows", "sort_rows", "group_by", "pivot", "unpivot"
+        }:
             raise RequestError("Choose a supported data operation.")
-        schema = self.datasets.frame(dataset_id).collect_schema().names()
-        validate(operation, schema)
+        schema = self.datasets.frame(dataset_id).collect_schema()
+        validate(operation, schema.names(), schema)
         if operation["type"] == "filter_rows":
             if "rules" not in operation["parameters"]:
                 raise RequestError("Provide typed filter rules.")

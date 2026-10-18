@@ -115,20 +115,20 @@ description: "Executable implementation tasks for Data Tab Operations"
 
 ### Tests for User Story 4
 
-- [ ] T042 [P] [US4] Write failing unit tests for Group by aggregates, numeric compatibility, duplicate output names, empty inputs, and deterministic group keys in `app/engine/tests/unit/transformations/test_group_operations.py`.
-- [ ] T043 [P] [US4] Write failing unit tests for Pivot duplicate intersections, supported aggregations, generated column names, invalid roles, and empty inputs in `app/engine/tests/unit/transformations/test_pivot_operations.py`.
-- [ ] T044 [P] [US4] Write failing unit tests for Unpivot identifier preservation, selected value columns, output-name collisions, empty selections, and generated row counts in `app/engine/tests/unit/transformations/test_unpivot_operations.py`.
-- [ ] T045 [P] [US4] Add IPC contract tests for Group by, Pivot, and Unpivot payload validation and completion metadata in `app/engine/tests/contract/test_reshape_operations_ipc.py`.
-- [ ] T046 [P] [US4] Add component tests for GroupBuilder, PivotBuilder, and UnpivotBuilder role selection, aggregate controls, validation, accessible labels, and empty/loading states in `app/desktop/tests/unit/data-operations/ReshapeBuilders.test.tsx`.
+- [x] T042 [P] [US4] Write failing unit tests for Group by aggregates, numeric compatibility, duplicate output names, empty inputs, and deterministic group keys in `app/engine/tests/unit/transformations/test_group_operations.py`.
+- [x] T043 [P] [US4] Write failing unit tests for Pivot duplicate intersections, supported aggregations, generated column names, invalid roles, and empty inputs in `app/engine/tests/unit/transformations/test_pivot_operations.py`.
+- [x] T044 [P] [US4] Write failing unit tests for Unpivot identifier preservation, selected value columns, output-name collisions, empty selections, and generated row counts in `app/engine/tests/unit/transformations/test_unpivot_operations.py`.
+- [x] T045 [P] [US4] Add IPC contract tests for Group by, Pivot, and Unpivot payload validation and completion metadata in `app/engine/tests/contract/test_reshape_operations_ipc.py`.
+- [x] T046 [P] [US4] Add component tests for GroupBuilder, PivotBuilder, and UnpivotBuilder role selection, aggregate controls, validation, accessible labels, and empty/loading states in `app/desktop/tests/unit/data-operations/ReshapeBuilders.test.tsx`.
 
 ### Implementation for User Story 4
 
-- [ ] T047 [US4] Implement Group by, Pivot, and Unpivot validators with the exact data-model constraints for role uniqueness, aggregate support, numeric compatibility, and output-name collisions in `app/engine/forma_engine/transformations/validators.py`.
-- [ ] T048 [US4] Implement Polars Group by, Pivot, and Unpivot operations with stable output schemas and full-dataset execution in `app/engine/forma_engine/transformations/operations.py`.
-- [ ] T049 [US4] Extend the data-operation service and handler routing for reshape jobs, history commits, cancellation, and failure preservation in `app/engine/forma_engine/services/data_operation_service.py`, `app/engine/forma_engine/ipc/data_operation_handlers.py`, and `app/engine/forma_engine/ipc/router.py`.
-- [ ] T050 [US4] Implement accessible GroupBuilder, PivotBuilder, and UnpivotBuilder dialogs using common-language labels and typed role controls in `app/desktop/src/features/data-operations/GroupBuilder.tsx`, `app/desktop/src/features/data-operations/PivotBuilder.tsx`, and `app/desktop/src/features/data-operations/UnpivotBuilder.tsx`.
-- [ ] T051 [US4] Wire Group by, Pivot, and Unpivot commands to operation submission, result previews, schema updates, history metadata, and actionable errors in `app/desktop/src/App.tsx` and `app/desktop/src/features/workspace/WorkflowActions.tsx`.
-- [ ] T052 [US4] Add end-to-end reshape coverage for Group by, Pivot, and Unpivot using the representative fixture in `app/desktop/tests/e2e/data-tab-operations.spec.tsx`.
+- [x] T047 [US4] Implement Group by, Pivot, and Unpivot validators with the exact data-model constraints for role uniqueness, aggregate support, numeric compatibility, and output-name collisions in `app/engine/forma_engine/transformations/validators.py`.
+- [x] T048 [US4] Implement Polars Group by, Pivot, and Unpivot operations with stable output schemas and full-dataset execution in `app/engine/forma_engine/transformations/operations.py`.
+- [x] T049 [US4] Extend the data-operation service and handler routing for reshape jobs, history commits, cancellation, and failure preservation in `app/engine/forma_engine/services/data_operation_service.py`, `app/engine/forma_engine/ipc/data_operation_handlers.py`, and `app/engine/forma_engine/ipc/router.py`.
+- [x] T050 [US4] Implement accessible GroupBuilder, PivotBuilder, and UnpivotBuilder dialogs using common-language labels and typed role controls in `app/desktop/src/features/data-operations/GroupBuilder.tsx`, `app/desktop/src/features/data-operations/PivotBuilder.tsx`, and `app/desktop/src/features/data-operations/UnpivotBuilder.tsx`.
+- [x] T051 [US4] Wire Group by, Pivot, and Unpivot commands to operation submission, result previews, schema updates, history metadata, and actionable errors in `app/desktop/src/App.tsx` and `app/desktop/src/features/workspace/WorkflowActions.tsx`.
+- [x] T052 [US4] Add end-to-end reshape coverage for Group by, Pivot, and Unpivot using the representative fixture in `app/desktop/tests/e2e/data-tab-operations.spec.tsx`.
 
 **Checkpoint**: All four user stories are independently demonstrable, with reshape failures preserving the last valid state.
 

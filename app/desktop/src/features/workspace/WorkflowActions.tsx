@@ -18,6 +18,9 @@ import { getTauriRuntimeError, isTauriRuntime } from '../../services/tauriRuntim
 import { useWorkspaceStore } from '../../stores/workspaceStore';
 import { FilterBuilder } from '../data-operations/FilterBuilder';
 import { SortBuilder } from '../data-operations/SortBuilder';
+import { GroupBuilder } from '../data-operations/GroupBuilder';
+import { PivotBuilder } from '../data-operations/PivotBuilder';
+import { UnpivotBuilder } from '../data-operations/UnpivotBuilder';
 import { applyDataOperation } from '../../services/dataOperationClient';
 import type { DataOperation } from '../../types/dataOperations';
 
@@ -33,7 +36,7 @@ export function WorkflowActions({
 }: {
   activeTab: string;
   onSaveComplete?: (success: boolean) => void;
-  operationDialog?: 'filter' | 'sort' | null;
+  operationDialog?: 'filter' | 'sort' | 'group_by' | 'pivot' | 'unpivot' | null;
   onCloseOperationDialog?: () => void;
 }) {
   const { dataset, apply, acceptResult } = useCleaningJob();
@@ -65,12 +68,15 @@ export function WorkflowActions({
       addJob(job);
       setMessage(`${job.kind}: ${job.message}`);
       if (job.state === 'completed' && job.result?.dataset)
-        await acceptResult(job.result.dataset, job.result.history);
+        await acceptResult(
+          job.result.dataset,
+          job.result.history,
+          ['group_by', 'pivot', 'unpivot'].includes(job.kind),
+        );
       if (job.state === 'completed' && job.result?.history) {
         setDatasetHistory(job.result.history);
         setHistory(job.result.history);
-        if (job.kind === 'save')
-          setSaveStatus(job.result.history.is_dirty ? 'dirty' : 'saved');
+        if (job.kind === 'save') setSaveStatus(job.result.history.is_dirty ? 'dirty' : 'saved');
       }
       if (job.state === 'failed' && job.kind === 'save') {
         setSaveStatus('failed');
@@ -79,15 +85,15 @@ export function WorkflowActions({
         setWorkspaceError(failure);
       }
       if (job.state === 'failed' && job.kind !== 'save') {
-        setWorkspaceError(job.error?.message ?? `${job.kind} failed. The last valid state remains active.`);
+        setWorkspaceError(
+          job.error?.message ?? `${job.kind} failed. The last valid state remains active.`,
+        );
       }
       if (job.state === 'cancelled' && job.kind === 'save') setSaveStatus('dirty');
       if (['completed', 'failed', 'cancelled'].includes(job.state)) {
         setWorkspaceBusy(false);
         if (job.kind === 'save')
-          onSaveComplete?.(
-            job.state === 'completed' && job.result?.history?.is_dirty === false,
-          );
+          onSaveComplete?.(job.state === 'completed' && job.result?.history?.is_dirty === false);
       }
       if (job.kind === 'profile' && job.result) setReport(job.result);
     })
@@ -171,7 +177,14 @@ export function WorkflowActions({
       const job = await applyDataOperation(dataset.dataset_id, operation);
       addJob({ ...job, kind: operation.type, progress: null, message: 'Queued' });
       onCloseOperationDialog?.();
-      setMessage(`${operation.type === 'filter_rows' ? 'Filter' : 'Sort'} job queued.`);
+      const label = {
+        filter_rows: 'Filter',
+        sort_rows: 'Sort',
+        group_by: 'Summary',
+        pivot: 'Pivot',
+        unpivot: 'Unpivot',
+      }[operation.type];
+      setMessage(`${label} job queued.`);
     } catch (cause) {
       setStoreBusy(false);
       setWorkspaceError(cause instanceof Error ? cause.message : 'Could not start this operation.');
@@ -213,10 +226,42 @@ export function WorkflowActions({
         />
       )}
       {activeTab === 'Data' && operationDialog === 'filter' && (
-        <FilterBuilder columns={dataset.schema} onApply={(operation) => void runDataOperation(operation)} onClose={() => onCloseOperationDialog?.()} />
+        <FilterBuilder
+          columns={dataset.schema}
+          onApply={(operation) => void runDataOperation(operation)}
+          onClose={() => onCloseOperationDialog?.()}
+        />
       )}
       {activeTab === 'Data' && operationDialog === 'sort' && (
-        <SortBuilder columns={dataset.schema} onApply={(operation) => void runDataOperation(operation)} onClose={() => onCloseOperationDialog?.()} />
+        <SortBuilder
+          columns={dataset.schema}
+          onApply={(operation) => void runDataOperation(operation)}
+          onClose={() => onCloseOperationDialog?.()}
+        />
+      )}
+      {activeTab === 'Data' && operationDialog === 'group_by' && (
+        <GroupBuilder
+          columns={dataset.schema}
+          busy={busy}
+          onApply={(operation) => void runDataOperation(operation)}
+          onClose={() => onCloseOperationDialog?.()}
+        />
+      )}
+      {activeTab === 'Data' && operationDialog === 'pivot' && (
+        <PivotBuilder
+          columns={dataset.schema}
+          busy={busy}
+          onApply={(operation) => void runDataOperation(operation)}
+          onClose={() => onCloseOperationDialog?.()}
+        />
+      )}
+      {activeTab === 'Data' && operationDialog === 'unpivot' && (
+        <UnpivotBuilder
+          columns={dataset.schema}
+          busy={busy}
+          onApply={(operation) => void runDataOperation(operation)}
+          onClose={() => onCloseOperationDialog?.()}
+        />
       )}
       {activeTab === 'Pipelines' && (
         <section className="card workflow-card" id="pipelines">

@@ -10,6 +10,9 @@ type Props = {
   onSelectColumns: () => void;
   onFilter: () => void;
   onSort: () => void;
+  onGroup: () => void;
+  onPivot: () => void;
+  onUnpivot: () => void;
   hasDataset: boolean;
   onSave: () => void;
   onUndo: () => void;
@@ -90,6 +93,9 @@ export function WorkspaceChrome({
   onSelectColumns,
   onFilter,
   onSort,
+  onGroup,
+  onPivot,
+  onUnpivot,
   hasDataset,
   onSave,
   onUndo,
@@ -114,8 +120,16 @@ export function WorkspaceChrome({
       return { label, icon: commandIcons[label], onClick: onReload, disabled: !hasDataset };
     if (label === 'Select columns' || label === 'Column details')
       return { label, icon: commandIcons[label], onClick: onSelectColumns, disabled: !hasDataset };
-    if (label === 'Filter row') return { label, icon: commandIcons[label], onClick: onFilter, disabled: !hasDataset };
-    if (label === 'Sort') return { label, icon: commandIcons[label], onClick: onSort, disabled: !hasDataset };
+    if (label === 'Filter row')
+      return { label, icon: commandIcons[label], onClick: onFilter, disabled: !hasDataset };
+    if (label === 'Sort')
+      return { label, icon: commandIcons[label], onClick: onSort, disabled: !hasDataset };
+    if (label === 'Group by')
+      return { label, icon: commandIcons[label], onClick: onGroup, disabled: !hasDataset };
+    if (label === 'Pivot')
+      return { label, icon: commandIcons[label], onClick: onPivot, disabled: !hasDataset };
+    if (label === 'Unpivot')
+      return { label, icon: commandIcons[label], onClick: onUnpivot, disabled: !hasDataset };
     if (label === 'Connect to DB')
       return {
         label,

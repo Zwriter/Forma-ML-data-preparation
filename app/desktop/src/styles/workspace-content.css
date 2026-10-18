@@ -555,6 +555,50 @@
   margin: 0;
 }
 
+.data-operation-dialog fieldset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 1rem;
+  margin: 0;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.data-operation-dialog fieldset label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.reshape-aggregation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.65rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.reshape-aggregation label,
+.data-operation-dialog > label {
+  display: grid;
+  min-width: 8rem;
+  flex: 1;
+  gap: 0.3rem;
+}
+
+.reshape-aggregation input,
+.reshape-aggregation select,
+.data-operation-dialog > label input,
+.data-operation-dialog > label select {
+  min-height: 2.2rem;
+  min-width: 0;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #cfd5e1;
+  border-radius: 5px;
+}
+
 .filter-rule,
 .sort-key {
   flex-wrap: wrap;
@@ -612,7 +656,8 @@
   }
 
   .filter-rule,
-  .sort-key {
+  .sort-key,
+  .reshape-aggregation {
     align-items: stretch;
     flex-direction: column;
   }

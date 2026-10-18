@@ -10,6 +10,7 @@ export function useCleaningJob() {
   const dataset = useDatasetStore((state) => state.dataset);
   const setDataset = useDatasetStore((state) => state.setDataset);
   const setPreview = useDatasetStore((state) => state.setPreview);
+  const setSelectedColumns = useDatasetStore((state) => state.setSelectedColumns);
   const applyResult = useDatasetStore((state) => state.applyResult);
   const setHistory = useWorkspaceStore((state) => state.setHistory);
   const add = useJobStore((state) => state.add);
@@ -36,16 +37,21 @@ export function useCleaningJob() {
     [dataset, add],
   );
   const acceptResult = useCallback(
-    async (derived: Dataset, history?: HistoryMetadata) => {
-      const visible = useDatasetStore.getState().selectedColumns.filter((name) =>
-        derived.schema.some((column) => column.name === name),
-      );
+    async (derived: Dataset, history?: HistoryMetadata, resetProjection = false) => {
+      const visible = resetProjection
+        ? derived.schema.map((column) => column.name)
+        : useDatasetStore
+            .getState()
+            .selectedColumns.filter((name) =>
+              derived.schema.some((column) => column.name === name),
+            );
+      if (resetProjection) setSelectedColumns(visible);
       const preview = await request<Preview>('dataset.preview', {
-          dataset_id: derived.dataset_id,
-          offset: 0,
-          limit: 100,
-          ...(visible.length ? { columns: visible } : {}),
-        });
+        dataset_id: derived.dataset_id,
+        offset: 0,
+        limit: 100,
+        ...(visible.length ? { columns: visible } : {}),
+      });
       setDataset(derived);
       setPreview(preview);
       if (history) {
@@ -53,7 +59,7 @@ export function useCleaningJob() {
         setHistory(history);
       }
     },
-    [setDataset, setPreview, applyResult, setHistory],
+    [setDataset, setPreview, setSelectedColumns, applyResult, setHistory],
   );
   return { dataset, preview, apply, acceptResult };
 }

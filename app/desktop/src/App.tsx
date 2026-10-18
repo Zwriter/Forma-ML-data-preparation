@@ -93,7 +93,9 @@ export default function App() {
   const [selectedColumn, setSelectedColumn] = useState<string | null>(null);
   const [showColumnDetails, setShowColumnDetails] = useState(false);
   const [showColumnSelector, setShowColumnSelector] = useState(false);
-  const [operationDialog, setOperationDialog] = useState<'filter' | 'sort' | null>(null);
+  const [operationDialog, setOperationDialog] = useState<
+    'filter' | 'sort' | 'group_by' | 'pivot' | 'unpivot' | null
+  >(null);
   const [isMaximized, setIsMaximized] = useState(false);
   const column = dataset?.schema.find((item) => item.name === selectedColumn);
   const fileName = dataset?.source_path.split(/[\\/]/).pop() ?? '';
@@ -166,25 +168,30 @@ export default function App() {
     const window = getDesktopWindow();
     if (!window) return;
     let unlisten: (() => void) | undefined;
-    void window.onCloseRequested((event) => {
-      if (!dirtyRef.current) return;
-      event.preventDefault();
-      closeAfterSave.current = true;
-      setSaveDialogMode('close');
-    }).then((stop) => {
-      unlisten = stop;
-    });
+    void window
+      .onCloseRequested((event) => {
+        if (!dirtyRef.current) return;
+        event.preventDefault();
+        closeAfterSave.current = true;
+        setSaveDialogMode('close');
+      })
+      .then((stop) => {
+        unlisten = stop;
+      });
     return () => unlisten?.();
   }, []);
 
-  const onSaveComplete = useCallback((success: boolean) => {
-    if (!success) return;
-    setSaveDialogMode(null);
-    if (closeAfterSave.current) {
-      closeAfterSave.current = false;
-      void closeWindow();
-    }
-  }, [closeWindow]);
+  const onSaveComplete = useCallback(
+    (success: boolean) => {
+      if (!success) return;
+      setSaveDialogMode(null);
+      if (closeAfterSave.current) {
+        closeAfterSave.current = false;
+        void closeWindow();
+      }
+    },
+    [closeWindow],
+  );
 
   function discardAndClose() {
     closeAfterSave.current = false;
@@ -279,12 +286,7 @@ export default function App() {
           >
             <span aria-hidden="true">{isMaximized ? '❐' : '□'}</span>
           </button>
-          <button
-            type="button"
-            aria-label="Close window"
-            title="Close"
-            onClick={requestClose}
-          >
+          <button type="button" aria-label="Close window" title="Close" onClick={requestClose}>
             <span aria-hidden="true">×</span>
           </button>
         </div>
@@ -307,6 +309,9 @@ export default function App() {
         }}
         onFilter={() => setOperationDialog('filter')}
         onSort={() => setOperationDialog('sort')}
+        onGroup={() => setOperationDialog('group_by')}
+        onPivot={() => setOperationDialog('pivot')}
+        onUnpivot={() => setOperationDialog('unpivot')}
         hasDataset={Boolean(dataset)}
         onSave={() => {
           closeAfterSave.current = false;
