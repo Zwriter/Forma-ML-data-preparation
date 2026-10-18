@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { open } from '@tauri-apps/plugin-dialog';
@@ -20,6 +20,7 @@ import {
   isTauriRuntime,
   runtimeMessage,
 } from './services/tauriRuntime';
+import { setDemoFile } from './services/demoData';
 import './styles/globals.css';
 import './styles/workspace.css';
 import './styles/workspace-content.css';
@@ -69,6 +70,7 @@ export default function App() {
   const [operationDialog, setOperationDialog] = useState<
     'filter' | 'sort' | 'group_by' | 'pivot' | 'unpivot' | null
   >(null);
+  const demoFileInput = useRef<HTMLInputElement>(null);
   useEffect(() => {
     const window = getDesktopWindow();
     if (!window) return;
@@ -108,6 +110,10 @@ export default function App() {
   }, [openDataset, setError]);
 
   async function browse() {
+    if (isDemoRuntime()) {
+      demoFileInput.current?.click();
+      return;
+    }
     if (!isTauriRuntime()) {
       setError(runtimeMessage);
       return;
@@ -123,8 +129,30 @@ export default function App() {
     }
   }
 
+  async function openDemoFile(file: File | undefined) {
+    if (!file) return;
+    try {
+      const datasetId = await setDemoFile(await file.text(), file.name);
+      if (await openDataset(datasetId)) setActiveTab('Data');
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Could not read the selected file.');
+    }
+  }
+
   return (
     <div className="app-shell" id="workspace-top">
+      {isDemoRuntime() && (
+        <input
+          ref={demoFileInput}
+          type="file"
+          accept=".csv,text/csv"
+          hidden
+          onChange={(event) => {
+            void openDemoFile(event.currentTarget.files?.[0]);
+            event.currentTarget.value = '';
+          }}
+        />
+      )}
       <NotificationPopup />
       <WorkspaceTitlebar
         files={fileTabs.files}
