@@ -1,0 +1,142 @@
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(18 16 28 / 48%);
+}
+
+.confirm-dialog {
+  width: min(28rem, 100%);
+  padding: 1.5rem;
+  background: var(--surface, white);
+  box-shadow: 0 1rem 3rem rgb(18 16 28 / 24%);
+}
+
+.dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.worksheet-work-area {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+
+.worksheet-work-area .dataset-heading {
+  display: none;
+}
+
+.worksheet-work-area .dataset-heading h1 {
+  font-size: 22px;
+}
+
+.column-selector-backdrop {
+  z-index: 1100;
+}
+
+.column-selector {
+  display: flex;
+  width: min(34rem, 100%);
+  max-height: min(82vh, 46rem);
+  flex-direction: column;
+  padding: 1.25rem;
+  background: var(--surface, white);
+  box-shadow: 0 1rem 3rem rgb(18 16 28 / 24%);
+}
+
+.column-selector header,
+.column-selector-list li,
+.column-selector-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.column-selector header h2 {
+  margin: 0;
+}
+
+.column-selector-search {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 1rem;
+}
+
+.column-selector-search input {
+  min-height: 2.25rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #cfd5e1;
+  border-radius: 5px;
+}
+
+.column-selector-actions {
+  justify-content: flex-start;
+  margin: 0.75rem 0;
+}
+
+.column-selector-list {
+  min-height: 5rem;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+  border: 1px solid var(--line);
+}
+
+.column-selector-list li {
+  min-height: 2.5rem;
+  padding: 0.35rem 0.6rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.column-selector-list li:last-child {
+  border-bottom: 0;
+}
+
+.column-selector-list label {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.column-selector-list label span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.column-selector-list small {
+  margin-left: auto;
+  color: var(--muted);
+}
+
+.column-order-controls {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.column-selector-empty,
+.column-selector-error {
+  padding: 0.6rem;
+  color: var(--muted);
+}
+
+.column-selector-error {
+  color: #a12622;
+}
+
+.column-selector button:focus-visible,
+.column-selector input:focus-visible {
+  outline: 2px solid var(--purple);
+  outline-offset: 2px;
+}

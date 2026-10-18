@@ -1,0 +1,22 @@
+@media (max-width: 620px) {
+  .column-selector {
+    max-height: 90vh;
+    padding: 1rem;
+  }
+
+  .column-selector-list small {
+    display: none;
+  }
+
+  .data-operation-dialog {
+    max-height: 92vh;
+    padding: 0.9rem;
+  }
+
+  .filter-rule,
+  .sort-key,
+  .reshape-aggregation {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

@@ -13,7 +13,14 @@ afterEach(cleanup);
 describe('ColumnSelector', () => {
   it('searches, selects, clears, orders, and confirms columns', () => {
     const onConfirm = vi.fn();
-    render(<ColumnSelector columns={columns} selectedColumns={['name']} onConfirm={onConfirm} onClose={vi.fn()} />);
+    render(
+      <ColumnSelector
+        columns={columns}
+        selectedColumns={['name']}
+        onConfirm={onConfirm}
+        onClose={vi.fn()}
+      />,
+    );
     fireEvent.change(screen.getByLabelText('Search columns'), { target: { value: 'amount' } });
     fireEvent.click(screen.getByRole('checkbox', { name: /amount/ }));
     fireEvent.click(screen.getByText('Clear all'));
@@ -26,7 +33,14 @@ describe('ColumnSelector', () => {
 
   it('rejects empty selection and closes on Escape', () => {
     const onClose = vi.fn();
-    render(<ColumnSelector columns={columns} selectedColumns={[]} onConfirm={vi.fn()} onClose={onClose} />);
+    render(
+      <ColumnSelector
+        columns={columns}
+        selectedColumns={[]}
+        onConfirm={vi.fn()}
+        onClose={onClose}
+      />,
+    );
     fireEvent.click(screen.getByText('Apply columns'));
     expect(screen.getByRole('alert').textContent).toContain('Select at least one column');
     fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });

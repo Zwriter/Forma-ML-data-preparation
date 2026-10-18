@@ -18,16 +18,24 @@ describe('FilterBuilder', () => {
     fireEvent.change(screen.getByLabelText('Filter value 1'), { target: { value: 'oak' } });
     fireEvent.click(screen.getByText('Add condition'));
     fireEvent.change(screen.getByLabelText('Filter column 2'), { target: { value: 'amount' } });
-    fireEvent.change(screen.getByLabelText('Filter condition 2'), { target: { value: 'at_least' } });
+    fireEvent.change(screen.getByLabelText('Filter condition 2'), {
+      target: { value: 'at_least' },
+    });
     fireEvent.change(screen.getByLabelText('Filter value 2'), { target: { value: '10' } });
     fireEvent.change(screen.getByLabelText('Filter matching mode'), { target: { value: 'any' } });
     fireEvent.click(screen.getByText('Apply filter'));
-    expect(onApply).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'filter_rows', parameters: { mode: 'any', rules: expect.arrayContaining([
-        expect.objectContaining({ column: 'name', value: 'oak' }),
-        expect.objectContaining({ column: 'amount', operator: 'at_least', value: '10' }),
-      ]) },
-    }));
+    expect(onApply).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'filter_rows',
+        parameters: {
+          mode: 'any',
+          rules: expect.arrayContaining([
+            expect.objectContaining({ column: 'name', value: 'oak' }),
+            expect.objectContaining({ column: 'amount', operator: 'at_least', value: '10' }),
+          ]),
+        },
+      }),
+    );
   });
 
   it('reports missing filter values accessibly', () => {
@@ -41,17 +49,24 @@ describe('SortBuilder', () => {
   it('submits ordered keys, directions, and missing placement', () => {
     const onApply = vi.fn();
     render(<SortBuilder columns={columns} onApply={onApply} onClose={vi.fn()} />);
-    fireEvent.change(screen.getByLabelText('Sort direction 1'), { target: { value: 'descending' } });
+    fireEvent.change(screen.getByLabelText('Sort direction 1'), {
+      target: { value: 'descending' },
+    });
     fireEvent.click(screen.getByText('Add sort key'));
     fireEvent.change(screen.getByLabelText('Sort column 2'), { target: { value: 'amount' } });
     fireEvent.change(screen.getByLabelText('Missing values 2'), { target: { value: 'first' } });
     fireEvent.click(screen.getByText('Apply sort'));
-    expect(onApply).toHaveBeenCalledWith(expect.objectContaining({
-      type: 'sort_rows', parameters: { keys: [
-        expect.objectContaining({ column: 'name', direction: 'descending' }),
-        expect.objectContaining({ column: 'amount', nulls: 'first' }),
-      ] },
-    }));
+    expect(onApply).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'sort_rows',
+        parameters: {
+          keys: [
+            expect.objectContaining({ column: 'name', direction: 'descending' }),
+            expect.objectContaining({ column: 'amount', nulls: 'first' }),
+          ],
+        },
+      }),
+    );
   });
 
   it('rejects duplicate sort columns', () => {

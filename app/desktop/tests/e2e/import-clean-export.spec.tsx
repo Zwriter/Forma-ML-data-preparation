@@ -14,7 +14,10 @@ const bridge = vi.hoisted(() => ({
 }));
 
 vi.mock('@tauri-apps/api/core', () => ({ invoke: (...args: unknown[]) => bridge.invoke(...args) }));
-vi.mock('@tauri-apps/plugin-dialog', () => ({ open: (...args: unknown[]) => bridge.dialog(...args), save: vi.fn() }));
+vi.mock('@tauri-apps/plugin-dialog', () => ({
+  open: (...args: unknown[]) => bridge.dialog(...args),
+  save: vi.fn(),
+}));
 vi.mock('@tauri-apps/api/event', () => ({
   listen: vi.fn(async (name: string, handler: (event: { payload: unknown }) => unknown) => {
     bridge.listeners[name] = handler;
@@ -83,7 +86,11 @@ describe('import-clean-export desktop flow', () => {
     useJobStore.setState({ jobs: [] });
     useTransformationStore.setState({ operations: [] });
     useWorkspaceStore.setState({
-      busy: false, error: null, history: null, saveStatus: 'idle', commands: {},
+      busy: false,
+      error: null,
+      history: null,
+      saveStatus: 'idle',
+      commands: {},
     });
   });
 
@@ -189,8 +196,13 @@ describe('import-clean-export desktop flow', () => {
       result: {
         dataset: derived,
         history: {
-          history_id: 'history-source-1', dataset_id: derived.dataset_id,
-          current_index: 1, saved_index: 0, is_dirty: true, can_undo: true, can_redo: false,
+          history_id: 'history-source-1',
+          dataset_id: derived.dataset_id,
+          current_index: 1,
+          saved_index: 0,
+          is_dirty: true,
+          can_undo: true,
+          can_redo: false,
         },
       },
     });

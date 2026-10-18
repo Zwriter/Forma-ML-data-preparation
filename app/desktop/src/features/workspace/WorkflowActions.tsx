@@ -16,11 +16,7 @@ import { request } from '../../services/ipcClient';
 import type { Operation } from '../../types/transformation';
 import { getTauriRuntimeError, isTauriRuntime } from '../../services/tauriRuntime';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
-import { FilterBuilder } from '../data-operations/FilterBuilder';
-import { SortBuilder } from '../data-operations/SortBuilder';
-import { GroupBuilder } from '../data-operations/GroupBuilder';
-import { PivotBuilder } from '../data-operations/PivotBuilder';
-import { UnpivotBuilder } from '../data-operations/UnpivotBuilder';
+import { DataOperationDialog } from './DataOperationDialog';
 import { applyDataOperation } from '../../services/dataOperationClient';
 import type { DataOperation } from '../../types/dataOperations';
 
@@ -225,38 +221,9 @@ export function WorkflowActions({
           }
         />
       )}
-      {activeTab === 'Data' && operationDialog === 'filter' && (
-        <FilterBuilder
-          columns={dataset.schema}
-          onApply={(operation) => void runDataOperation(operation)}
-          onClose={() => onCloseOperationDialog?.()}
-        />
-      )}
-      {activeTab === 'Data' && operationDialog === 'sort' && (
-        <SortBuilder
-          columns={dataset.schema}
-          onApply={(operation) => void runDataOperation(operation)}
-          onClose={() => onCloseOperationDialog?.()}
-        />
-      )}
-      {activeTab === 'Data' && operationDialog === 'group_by' && (
-        <GroupBuilder
-          columns={dataset.schema}
-          busy={busy}
-          onApply={(operation) => void runDataOperation(operation)}
-          onClose={() => onCloseOperationDialog?.()}
-        />
-      )}
-      {activeTab === 'Data' && operationDialog === 'pivot' && (
-        <PivotBuilder
-          columns={dataset.schema}
-          busy={busy}
-          onApply={(operation) => void runDataOperation(operation)}
-          onClose={() => onCloseOperationDialog?.()}
-        />
-      )}
-      {activeTab === 'Data' && operationDialog === 'unpivot' && (
-        <UnpivotBuilder
+      {activeTab === 'Data' && (
+        <DataOperationDialog
+          kind={operationDialog ?? null}
           columns={dataset.schema}
           busy={busy}
           onApply={(operation) => void runDataOperation(operation)}

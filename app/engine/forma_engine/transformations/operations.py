@@ -54,28 +54,38 @@ def apply(frame: pl.LazyFrame, operation: dict) -> pl.LazyFrame:
         for aggregation in p["aggregations"]:
             column, function = aggregation.get("column"), aggregation["function"]
             expression = (
-                pl.len() if column is None else pl.col(column).count()
-            ) if function == "count" else {
-                "sum": pl.col(column).sum,
-                "average": pl.col(column).mean,
-                "minimum": pl.col(column).min,
-                "maximum": pl.col(column).max,
-            }[function]()
+                (pl.len() if column is None else pl.col(column).count())
+                if function == "count"
+                else {
+                    "sum": pl.col(column).sum,
+                    "average": pl.col(column).mean,
+                    "minimum": pl.col(column).min,
+                    "maximum": pl.col(column).max,
+                }[function]()
+            )
             aggregations.append(expression.alias(aggregation["output_name"]))
         return frame.group_by(groups, maintain_order=True).agg(aggregations)
     if kind == "pivot":
         rows, category = p["row_columns"], p["category_column"]
-        categories = frame.select(pl.col(category).unique()).collect().to_series().to_list()
+        categories = (
+            frame.select(pl.col(category).unique()).collect().to_series().to_list()
+        )
         categories.sort(key=lambda item: (item is None, str(item)))
         if not categories:
             return frame.select(rows).limit(0)
         aggregate = {
-            "count": "len", "sum": "sum", "average": "mean",
-            "minimum": "min", "maximum": "max",
+            "count": "len",
+            "sum": "sum",
+            "average": "mean",
+            "minimum": "min",
+            "maximum": "max",
         }[p["function"]]
         result = frame.collect().pivot(
-            on=category, on_columns=categories, index=rows,
-            values=p["value_column"], aggregate_function=aggregate,
+            on=category,
+            on_columns=categories,
+            index=rows,
+            values=p["value_column"],
+            aggregate_function=aggregate,
             maintain_order=True,
         )
         generated = {}
@@ -83,12 +93,16 @@ def apply(frame: pl.LazyFrame, operation: dict) -> pl.LazyFrame:
             old_name = str(item) if item is not None else "null"
             new_name = f"{category}_{old_name}"
             if new_name in rows or new_name in generated.values():
-                raise InvalidTransformationError("Pivot categories create duplicate output names.")
+                raise InvalidTransformationError(
+                    "Pivot categories create duplicate output names."
+                )
             generated[old_name] = new_name
         return result.rename(generated).lazy()
     if kind == "unpivot":
         return frame.unpivot(
-            on=p["value_columns"], index=p["identifier_columns"],
-            variable_name=p["attribute_name"], value_name=p["value_name"],
+            on=p["value_columns"],
+            index=p["identifier_columns"],
+            variable_name=p["attribute_name"],
+            value_name=p["value_name"],
         )
     return frame

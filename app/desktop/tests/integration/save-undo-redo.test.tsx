@@ -58,8 +58,12 @@ describe('workspace Save, Undo, and Redo', () => {
     desktopWindow.destroy.mockClear();
     Reflect.deleteProperty(window, '__TAURI_INTERNALS__');
     useDatasetStore.setState({
-      dataset: null, preview: null, sourceDataset: null, sourcePreview: null,
-      history: null, selectedColumns: [],
+      dataset: null,
+      preview: null,
+      sourceDataset: null,
+      sourcePreview: null,
+      history: null,
+      selectedColumns: [],
     });
     useWorkspaceStore.setState({
       busy: false,
@@ -73,8 +77,13 @@ describe('workspace Save, Undo, and Redo', () => {
   it('shows history buttons on Data tab only', () => {
     useDatasetStore.getState().setSource(dataset, preview);
     useWorkspaceStore.getState().setHistory({
-      history_id: 'history-1', dataset_id: dataset.dataset_id,
-      current_index: 1, saved_index: 0, is_dirty: true, can_undo: true, can_redo: true,
+      history_id: 'history-1',
+      dataset_id: dataset.dataset_id,
+      current_index: 1,
+      saved_index: 0,
+      is_dirty: true,
+      can_undo: true,
+      can_redo: true,
     });
     render(<App />);
 
@@ -102,15 +111,18 @@ describe('workspace Save, Undo, and Redo', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Close window' }));
 
-    expect((await screen.findByRole('alert')).textContent).toContain(
-      'Window close was denied.',
-    );
+    expect((await screen.findByRole('alert')).textContent).toContain('Window close was denied.');
   });
 
   it('asks before closing a workspace with unsaved changes', async () => {
     useWorkspaceStore.getState().setHistory({
-      history_id: 'history-1', dataset_id: dataset.dataset_id,
-      current_index: 1, saved_index: 0, is_dirty: true, can_undo: true, can_redo: false,
+      history_id: 'history-1',
+      dataset_id: dataset.dataset_id,
+      current_index: 1,
+      saved_index: 0,
+      is_dirty: true,
+      can_undo: true,
+      can_redo: false,
     });
     render(<App />);
 
@@ -127,8 +139,13 @@ describe('workspace Save, Undo, and Redo', () => {
   it('closes after saving changes from the close prompt', async () => {
     useDatasetStore.getState().setSource(dataset, preview);
     useWorkspaceStore.getState().setHistory({
-      history_id: 'history-1', dataset_id: dataset.dataset_id,
-      current_index: 1, saved_index: 0, is_dirty: true, can_undo: true, can_redo: false,
+      history_id: 'history-1',
+      dataset_id: dataset.dataset_id,
+      current_index: 1,
+      saved_index: 0,
+      is_dirty: true,
+      can_undo: true,
+      can_redo: false,
     });
     invoke.mockResolvedValue({
       id: 'save-1',
@@ -174,8 +191,13 @@ describe('workspace Save, Undo, and Redo', () => {
     Object.defineProperty(window, '__TAURI_INTERNALS__', { value: {}, configurable: true });
     useDatasetStore.getState().setSource(dataset, preview);
     useWorkspaceStore.getState().setHistory({
-      history_id: 'history-1', dataset_id: dataset.dataset_id,
-      current_index: 1, saved_index: 0, is_dirty: true, can_undo: true, can_redo: true,
+      history_id: 'history-1',
+      dataset_id: dataset.dataset_id,
+      current_index: 1,
+      saved_index: 0,
+      is_dirty: true,
+      can_undo: true,
+      can_redo: true,
     });
     invoke.mockImplementation(async (_command, args) => ({
       id: args.request.id,
@@ -194,7 +216,9 @@ describe('workspace Save, Undo, and Redo', () => {
 
     await waitFor(() => expect(invoke).toHaveBeenCalledTimes(3));
     expect(invoke.mock.calls.map((call) => call[1].request.method)).toEqual([
-      'dataset.save', 'dataset.undo', 'dataset.redo',
+      'dataset.save',
+      'dataset.undo',
+      'dataset.redo',
     ]);
     input.remove();
   });

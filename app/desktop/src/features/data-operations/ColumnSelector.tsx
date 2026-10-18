@@ -76,7 +76,9 @@ export function ColumnSelector({ columns, selectedColumns, onConfirm, onClose }:
           >
             Select all
           </button>
-          <button type="button" onClick={() => setDraft([])}>Clear all</button>
+          <button type="button" onClick={() => setDraft([])}>
+            Clear all
+          </button>
         </div>
         <ul className="column-selector-list" aria-label="Available columns">
           {visible.map((column) => (
@@ -114,10 +116,18 @@ export function ColumnSelector({ columns, selectedColumns, onConfirm, onClose }:
           ))}
           {!visible.length && <li className="column-selector-empty">No columns match search.</li>}
         </ul>
-        {error && <p role="alert" className="column-selector-error">{error}</p>}
+        {error && (
+          <p role="alert" className="column-selector-error">
+            {error}
+          </p>
+        )}
         <footer className="dialog-actions">
-          <button type="button" className="quiet-button" onClick={onClose}>Cancel</button>
-          <button type="button" onClick={confirm}>Apply columns</button>
+          <button type="button" className="quiet-button" onClick={onClose}>
+            Cancel
+          </button>
+          <button type="button" onClick={confirm}>
+            Apply columns
+          </button>
         </footer>
       </section>
     </div>

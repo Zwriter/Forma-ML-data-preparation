@@ -50,7 +50,10 @@ def test_undo_redo_and_save_return_job_acknowledgements(router_and_jobs, tmp_pat
     opened = router.dispatch("dataset.open", {"path": str(source)})
     derived = Dataset(opened["source_path"], "csv", opened["schema"], opened["rows"])
     router.datasets.register_derived(
-        opened["dataset_id"], derived, router.datasets.frame(opened["dataset_id"]), {"type": "test"}
+        opened["dataset_id"],
+        derived,
+        router.datasets.frame(opened["dataset_id"]),
+        {"type": "test"},
     )
 
     undo = router.dispatch("dataset.undo", {"dataset_id": derived.dataset_id})

@@ -46,7 +46,10 @@ def test_failed_save_preserves_saved_history_cursor(tmp_path, monkeypatch):
     original_bytes = source.read_bytes()
     derived = Dataset(opened["source_path"], "csv", opened["schema"], opened["rows"])
     datasets.register_derived(
-        opened["dataset_id"], derived, datasets.frame(opened["dataset_id"]), {"type": "test"}
+        opened["dataset_id"],
+        derived,
+        datasets.frame(opened["dataset_id"]),
+        {"type": "test"},
     )
 
     def fail_write(*_args, **_kwargs):

@@ -78,11 +78,7 @@ export function DatasetPreview({
         <span className="preview-selection">
           {`${selectedColumns.length} of ${dataset.columns} columns visible`}
         </span>
-        <button
-          type="button"
-          className="toolbar-link"
-          onClick={onOpenColumnSelector}
-        >
+        <button type="button" className="toolbar-link" onClick={onOpenColumnSelector}>
           <Icon name="columns" /> Columns
         </button>
         <SchemaSummary dataset={dataset} visibleColumns={selectedColumns.length} />

@@ -1,0 +1,245 @@
+.file-backstage {
+  display: grid;
+  min-height: 100%;
+  margin: -20px -18px -32px;
+  grid-template-columns: 166px minmax(0, 1fr);
+  background: #fff;
+}
+
+.file-navigation {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  gap: 5px;
+  padding: 12px 8px;
+  color: #293653;
+  background: #fff;
+  border-right: 1px solid var(--line);
+}
+.file-navigation button {
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 13px;
+  padding: 0 12px;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-radius: 5px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.file-navigation button:hover,
+.file-navigation button.selected {
+  color: var(--purple);
+  background: var(--purple-soft);
+}
+.file-navigation button.selected {
+  box-shadow: inset 3px 0 var(--purple);
+}
+.file-navigation .file-back {
+  width: 40px;
+  min-height: 40px;
+  justify-content: center;
+  margin-bottom: 12px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  font-size: 24px;
+}
+.file-navigation .file-nav-divider {
+  height: 1px;
+  margin: 12px 10px;
+  background: var(--line);
+}
+.file-nav-bottom {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.file-content {
+  min-width: 0;
+  padding: 24px 28px;
+}
+.file-content > h1,
+.file-content .settings-card h1 {
+  margin: 0 0 24px;
+  color: #17213f;
+  font-size: 25px;
+}
+.file-content > h2 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+.file-content > p,
+.file-content .settings-card p {
+  color: var(--muted);
+}
+
+.recent-files-tools {
+  display: flex;
+  max-width: 980px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 0 8px;
+}
+
+.recent-file-filters {
+  display: flex;
+  gap: 6px;
+}
+
+.recent-file-filters button {
+  min-height: 32px;
+  padding: 0 12px;
+  color: #39445e;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  font-size: 12px;
+}
+
+.recent-file-filters button:hover {
+  background: var(--purple-soft);
+}
+
+.recent-file-filters button.active {
+  color: #fff;
+  background: var(--purple);
+}
+
+.recent-file-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex: 1;
+}
+
+.recent-file-actions input {
+  width: min(360px, 45%);
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 1px solid #cbd1dd;
+  border-radius: 5px;
+  font-size: 12px;
+}
+
+.recent-file-actions .file-primary-action {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.recent-files-list {
+  max-width: 980px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.recent-files-list li {
+  display: grid;
+  align-items: center;
+  grid-template-columns: minmax(0, 1fr) 38px;
+  border-bottom: 1px solid var(--line);
+}
+
+.recent-files-list .recent-file-open {
+  display: grid;
+  width: 100%;
+  min-height: 58px;
+  align-items: center;
+  gap: 5px 12px;
+  padding: 8px 10px;
+  grid-template-columns: 20px minmax(120px, 1fr) minmax(100px, 2fr) auto;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  text-align: left;
+}
+
+.recent-files-list .recent-file-open:hover {
+  background: var(--purple-soft);
+}
+
+.recent-files-list .icon {
+  width: 18px;
+  height: 18px;
+  color: var(--purple);
+}
+
+.recent-file-name {
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-file-path,
+.recent-files-list time {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-files-list .favorite-toggle {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  color: #7b8498;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  font-size: 21px;
+  line-height: 1;
+}
+
+.recent-files-list .favorite-toggle:hover {
+  color: var(--purple);
+  background: var(--purple-soft);
+}
+
+.recent-files-list .favorite-toggle.is-favorite {
+  color: #d69a16;
+}
+
+.recent-files-empty {
+  padding: 12px 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.about-settings-link {
+  display: block;
+  padding: 0;
+  margin-top: 24px;
+  color: var(--purple);
+  background: transparent;
+  border: 0;
+  font-size: 13px;
+  text-decoration: underline;
+}
+.file-primary-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  padding: 0 14px;
+  margin-top: 16px;
+  color: #fff;
+  background: var(--purple);
+  border: 0;
+  border-radius: 5px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.file-primary-action .icon,
+.file-navigation .icon {
+  width: 18px;
+  height: 18px;
+}

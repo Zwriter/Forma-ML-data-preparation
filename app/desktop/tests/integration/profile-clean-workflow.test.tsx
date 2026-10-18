@@ -56,7 +56,11 @@ describe('profile and cleaning workflow', () => {
     useJobStore.setState({ jobs: [] });
     useTransformationStore.setState({ operations: [] });
     useWorkspaceStore.setState({
-      busy: false, error: null, history: null, saveStatus: 'idle', commands: {},
+      busy: false,
+      error: null,
+      history: null,
+      saveStatus: 'idle',
+      commands: {},
     });
   });
 

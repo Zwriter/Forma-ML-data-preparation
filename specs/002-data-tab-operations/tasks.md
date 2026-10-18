@@ -136,10 +136,10 @@ description: "Executable implementation tasks for Data Tab Operations"
 
 **Purpose**: Verify the integrated feature against constitutional quality gates and the quickstart.
 
-- [ ] T053 [P] Add responsive and accessibility assertions for all Data-tab dialogs, toolbar controls, close confirmation, and keyboard shortcuts in `app/desktop/tests/e2e/accessibility-responsive.spec.tsx`.
-- [ ] T054 [P] Add large-dataset performance coverage proving bounded previews and visible operation states without full frontend transfer in `app/engine/tests/performance/test_data_operations_bounded_preview.py`.
-- [ ] T055 [P] Update feature and developer validation references for the new IPC methods and workflows in `docs/IPC.md` and `docs/DEVELOPMENT.md`.
-- [ ] T056 Run the complete backend suite, Ruff checks, frontend tests, TypeScript build, Prettier checks, source-limit script, and every scenario in `specs/002-data-tab-operations/quickstart.md`.
+- [x] T053 [P] Add responsive and accessibility assertions for all Data-tab dialogs, toolbar controls, close confirmation, and keyboard shortcuts in `app/desktop/tests/e2e/accessibility-responsive.spec.tsx`.
+- [x] T054 [P] Add large-dataset performance coverage proving bounded previews and visible operation states without full frontend transfer in `app/engine/tests/performance/test_large_dataset_preview.py` and `app/desktop/tests/e2e/data-tab-operations.spec.tsx`.
+- [x] T055 [P] Update feature and developer validation references for the new IPC methods and workflows in `docs/IPC.md` and `docs/DEVELOPMENT.md`.
+- [x] T056 Run the complete backend suite, Ruff checks, frontend tests, TypeScript build, Prettier checks, source-limit script, and every scenario in `specs/002-data-tab-operations/quickstart.md`.
 
 ## Dependencies & Execution Order
 

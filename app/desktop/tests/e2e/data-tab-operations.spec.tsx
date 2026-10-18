@@ -177,6 +177,10 @@ describe('Data tab reshape operations', () => {
         bridge.invoke.mock.calls.filter((call) => call[1].request.method === 'data.apply'),
       ).toHaveLength(1),
     );
+    expect(screen.getByText('pivot: Queued (progress unknown)')).toBeTruthy();
+    const acknowledgement = await bridge.invoke.mock.results.at(-1)?.value;
+    expect(acknowledgement.result).toEqual({ job_id: 'reshape-1', state: 'pending' });
+    expect(acknowledgement.result).not.toHaveProperty('records');
     expect(bridge.invoke.mock.calls[3][1].request.params.operation).toMatchObject({
       type: 'pivot',
       parameters: { row_columns: ['team'], category_column: 'period', value_column: 'sales' },

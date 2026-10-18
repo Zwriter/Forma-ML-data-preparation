@@ -42,7 +42,11 @@ describe('dataset explorer workflow', () => {
       selectedColumns: [],
     });
     useWorkspaceStore.setState({
-      busy: false, error: null, history: null, saveStatus: 'idle', commands: {},
+      busy: false,
+      error: null,
+      history: null,
+      saveStatus: 'idle',
+      commands: {},
     });
   });
 
@@ -71,10 +75,18 @@ describe('dataset explorer workflow', () => {
       .mockResolvedValueOnce({ id: 'ui-1', status: 'success', result: dataset, error: null })
       .mockResolvedValueOnce({ id: 'ui-2', status: 'success', result: firstPage, error: null })
       .mockResolvedValueOnce({
-        id: 'ui-3', status: 'success', result: {
-          history_id: 'history-1', dataset_id: dataset.dataset_id, current_index: 0,
-          saved_index: 0, is_dirty: false, can_undo: false, can_redo: false,
-        }, error: null,
+        id: 'ui-3',
+        status: 'success',
+        result: {
+          history_id: 'history-1',
+          dataset_id: dataset.dataset_id,
+          current_index: 0,
+          saved_index: 0,
+          is_dirty: false,
+          can_undo: false,
+          can_redo: false,
+        },
+        error: null,
       });
 
     dialogOpen.mockResolvedValueOnce('source.csv');
@@ -162,12 +174,19 @@ describe('dataset explorer workflow', () => {
   it('applies a column projection with a bounded preview and no history change', async () => {
     useDatasetStore.getState().setSource(dataset, firstPage);
     useWorkspaceStore.getState().setHistory({
-      history_id: 'history-1', dataset_id: dataset.dataset_id, current_index: 0,
-      saved_index: 0, is_dirty: false, can_undo: false, can_redo: false,
+      history_id: 'history-1',
+      dataset_id: dataset.dataset_id,
+      current_index: 0,
+      saved_index: 0,
+      is_dirty: false,
+      can_undo: false,
+      can_redo: false,
     });
     invoke.mockResolvedValueOnce({
-      id: 'projection-1', status: 'success',
-      result: { ...firstPage, records: [{ value: 1 }] }, error: null,
+      id: 'projection-1',
+      status: 'success',
+      result: { ...firstPage, records: [{ value: 1 }] },
+      error: null,
     });
 
     render(<App />);
@@ -176,7 +195,10 @@ describe('dataset explorer workflow', () => {
 
     await waitFor(() => expect(invoke).toHaveBeenCalledTimes(1));
     expect(invoke.mock.calls[0][1].request.params).toMatchObject({
-      dataset_id: 'dataset-1', offset: 0, limit: 100, columns: ['value'],
+      dataset_id: 'dataset-1',
+      offset: 0,
+      limit: 100,
+      columns: ['value'],
     });
     expect(useWorkspaceStore.getState().history?.is_dirty).toBe(false);
     expect(useWorkspaceStore.getState().history?.current_index).toBe(0);
@@ -185,12 +207,27 @@ describe('dataset explorer workflow', () => {
   it('submits filter and sort through data.apply without changing history before commit', async () => {
     useDatasetStore.getState().setSource(dataset, firstPage);
     useWorkspaceStore.getState().setHistory({
-      history_id: 'history-1', dataset_id: dataset.dataset_id, current_index: 0,
-      saved_index: 0, is_dirty: false, can_undo: false, can_redo: false,
+      history_id: 'history-1',
+      dataset_id: dataset.dataset_id,
+      current_index: 0,
+      saved_index: 0,
+      is_dirty: false,
+      can_undo: false,
+      can_redo: false,
     });
     invoke
-      .mockResolvedValueOnce({ id: 'filter-job', status: 'success', result: { job_id: 'job-1', state: 'pending' }, error: null })
-      .mockResolvedValueOnce({ id: 'sort-job', status: 'success', result: { job_id: 'job-2', state: 'pending' }, error: null });
+      .mockResolvedValueOnce({
+        id: 'filter-job',
+        status: 'success',
+        result: { job_id: 'job-1', state: 'pending' },
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        id: 'sort-job',
+        status: 'success',
+        result: { job_id: 'job-2', state: 'pending' },
+        error: null,
+      });
 
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'Filter row' }));

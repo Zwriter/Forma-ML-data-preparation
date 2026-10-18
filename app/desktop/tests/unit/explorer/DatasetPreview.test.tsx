@@ -8,8 +8,13 @@ afterEach(cleanup);
 
 const column = { name: 'value', type: 'Int64', nullable: true };
 const dataset: Dataset = {
-  dataset_id: 'dataset-1', source_path: 'source.csv', format: 'csv', columns: 1,
-  rows: 200, state: 'open', schema: [column],
+  dataset_id: 'dataset-1',
+  source_path: 'source.csv',
+  format: 'csv',
+  columns: 1,
+  rows: 200,
+  state: 'open',
+  schema: [column],
 };
 
 function preview(

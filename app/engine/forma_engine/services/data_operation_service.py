@@ -28,9 +28,7 @@ class DataOperationService:
             schema_for(result),
             rows,
         )
-        history = self.datasets.register_derived(
-            dataset_id, dataset, result, operation
-        )
+        history = self.datasets.register_derived(dataset_id, dataset, result, operation)
         return {"dataset": dataset.to_dict(), "history": history, "_committed": True}
 
     def submit(self, dataset_id, operation):

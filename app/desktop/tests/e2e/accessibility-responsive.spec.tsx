@@ -2,6 +2,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import App from '../../src/App';
 import { WorkflowActions } from '../../src/features/workspace/WorkflowActions';
+import { WorkspaceChrome } from '../../src/features/workspace/WorkspaceChrome';
+import { SaveConfirmDialog } from '../../src/features/workspace/SaveConfirmDialog';
 import { useDatasetStore } from '../../src/stores/datasetStore';
 import { useExportStore } from '../../src/stores/exportStore';
 import { useJobStore } from '../../src/stores/jobStore';
@@ -52,7 +54,11 @@ afterEach(() => {
   useJobStore.setState({ jobs: [] });
   useTransformationStore.setState({ operations: [] });
   useWorkspaceStore.setState({
-    busy: false, error: null, history: null, saveStatus: 'idle', commands: {},
+    busy: false,
+    error: null,
+    history: null,
+    saveStatus: 'idle',
+    commands: {},
   });
 });
 
@@ -67,6 +73,72 @@ describe('desktop accessibility and responsive shell', () => {
       expect(control.tabIndex).toBe(0);
       control.focus();
       expect(document.activeElement).toBe(control);
+    }
+  });
+
+  it.each([320, 390, 768, 1280])('keeps Data toolbar controls usable at %i px', (width) => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: width });
+    useDatasetStore.getState().setDataset(dataset);
+    const noop = () => undefined;
+    const { unmount } = render(
+      <WorkspaceChrome
+        activeTab="Data"
+        onTabChange={noop}
+        onReload={noop}
+        onSelectColumns={noop}
+        onFilter={noop}
+        onSort={noop}
+        onGroup={noop}
+        onPivot={noop}
+        onUnpivot={noop}
+        hasDataset
+        onSave={noop}
+        onUndo={noop}
+        onRedo={noop}
+        canUndo
+        canRedo
+      />,
+    );
+    for (const label of [
+      'Save',
+      'Undo',
+      'Redo',
+      'Select columns',
+      'Filter row',
+      'Sort',
+      'Group by',
+      'Pivot',
+      'Unpivot',
+    ]) {
+      const control = screen.getByRole('button', { name: label });
+      expect(control.tabIndex).toBe(0);
+    }
+    unmount();
+  });
+
+  it.each([
+    ['filter', 'Filter rows'],
+    ['sort', 'Sort rows'],
+    ['group_by', 'Summarize rows'],
+    ['pivot', 'Turn categories into columns'],
+    ['unpivot', 'Turn columns into rows'],
+  ] as const)('%s dialog exposes accessible controls', (operation, title) => {
+    useDatasetStore.getState().setDataset(dataset);
+    render(<WorkflowActions activeTab="Data" operationDialog={operation} />);
+    const dialog = screen.getByRole('dialog', { name: title });
+    expect(dialog.getAttribute('aria-modal')).toBe('true');
+    const firstButton = dialog.querySelector('button');
+    expect(firstButton?.tabIndex).toBe(0);
+  });
+
+  it('labels close confirmation and exposes all recovery choices', () => {
+    render(
+      <SaveConfirmDialog mode="close" onSave={vi.fn()} onDiscard={vi.fn()} onCancel={vi.fn()} />,
+    );
+    const dialog = screen.getByRole('dialog', { name: 'Save changes before closing?' });
+    expect(dialog.getAttribute('aria-modal')).toBe('true');
+    for (const label of ['Save', 'Discard changes', 'Cancel']) {
+      expect(screen.getByRole('button', { name: label }).tabIndex).toBe(0);
     }
   });
 

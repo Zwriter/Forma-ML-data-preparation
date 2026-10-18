@@ -15,34 +15,70 @@ describe('filter and sort workflow', () => {
     cleanup();
     invoke.mockReset();
     useDatasetStore.setState({
-      dataset: null, preview: null, sourceDataset: null, sourcePreview: null,
-      history: null, selectedColumns: [],
+      dataset: null,
+      preview: null,
+      sourceDataset: null,
+      sourcePreview: null,
+      history: null,
+      selectedColumns: [],
     });
-    useWorkspaceStore.setState({ busy: false, error: null, history: null, saveStatus: 'idle', commands: {} });
+    useWorkspaceStore.setState({
+      busy: false,
+      error: null,
+      history: null,
+      saveStatus: 'idle',
+      commands: {},
+    });
     useJobStore.setState({ jobs: [] });
   });
 
   it('submits typed filter and ordered sort to engine without changing history on acknowledgement', async () => {
     const dataset = {
-      dataset_id: 'workflow-dataset', source_path: 'records.csv', format: 'csv', columns: 2,
-      rows: 2, state: 'open', schema: [
+      dataset_id: 'workflow-dataset',
+      source_path: 'records.csv',
+      format: 'csv',
+      columns: 2,
+      rows: 2,
+      state: 'open',
+      schema: [
         { name: 'name', type: 'String', nullable: true },
         { name: 'amount', type: 'Int64', nullable: false },
       ],
     };
     const preview = {
-      dataset_id: dataset.dataset_id, columns: dataset.schema,
-      records: [{ name: 'oak', amount: 2 }, { name: 'pine', amount: 1 }],
-      offset: 0, limit: 100, total_count: 2,
+      dataset_id: dataset.dataset_id,
+      columns: dataset.schema,
+      records: [
+        { name: 'oak', amount: 2 },
+        { name: 'pine', amount: 1 },
+      ],
+      offset: 0,
+      limit: 100,
+      total_count: 2,
     };
     useDatasetStore.getState().setSource(dataset, preview);
     useWorkspaceStore.getState().setHistory({
-      history_id: 'history-1', dataset_id: dataset.dataset_id, current_index: 0,
-      saved_index: 0, is_dirty: false, can_undo: false, can_redo: false,
+      history_id: 'history-1',
+      dataset_id: dataset.dataset_id,
+      current_index: 0,
+      saved_index: 0,
+      is_dirty: false,
+      can_undo: false,
+      can_redo: false,
     });
     invoke
-      .mockResolvedValueOnce({ id: 'filter-ack', status: 'success', result: { job_id: 'filter-job', state: 'pending' }, error: null })
-      .mockResolvedValueOnce({ id: 'sort-ack', status: 'success', result: { job_id: 'sort-job', state: 'pending' }, error: null });
+      .mockResolvedValueOnce({
+        id: 'filter-ack',
+        status: 'success',
+        result: { job_id: 'filter-job', state: 'pending' },
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        id: 'sort-ack',
+        status: 'success',
+        result: { job_id: 'sort-job', state: 'pending' },
+        error: null,
+      });
 
     render(<App />);
     fireEvent.click(screen.getByRole('button', { name: 'Filter row' }));
@@ -55,11 +91,14 @@ describe('filter and sort workflow', () => {
     });
 
     fireEvent.click(screen.getByRole('button', { name: 'Sort' }));
-    fireEvent.change(screen.getByLabelText('Sort direction 1'), { target: { value: 'descending' } });
+    fireEvent.change(screen.getByLabelText('Sort direction 1'), {
+      target: { value: 'descending' },
+    });
     fireEvent.click(screen.getByText('Apply sort'));
     await waitFor(() => expect(invoke).toHaveBeenCalledTimes(2));
     expect(invoke.mock.calls[1][1].request.params.operation).toMatchObject({
-      type: 'sort_rows', parameters: { keys: [{ column: 'name', direction: 'descending', nulls: 'last' }] },
+      type: 'sort_rows',
+      parameters: { keys: [{ column: 'name', direction: 'descending', nulls: 'last' }] },
     });
     expect(useWorkspaceStore.getState().history?.is_dirty).toBe(false);
   });

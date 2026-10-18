@@ -31,14 +31,27 @@ def test_data_apply_accepts_typed_filter_and_sort_jobs(app_router, tmp_path):
     source = tmp_path / "records.csv"
     source.write_text("name,amount\na,2\nb,1\n", encoding="utf-8")
     dataset = router.dispatch("dataset.open", {"path": str(source)})
-    for index, operation in enumerate((
-        {"type": "filter_rows", "parameters": {"mode": "all", "rules": [
-            {"column": "amount", "operator": "greater_than", "value": 1},
-        ]}},
-        {"type": "sort_rows", "parameters": {"keys": [
-            {"column": "amount", "direction": "ascending", "nulls": "last"},
-        ]}},
-    )):
+    for index, operation in enumerate(
+        (
+            {
+                "type": "filter_rows",
+                "parameters": {
+                    "mode": "all",
+                    "rules": [
+                        {"column": "amount", "operator": "greater_than", "value": 1},
+                    ],
+                },
+            },
+            {
+                "type": "sort_rows",
+                "parameters": {
+                    "keys": [
+                        {"column": "amount", "direction": "ascending", "nulls": "last"},
+                    ]
+                },
+            },
+        )
+    ):
         target = dataset["dataset_id"]
         if index:
             path = tmp_path / "sort.csv"

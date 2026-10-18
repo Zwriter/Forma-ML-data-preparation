@@ -10,7 +10,16 @@ from forma_engine.ipc.data_operation_handlers import DataOperationHandlers
 class Router:
     """Dispatch namespaced IPC methods to focused handler classes."""
 
-    def __init__(self, datasets, cleaning, profile_service, jobs, exports, saves=None, data_operations=None):
+    def __init__(
+        self,
+        datasets,
+        cleaning,
+        profile_service,
+        jobs,
+        exports,
+        saves=None,
+        data_operations=None,
+    ):
         self.datasets, self.cleaning, self.jobs, self.exports = (
             datasets,
             cleaning,

@@ -53,7 +53,9 @@ def test_new_commit_after_undo_discards_redo_states():
     history.move(second.dataset_id, "undo")
     replacement = make_dataset("replacement")
 
-    metadata = history.commit(first.dataset_id, replacement, object(), {"type": "unpivot"})
+    metadata = history.commit(
+        first.dataset_id, replacement, object(), {"type": "unpivot"}
+    )
 
     assert metadata["can_redo"] is False
     assert metadata["is_dirty"] is True

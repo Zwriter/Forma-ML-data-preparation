@@ -18,7 +18,11 @@ class DataOperationHandlers:
         if self.operations is None:
             raise RequestError("Data operations are not available.")
         if operation.get("type") not in {
-            "filter_rows", "sort_rows", "group_by", "pivot", "unpivot"
+            "filter_rows",
+            "sort_rows",
+            "group_by",
+            "pivot",
+            "unpivot",
         }:
             raise RequestError("Choose a supported data operation.")
         schema = self.datasets.frame(dataset_id).collect_schema()

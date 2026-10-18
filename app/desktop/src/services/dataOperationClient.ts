@@ -1,10 +1,6 @@
 import { request } from './ipcClient';
 import type { Dataset, HistoryMetadata, Preview } from '../types/dataset';
-import type {
-  DataOperation,
-  JobAcknowledgement,
-  SaveResult,
-} from '../types/dataOperations';
+import type { DataOperation, JobAcknowledgement, SaveResult } from '../types/dataOperations';
 
 export const getHistory = (datasetId: string) =>
   request<HistoryMetadata>('dataset.history', { dataset_id: datasetId });

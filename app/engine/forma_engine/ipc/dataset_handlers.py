@@ -1,4 +1,8 @@
-from forma_engine.domain.errors import CancelledError, HistoryBoundaryError, RequestError
+from forma_engine.domain.errors import (
+    CancelledError,
+    HistoryBoundaryError,
+    RequestError,
+)
 
 
 class DatasetHandlers:
