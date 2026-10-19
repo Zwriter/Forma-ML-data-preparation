@@ -73,7 +73,9 @@ export default function App() {
     onOverwriteRequired: openOverwriteDialog,
   });
 
-  const [activeTab, setActiveTab] = useState('Data');
+  const [activeTab, setActiveTab] = useState(() =>
+    useDatasetStore.getState().dataset ? 'Data' : 'File',
+  );
   const [showColumnSelector, setShowColumnSelector] = useState(false);
   const [operationDialog, setOperationDialog] = useState<
     'filter' | 'sort' | 'group_by' | 'pivot' | 'unpivot' | null

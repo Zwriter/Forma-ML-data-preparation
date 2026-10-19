@@ -53,8 +53,16 @@ describe('dataset explorer workflow', () => {
     });
   });
 
+  it('starts on the File tab when no dataset is loaded', () => {
+    render(<App />);
+
+    expect(screen.getByRole('heading', { name: 'Forma' })).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'Start with a dataset' })).toBeNull();
+  });
+
   it('shows the full ribbon and workspace navigation with the purple accent controls', () => {
     render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Back to workspace' }));
 
     for (const action of [
       'Save',

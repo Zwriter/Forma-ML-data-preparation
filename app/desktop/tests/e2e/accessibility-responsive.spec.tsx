@@ -69,7 +69,7 @@ describe('desktop accessibility and responsive shell', () => {
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: width });
     render(<App />);
 
-    expect(screen.getByRole('heading', { name: 'Start with a dataset' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Forma' })).toBeTruthy();
     const controls = [screen.getByRole('button', { name: 'Import file' })];
     for (const control of controls) {
       expect(control.tabIndex).toBe(0);

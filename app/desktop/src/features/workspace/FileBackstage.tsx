@@ -152,7 +152,7 @@ export function FileBackstage({
                   onClick={onBrowse}
                 >
                   <Icon name="open" />
-                  Import file
+                  {busy ? 'Importing…' : 'Import file'}
                 </button>
               </div>
             </div>
