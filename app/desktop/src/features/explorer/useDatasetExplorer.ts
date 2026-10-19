@@ -4,6 +4,7 @@ import { useDatasetStore } from '../../stores/datasetStore';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
 import type { Dataset, Preview } from '../../types/dataset';
 import { getHistory, getWorkingPreview } from '../../services/dataOperationClient';
+import { useSettingsStore } from '../../stores/settingsStore';
 
 export function useDatasetExplorer() {
   const [path, setPath] = useState('');
@@ -21,7 +22,10 @@ export function useDatasetExplorer() {
       setBusy(true);
       setError(null);
       try {
-        const opened = await request<Dataset>('dataset.open', { path: sourcePath });
+        const opened = await request<Dataset>('dataset.open', {
+          path: sourcePath,
+          history_limit: useSettingsStore.getState().historyLimit,
+        });
         const firstPage = await request<Preview>('dataset.preview', {
           dataset_id: opened.dataset_id,
           offset: 0,

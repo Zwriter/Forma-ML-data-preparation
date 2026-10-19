@@ -42,6 +42,7 @@ describe('dataset preview', () => {
         selectedColumns={['value']}
         onOpenColumnSelector={() => undefined}
         onSelectColumn={() => undefined}
+        onOpenColumnDetails={() => undefined}
         onPage={() => undefined}
       />,
     );
@@ -63,6 +64,7 @@ describe('dataset preview', () => {
         selectedColumns={['value']}
         onOpenColumnSelector={() => undefined}
         onSelectColumn={() => undefined}
+        onOpenColumnDetails={() => undefined}
         onPage={onPage}
       />,
     );
@@ -71,6 +73,31 @@ describe('dataset preview', () => {
     fireEvent.click(screen.getByText('Next'));
 
     expect(onPage).toHaveBeenCalledWith(100);
+  });
+
+  it('selects columns on click and opens details only from the context menu', () => {
+    const onSelectColumn = vi.fn();
+    const onOpenColumnDetails = vi.fn();
+    render(
+      <DatasetPreview
+        dataset={dataset}
+        preview={preview([{ value: 1 }])}
+        selectedColumn={null}
+        selectedColumns={['value']}
+        onOpenColumnSelector={() => undefined}
+        onSelectColumn={onSelectColumn}
+        onOpenColumnDetails={onOpenColumnDetails}
+        onPage={() => undefined}
+      />,
+    );
+
+    const header = screen.getByRole('button', { name: 'Show details for value' });
+    fireEvent.click(header);
+    expect(onSelectColumn).toHaveBeenCalledWith('value');
+    expect(onOpenColumnDetails).not.toHaveBeenCalled();
+
+    fireEvent.contextMenu(header);
+    expect(onOpenColumnDetails).toHaveBeenCalledWith('value');
   });
 
   it('requests previous page and does not page beyond known total', () => {
@@ -83,6 +110,7 @@ describe('dataset preview', () => {
         selectedColumns={['value']}
         onOpenColumnSelector={() => undefined}
         onSelectColumn={() => undefined}
+        onOpenColumnDetails={() => undefined}
         onPage={onPage}
       />,
     );
@@ -99,6 +127,7 @@ describe('dataset preview', () => {
         selectedColumns={['value']}
         onOpenColumnSelector={() => undefined}
         onSelectColumn={() => undefined}
+        onOpenColumnDetails={() => undefined}
         onPage={onPage}
       />,
     );

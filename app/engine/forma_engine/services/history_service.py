@@ -5,10 +5,16 @@ from forma_engine.domain.entities import ChangeHistory, Dataset, WorkingStateEnt
 from forma_engine.domain.errors import HistoryBoundaryError, RequestError
 
 
+DEFAULT_HISTORY_ACTIONS = 10
+MIN_HISTORY_ACTIONS = 1
+MAX_HISTORY_ACTIONS = 100
+
+
 @dataclass
 class HistoryService:
     histories: dict[str, ChangeHistory] = field(default_factory=dict)
     dataset_histories: dict[str, str] = field(default_factory=dict)
+    max_actions: int = DEFAULT_HISTORY_ACTIONS
 
     def open(self, dataset: Dataset, frame: Any) -> dict:
         history = ChangeHistory(states=[WorkingStateEntry(dataset, frame)])
@@ -39,8 +45,36 @@ class HistoryService:
         entry = WorkingStateEntry(dataset, frame, operation)
         history.states.append(entry)
         history.current_index += 1
+        self._trim(history)
         self.dataset_histories[dataset.dataset_id] = history.history_id
         return history.to_dict()
+
+    def set_max_actions(self, max_actions: int) -> int:
+        if (
+            not isinstance(max_actions, int)
+            or isinstance(max_actions, bool)
+            or not MIN_HISTORY_ACTIONS <= max_actions <= MAX_HISTORY_ACTIONS
+        ):
+            raise RequestError(
+                f"History limit must be between {MIN_HISTORY_ACTIONS} "
+                f"and {MAX_HISTORY_ACTIONS}."
+            )
+        self.max_actions = max_actions
+        for history in self.histories.values():
+            self._trim(history)
+        return self.max_actions
+
+    def _trim(self, history: ChangeHistory) -> None:
+        excess_states = len(history.states) - (self.max_actions + 1)
+        if excess_states <= 0:
+            return
+        del history.states[:excess_states]
+        history.current_index -= excess_states
+        history.saved_index = (
+            history.saved_index - excess_states
+            if history.saved_index >= excess_states
+            else -1
+        )
 
     def move(self, dataset_id: str, direction: str) -> WorkingStateEntry:
         history = self.history_for(dataset_id)

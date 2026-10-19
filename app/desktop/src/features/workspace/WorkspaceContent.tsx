@@ -101,6 +101,9 @@ export function WorkspaceContent({
                 onOpenColumnSelector={() => onShowColumnSelector(true)}
                 onSelectColumn={(name) => {
                   setSelectedColumn(name);
+                }}
+                onOpenColumnDetails={(name) => {
+                  setSelectedColumn(name);
                   setShowColumnDetails(true);
                 }}
                 onPage={onPage}

@@ -13,6 +13,8 @@ class DatasetHandlers:
         path = params.get("path")
         if not isinstance(path, str) or not path.strip():
             raise RequestError("Provide a local file path.")
+        if "history_limit" in params:
+            self.datasets.history_service.set_max_actions(params["history_limit"])
         return self.datasets.open(path)
 
     def preview(self, params):

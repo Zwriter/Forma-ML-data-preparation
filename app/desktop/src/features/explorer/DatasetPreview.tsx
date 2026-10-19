@@ -8,6 +8,7 @@ type Props = {
   preview: Preview | null;
   selectedColumn: string | null;
   onSelectColumn: (name: string) => void;
+  onOpenColumnDetails: (name: string) => void;
   selectedColumns: string[];
   onOpenColumnSelector: () => void;
   onPage: (offset: number, limit?: number) => void;
@@ -18,6 +19,7 @@ export function DatasetPreview({
   preview,
   selectedColumn,
   onSelectColumn,
+  onOpenColumnDetails,
   selectedColumns,
   onOpenColumnSelector,
   onPage,
@@ -106,6 +108,10 @@ export function DatasetPreview({
                       aria-label={`Show details for ${column.name}`}
                       aria-pressed={selectedColumn === column.name}
                       onClick={() => onSelectColumn(column.name)}
+                      onContextMenu={(event) => {
+                        event.preventDefault();
+                        onOpenColumnDetails(column.name);
+                      }}
                     >
                       <strong>{column.name}</strong>
                       <small>

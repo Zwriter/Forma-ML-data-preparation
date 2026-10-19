@@ -73,6 +73,16 @@ describe('dataset explorer workflow', () => {
     expect(screen.getByRole('heading', { name: 'Settings' })).toBeTruthy();
   });
 
+  it('keeps column details above ribbon popups', () => {
+    useDatasetStore.getState().setSource(dataset, firstPage);
+    render(<App />);
+
+    fireEvent.contextMenu(screen.getByRole('button', { name: 'Show details for value' }));
+
+    const details = screen.getByRole('complementary', { name: 'Column details' }).parentElement;
+    expect(details?.className).toBe('column-details-popover');
+  });
+
   it('toggles ribbon popups from their buttons without popup close controls', () => {
     useDatasetStore.getState().setSource(dataset, firstPage);
     render(<App />);

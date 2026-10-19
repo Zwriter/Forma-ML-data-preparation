@@ -39,6 +39,7 @@ class Router:
             "dataset.undo": dataset.undo,
             "dataset.redo": dataset.redo,
             "dataset.save": dataset.save,
+            "settings.history_limit": self._set_history_limit,
             "data.apply": data_operation.apply,
             "dataset.profile": profile.profile,
             "cleaning.preview": clean.preview,
@@ -56,3 +57,9 @@ class Router:
         if not isinstance(params, dict):
             raise RequestError("params must be an object.")
         return handler(params)
+
+    def _set_history_limit(self, params: dict):
+        if "max_actions" not in params:
+            raise RequestError("Provide max_actions.")
+        limit = self.datasets.history_service.set_max_actions(params["max_actions"])
+        return {"max_actions": limit}

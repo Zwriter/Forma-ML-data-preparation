@@ -191,9 +191,9 @@
 }
 
 .column-details-popover {
-  position: absolute;
-  z-index: 5;
-  top: 68px;
+  position: fixed;
+  z-index: 1100;
+  top: 200px;
   right: 12px;
   width: min(300px, calc(100% - 24px));
   max-height: min(70vh, 620px);

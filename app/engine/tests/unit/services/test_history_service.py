@@ -62,6 +62,74 @@ def test_new_commit_after_undo_discards_redo_states():
     assert len(history.history_for(source.dataset_id).states) == 3
 
 
+def test_history_keeps_only_last_ten_actions_and_allows_ten_undos():
+    history = HistoryService()
+    dataset = make_dataset("source.csv")
+    history.open(dataset, object())
+
+    for index in range(1, 13):
+        next_dataset = make_dataset(f"derived-{index}")
+        history.commit(dataset.dataset_id, next_dataset, object(), {"step": index})
+        dataset = next_dataset
+
+    metadata = history.metadata(dataset.dataset_id)
+    assert len(history.history_for(dataset.dataset_id).states) == 11
+    assert metadata["current_index"] == 10
+    assert metadata["can_undo"] is True
+
+    for _ in range(10):
+        history.move(dataset.dataset_id, "undo")
+
+    assert history.current(dataset.dataset_id).dataset.source_path == "derived-2"
+    with pytest.raises(RequestError):
+        history.move(dataset.dataset_id, "undo")
+
+
+def test_pruned_saved_state_stays_dirty_until_new_save():
+    history = HistoryService()
+    dataset = make_dataset("source.csv")
+    history.open(dataset, object())
+    history.mark_saved(dataset.dataset_id)
+
+    for index in range(1, 12):
+        next_dataset = make_dataset(f"derived-{index}")
+        history.commit(dataset.dataset_id, next_dataset, object(), {"step": index})
+        dataset = next_dataset
+
+    history.move(dataset.dataset_id, "undo")
+    assert history.metadata(dataset.dataset_id)["is_dirty"] is True
+
+    history.mark_saved(dataset.dataset_id)
+    assert history.metadata(dataset.dataset_id)["is_dirty"] is False
+
+
+def test_history_limit_is_configurable_and_trims_existing_states():
+    history = HistoryService()
+    dataset = make_dataset("source.csv")
+    history.open(dataset, object())
+    for index in range(1, 5):
+        next_dataset = make_dataset(f"derived-{index}")
+        history.commit(dataset.dataset_id, next_dataset, object(), {"step": index})
+        dataset = next_dataset
+
+    history.set_max_actions(2)
+
+    assert len(history.history_for(dataset.dataset_id).states) == 3
+    assert history.metadata(dataset.dataset_id)["current_index"] == 2
+    history.move(dataset.dataset_id, "undo")
+    history.move(dataset.dataset_id, "undo")
+    assert history.current(dataset.dataset_id).dataset.source_path == "derived-2"
+    with pytest.raises(RequestError):
+        history.move(dataset.dataset_id, "undo")
+
+
+@pytest.mark.parametrize("limit", [0, 101, 1.5, True])
+def test_history_limit_rejects_values_outside_allowed_range(limit):
+    history = HistoryService()
+    with pytest.raises(RequestError):
+        history.set_max_actions(limit)
+
+
 @pytest.mark.parametrize("direction", ["undo", "redo"])
 def test_move_rejects_history_boundaries(direction):
     history = HistoryService()
