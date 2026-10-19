@@ -6,7 +6,6 @@ import { WorkspaceChrome } from '../../src/features/workspace/WorkspaceChrome';
 import { SaveConfirmDialog } from '../../src/features/workspace/SaveConfirmDialog';
 import { useDatasetStore } from '../../src/stores/datasetStore';
 import { useExportStore } from '../../src/stores/exportStore';
-import { useJobStore } from '../../src/stores/jobStore';
 import { useTransformationStore } from '../../src/stores/transformationStore';
 import { useWorkspaceStore } from '../../src/stores/workspaceStore';
 
@@ -53,7 +52,6 @@ afterEach(() => {
     activeFileId: null,
   });
   useExportStore.setState({ destination: '', overwrite: false });
-  useJobStore.setState({ jobs: [] });
   useTransformationStore.setState({ operations: [] });
   useWorkspaceStore.setState({
     busy: false,
@@ -158,7 +156,7 @@ describe('desktop accessibility and responsive shell', () => {
     expect(invoke).not.toHaveBeenCalled();
   });
 
-  it('shows pending profile state within one second', async () => {
+  it('keeps background profile jobs out of the worksheet', async () => {
     useDatasetStore.getState().setDataset(dataset);
     invoke.mockImplementation(async (_command: string, args: { request: { method: string } }) =>
       response(args.request.method),
@@ -167,14 +165,14 @@ describe('desktop accessibility and responsive shell', () => {
     const started = performance.now();
 
     fireEvent.click(screen.getByText('Profile dataset'));
-    await waitFor(() =>
-      expect(screen.getByText('profile: Queued (progress unknown)')).toBeTruthy(),
-    );
+    await waitFor(() => expect(invoke).toHaveBeenCalled());
+    expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
+    expect(screen.queryByRole('status')).toBeNull();
 
     expect(performance.now() - started).toBeLessThan(1000);
   });
 
-  it('shows pending cleaning state within one second', async () => {
+  it('keeps background cleaning jobs out of the worksheet', async () => {
     useDatasetStore.getState().setDataset(dataset);
     invoke.mockImplementation(async (_command: string, args: { request: { method: string } }) =>
       response(args.request.method),
@@ -184,12 +182,14 @@ describe('desktop accessibility and responsive shell', () => {
     const started = performance.now();
 
     fireEvent.click(screen.getByText('Apply operations'));
-    await waitFor(() => expect(screen.getByText('clean: Queued (progress unknown)')).toBeTruthy());
+    await waitFor(() => expect(invoke).toHaveBeenCalled());
+    expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
+    expect(screen.queryByRole('status')).toBeNull();
 
     expect(performance.now() - started).toBeLessThan(1000);
   });
 
-  it('shows pending export state within one second', async () => {
+  it('keeps background export jobs out of the worksheet', async () => {
     useDatasetStore.getState().setDataset(dataset);
     useExportStore.getState().setDestination('cleaned.csv');
     invoke.mockImplementation(async (_command: string, args: { request: { method: string } }) =>
@@ -199,7 +199,9 @@ describe('desktop accessibility and responsive shell', () => {
     const started = performance.now();
 
     fireEvent.click(screen.getByText('Export CSV'));
-    await waitFor(() => expect(screen.getByText('export: Queued (progress unknown)')).toBeTruthy());
+    await waitFor(() => expect(invoke).toHaveBeenCalled());
+    expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
+    expect(screen.queryByRole('status')).toBeNull();
 
     expect(performance.now() - started).toBeLessThan(1000);
   });

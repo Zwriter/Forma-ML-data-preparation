@@ -6,7 +6,7 @@ export function isTauriRuntime(): boolean {
 }
 
 export function isDemoRuntime(): boolean {
-  return import.meta.env.MODE === 'demo';
+  return import.meta.env.MODE === 'demo' && !isTauriRuntime();
 }
 
 export function getTauriRuntimeError(): Error {

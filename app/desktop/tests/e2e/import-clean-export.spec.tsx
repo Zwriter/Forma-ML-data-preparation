@@ -3,7 +3,6 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testi
 import App from '../../src/App';
 import { useDatasetStore } from '../../src/stores/datasetStore';
 import { useExportStore } from '../../src/stores/exportStore';
-import { useJobStore } from '../../src/stores/jobStore';
 import { useTransformationStore } from '../../src/stores/transformationStore';
 import { useWorkspaceStore } from '../../src/stores/workspaceStore';
 
@@ -85,7 +84,6 @@ describe('import-clean-export desktop flow', () => {
       activeFileId: null,
     });
     useExportStore.setState({ destination: '', overwrite: false });
-    useJobStore.setState({ jobs: [] });
     useTransformationStore.setState({ operations: [] });
     useWorkspaceStore.setState({
       busy: false,
@@ -96,7 +94,7 @@ describe('import-clean-export desktop flow', () => {
     });
   });
 
-  it('cleans and reopens CSV and Parquet, preserves source, rejects bad conversion and overwrite, and cancels export', async () => {
+  it('cleans and reopens files, preserves source, and keeps background jobs out of the workspace', async () => {
     let jobSequence = 0;
     bridge.invoke.mockImplementation(
       async (
@@ -163,7 +161,6 @@ describe('import-clean-export desktop flow', () => {
         if (method === 'export.csv' || method === 'export.parquet') {
           return success({ job_id: `export-${++jobSequence}`, state: 'pending' });
         }
-        if (method === 'job.cancel') return success({ job_id: params.job_id, state: 'running' });
         throw new Error(`Unexpected IPC method: ${method}`);
       },
     );
@@ -218,8 +215,15 @@ describe('import-clean-export desktop flow', () => {
     });
     fireEvent.click(screen.getByText('Export CSV'));
     await waitFor(() =>
-      expect(useJobStore.getState().jobs.some((job) => job.job_id === 'export-1')).toBe(true),
+      expect(
+        bridge.invoke.mock.calls.some(
+          (call) =>
+            call[1].request.method === 'export.csv' &&
+            call[1].request.params.destination === 'cleaned.csv',
+        ),
+      ).toBe(true),
     );
+    expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
     expect(
       bridge.invoke.mock.calls.find((call) => call[1].request.method === 'export.csv')?.[1].request
         .params,
@@ -242,10 +246,6 @@ describe('import-clean-export desktop flow', () => {
         validated: true,
       },
     });
-    expect(useJobStore.getState().jobs.find((job) => job.job_id === 'export-1')?.state).toBe(
-      'completed',
-    );
-
     importFile('cleaned.csv');
     await waitFor(() =>
       expect(useDatasetStore.getState().dataset?.dataset_id).toBe('csv-output-1'),
@@ -258,7 +258,13 @@ describe('import-clean-export desktop flow', () => {
     });
     fireEvent.click(screen.getByText('Export Parquet'));
     await waitFor(() =>
-      expect(useJobStore.getState().jobs.some((job) => job.job_id === 'export-2')).toBe(true),
+      expect(
+        bridge.invoke.mock.calls.some(
+          (call) =>
+            call[1].request.method === 'export.parquet' &&
+            call[1].request.params.destination === 'cleaned.parquet',
+        ),
+      ).toBe(true),
     );
     expect(
       bridge.invoke.mock.calls.find((call) => call[1].request.method === 'export.parquet')?.[1]
@@ -313,28 +319,30 @@ describe('import-clean-export desktop flow', () => {
     expect(rejectedExport?.[1].request.params.force_overwrite).toBe(false);
 
     fireEvent.change(screen.getByLabelText('Destination path'), {
-      target: { value: 'cancelled.csv' },
+      target: { value: 'failed.csv' },
     });
     fireEvent.click(screen.getByText('Export CSV'));
     await waitFor(() =>
-      expect(useJobStore.getState().jobs.some((job) => job.job_id === 'export-3')).toBe(true),
+      expect(
+        bridge.invoke.mock.calls.some(
+          (call) =>
+            call[1].request.method === 'export.csv' &&
+            call[1].request.params.destination === 'failed.csv',
+        ),
+      ).toBe(true),
     );
-    fireEvent.click(screen.getByText('Cancel'));
-    await waitFor(() =>
-      expect(bridge.invoke.mock.calls.some((call) => call[1].request.method === 'job.cancel')).toBe(
-        true,
-      ),
-    );
+    expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Cancel' })).toBeNull();
     await emit({
       job_id: 'export-3',
       kind: 'export',
-      state: 'cancelled',
+      state: 'failed',
       progress: null,
-      message: 'Export cancelled',
+      message: 'Export failed',
+      error: { code: 'EXPORT_FAILED', message: 'Could not write the output file.' },
     });
-    expect(screen.getByText('export: Export cancelled (progress unknown)')).toBeTruthy();
-    expect(useJobStore.getState().jobs.find((job) => job.job_id === 'export-3')?.state).toBe(
-      'cancelled',
+    expect((await screen.findByRole('alert')).textContent).toContain(
+      'Export failed: Could not write the output file.',
     );
   });
 });

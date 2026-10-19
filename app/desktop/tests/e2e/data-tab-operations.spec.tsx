@@ -3,7 +3,6 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import App from '../../src/App';
 import { useDatasetStore } from '../../src/stores/datasetStore';
 import { useWorkspaceStore } from '../../src/stores/workspaceStore';
-import { useJobStore } from '../../src/stores/jobStore';
 
 const bridge = vi.hoisted(() => ({
   invoke: vi.fn(),
@@ -119,7 +118,6 @@ describe('Data tab reshape operations', () => {
       saveStatus: 'idle',
       commands: {},
     });
-    useJobStore.setState({ jobs: [] });
   });
 
   it('pivots, unpivots, and groups fixture data through history-backed jobs', async () => {
@@ -179,7 +177,8 @@ describe('Data tab reshape operations', () => {
         bridge.invoke.mock.calls.filter((call) => call[1].request.method === 'data.apply'),
       ).toHaveLength(1),
     );
-    expect(screen.getByText('pivot: Queued (progress unknown)')).toBeTruthy();
+    expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
+    expect(screen.queryByRole('status')).toBeNull();
     const acknowledgement = await bridge.invoke.mock.results.at(-1)?.value;
     expect(acknowledgement.result).toEqual({ job_id: 'reshape-1', state: 'pending' });
     expect(acknowledgement.result).not.toHaveProperty('records');

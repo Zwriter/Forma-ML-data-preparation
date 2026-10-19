@@ -3,7 +3,6 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import App from '../../src/App';
 import { useDatasetStore } from '../../src/stores/datasetStore';
 import { useWorkspaceStore } from '../../src/stores/workspaceStore';
-import { useJobStore } from '../../src/stores/jobStore';
 
 const invoke = vi.fn();
 vi.mock('@tauri-apps/api/core', () => ({ invoke: (...args: unknown[]) => invoke(...args) }));
@@ -31,7 +30,6 @@ describe('filter and sort workflow', () => {
       saveStatus: 'idle',
       commands: {},
     });
-    useJobStore.setState({ jobs: [] });
   });
 
   it('submits typed filter and ordered sort to engine without changing history on acknowledgement', async () => {

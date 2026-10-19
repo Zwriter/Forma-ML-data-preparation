@@ -42,8 +42,10 @@ npm install
 npm run tauri dev
 ```
 
-`npm run dev` starts only the frontend; it has no native file picker or local engine bridge and
-cannot open datasets in a browser.
+`npm run dev` starts the frontend in browser demo mode. It offers the sample dataset and a browser
+file picker for CSVs, but has no native file picker or local engine bridge. The Tauri dev command
+also uses the demo Vite mode, but detects the native Tauri runtime and continues to route requests
+through the local engine.
 
 The MVP selects files by entering a local path. The engine validates file access and schema.
 Data-tab Save writes the current working state to its source path after overwrite confirmation.

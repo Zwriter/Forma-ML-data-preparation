@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useDatasetStore } from '../../stores/datasetStore';
-import { useJobStore } from '../../stores/jobStore';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
 import { IpcError } from '../../services/ipcClient';
@@ -11,7 +10,6 @@ type Options = { onOverwriteRequired: (destination?: string) => void };
 
 export function useWorkspaceHistory({ onOverwriteRequired }: Options) {
   const dataset = useDatasetStore((state) => state.dataset);
-  const addJob = useJobStore((state) => state.add);
   const setBusy = useWorkspaceStore((state) => state.setBusy);
   const setError = useWorkspaceStore((state) => state.setError);
   const setSaveStatus = useWorkspaceStore((state) => state.setSaveStatus);
@@ -29,9 +27,8 @@ export function useWorkspaceHistory({ onOverwriteRequired }: Options) {
           destination = buildSaveCopyDestination(dataset.source_path, dataset.format);
         }
         pendingDestination.current = destination;
-        const job = await saveDataset(dataset.dataset_id, forceOverwrite, destination ?? undefined);
+        await saveDataset(dataset.dataset_id, forceOverwrite, destination ?? undefined);
         pendingDestination.current = null;
-        addJob({ ...job, kind: 'save', progress: null, message: 'Queued' });
         setSaveStatus('saving');
         setBusy(true);
       } catch (cause) {
@@ -45,7 +42,7 @@ export function useWorkspaceHistory({ onOverwriteRequired }: Options) {
         setError(cause instanceof Error ? cause.message : 'Save could not start.');
       }
     },
-    [dataset, saveBehavior, addJob, setBusy, setError, setSaveStatus, onOverwriteRequired],
+    [dataset, saveBehavior, setBusy, setError, setSaveStatus, onOverwriteRequired],
   );
 
   const cancelPendingSave = useCallback(() => {
@@ -58,14 +55,13 @@ export function useWorkspaceHistory({ onOverwriteRequired }: Options) {
       setError(null);
       try {
         const request = direction === 'undo' ? undoDataset : redoDataset;
-        const job = await request(dataset.dataset_id);
-        addJob({ ...job, kind: direction, progress: null, message: 'Queued' });
+        await request(dataset.dataset_id);
         setBusy(true);
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : `Could not ${direction}.`);
       }
     },
-    [dataset, addJob, setBusy, setError],
+    [dataset, setBusy, setError],
   );
 
   const undo = useCallback(() => move('undo'), [move]);

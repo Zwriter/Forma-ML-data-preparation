@@ -1,10 +1,9 @@
-import { useEffect, type Dispatch, type SetStateAction } from 'react';
+import { useEffect } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import type { Dataset, HistoryMetadata } from '../../types/dataset';
 import type { Job } from '../../types/job';
 import { getTauriRuntimeError, isDemoRuntime, isTauriRuntime } from '../../services/tauriRuntime';
 import { useDatasetStore } from '../../stores/datasetStore';
-import { useJobStore } from '../../stores/jobStore';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
 import { useCleaningJob } from '../cleaning/useCleaningJob';
 
@@ -28,11 +27,9 @@ const actionNames: Record<string, string> = {
 };
 
 export function useWorkflowJobEvents(
-  setMessage: Dispatch<SetStateAction<string>>,
   onSaveComplete?: (success: boolean) => void,
   onProfileResult?: (result: Record<string, unknown>) => void,
 ) {
-  const addJob = useJobStore((state) => state.add);
   const setHistory = useWorkspaceStore((state) => state.setHistory);
   const setDatasetHistory = useDatasetStore((state) => state.setHistory);
   const setSaveStatus = useWorkspaceStore((state) => state.setSaveStatus);
@@ -43,14 +40,12 @@ export function useWorkflowJobEvents(
   useEffect(() => {
     if (isDemoRuntime()) return;
     if (!isTauriRuntime()) {
-      setMessage(getTauriRuntimeError().message);
+      setWorkspaceError(getTauriRuntimeError().message);
       return;
     }
     let stop: (() => void) | undefined;
     listen<EventJob>('engine-event', async (event) => {
       const job = event.payload;
-      addJob(job);
-      setMessage(`${job.kind}: ${job.message}`);
       if (job.state === 'completed' && job.result?.dataset)
         await acceptResult(
           job.result.dataset,
@@ -79,17 +74,15 @@ export function useWorkflowJobEvents(
         stop = unlisten;
       })
       .catch((cause: unknown) => {
-        setMessage(cause instanceof Error ? cause.message : getTauriRuntimeError().message);
+        setWorkspaceError(cause instanceof Error ? cause.message : getTauriRuntimeError().message);
       });
     return () => stop?.();
   }, [
     acceptResult,
-    addJob,
     onProfileResult,
     onSaveComplete,
     setDatasetHistory,
     setHistory,
-    setMessage,
     setSaveStatus,
     setWorkspaceBusy,
     setWorkspaceError,
