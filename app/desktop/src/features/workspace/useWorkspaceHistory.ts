@@ -1,11 +1,13 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useDatasetStore } from '../../stores/datasetStore';
 import { useJobStore } from '../../stores/jobStore';
+import { useSettingsStore } from '../../stores/settingsStore';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
 import { IpcError } from '../../services/ipcClient';
 import { redoDataset, saveDataset, undoDataset } from '../../services/dataOperationClient';
+import { buildSaveCopyDestination } from '../../services/saveDestination';
 
-type Options = { onOverwriteRequired: () => void };
+type Options = { onOverwriteRequired: (destination?: string) => void };
 
 export function useWorkspaceHistory({ onOverwriteRequired }: Options) {
   const dataset = useDatasetStore((state) => state.dataset);
@@ -14,27 +16,41 @@ export function useWorkspaceHistory({ onOverwriteRequired }: Options) {
   const setError = useWorkspaceStore((state) => state.setError);
   const setSaveStatus = useWorkspaceStore((state) => state.setSaveStatus);
   const setCommands = useWorkspaceStore((state) => state.setCommands);
+  const saveBehavior = useSettingsStore((state) => state.saveBehavior);
+  const pendingDestination = useRef<string | null>(null);
 
   const save = useCallback(
     async (forceOverwrite = false) => {
       if (!dataset) return;
       setError(null);
+      let destination = pendingDestination.current;
       try {
-        const job = await saveDataset(dataset.dataset_id, forceOverwrite);
+        if (saveBehavior === 'copy' && !destination) {
+          destination = buildSaveCopyDestination(dataset.source_path, dataset.format);
+        }
+        pendingDestination.current = destination;
+        const job = await saveDataset(dataset.dataset_id, forceOverwrite, destination ?? undefined);
+        pendingDestination.current = null;
         addJob({ ...job, kind: 'save', progress: null, message: 'Queued' });
         setSaveStatus('saving');
         setBusy(true);
       } catch (cause) {
         if (cause instanceof IpcError && cause.code === 'SAVE_REQUIRED') {
-          onOverwriteRequired();
+          pendingDestination.current = destination;
+          onOverwriteRequired(destination ?? undefined);
           return;
         }
+        pendingDestination.current = null;
         setSaveStatus('failed');
         setError(cause instanceof Error ? cause.message : 'Save could not start.');
       }
     },
-    [dataset, addJob, setBusy, setError, setSaveStatus, onOverwriteRequired],
+    [dataset, saveBehavior, addJob, setBusy, setError, setSaveStatus, onOverwriteRequired],
   );
+
+  const cancelPendingSave = useCallback(() => {
+    pendingDestination.current = null;
+  }, []);
 
   const move = useCallback(
     async (direction: 'undo' | 'redo') => {
@@ -81,5 +97,5 @@ export function useWorkspaceHistory({ onOverwriteRequired }: Options) {
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [save, undo, redo]);
 
-  return { save, undo, redo };
+  return { save, undo, redo, cancelPendingSave };
 }

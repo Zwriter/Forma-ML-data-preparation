@@ -5,6 +5,7 @@ import { DatasetPreview } from '../explorer/DatasetPreview';
 import { BeforeAfterComparison } from '../cleaning/BeforeAfterComparison';
 import { FileBackstage } from './FileBackstage';
 import type { Dataset, Preview } from '../../types/dataset';
+import type { PopupPosition } from './popupPositions';
 
 type Props = {
   activeTab: string;
@@ -15,6 +16,8 @@ type Props = {
   selectedColumns: string[];
   busy: boolean;
   showColumnSelector: boolean;
+  operationDialogOpen?: boolean;
+  popupPosition: PopupPosition;
   onShowColumnSelector: (show: boolean) => void;
   onBack: () => void;
   onBrowse: () => void;
@@ -32,6 +35,8 @@ export function WorkspaceContent({
   selectedColumns,
   busy,
   showColumnSelector,
+  operationDialogOpen = false,
+  popupPosition,
   onShowColumnSelector,
   onBack,
   onBrowse,
@@ -46,11 +51,13 @@ export function WorkspaceContent({
   const title = fileName.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ') || 'Dataset';
 
   useEffect(() => {
-    if (activeTab !== 'Data') {
+    if (activeTab !== 'Data' || showColumnSelector || operationDialogOpen) {
       setShowColumnDetails(false);
+    }
+    if (activeTab !== 'Data') {
       onShowColumnSelector(false);
     }
-  }, [activeTab, onShowColumnSelector]);
+  }, [activeTab, showColumnSelector, operationDialogOpen, onShowColumnSelector]);
 
   return (
     <main className={`work-area${activeTab === 'Data' && dataset ? ' worksheet-work-area' : ''}`}>
@@ -102,6 +109,7 @@ export function WorkspaceContent({
                 <ColumnSelector
                   columns={dataset.schema}
                   selectedColumns={selectedColumns}
+                  popupPosition={popupPosition}
                   onClose={() => onShowColumnSelector(false)}
                   onConfirm={(columns) => {
                     onShowColumnSelector(false);

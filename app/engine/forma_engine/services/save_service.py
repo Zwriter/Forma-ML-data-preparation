@@ -13,23 +13,28 @@ class SaveService:
     def __init__(self, datasets):
         self.datasets = datasets
 
-    def save(self, dataset_id, force_overwrite, cancelled):
+    def save(self, dataset_id, force_overwrite, cancelled, destination=None):
         entry = self.datasets.history_service.current(dataset_id)
-        return self.save_entry(dataset_id, entry, force_overwrite, cancelled)
+        return self.save_entry(dataset_id, entry, force_overwrite, cancelled, destination)
 
-    def save_entry(self, history_dataset_id, entry, force_overwrite, cancelled):
+    def save_entry(
+        self, history_dataset_id, entry, force_overwrite, cancelled, destination=None
+    ):
         dataset, frame = entry.dataset, entry.frame
-        target = Path(dataset.source_path).expanduser()
+        target_path = destination or dataset.source_path
+        target = Path(target_path).expanduser()
         if target.exists() and not force_overwrite:
             raise SaveRequiredError(
-                "This will replace the source file. Confirm replacement to continue."
+                "This will replace the destination file. Confirm replacement to continue."
+                if destination
+                else "This will replace the source file. Confirm replacement to continue."
             )
         if cancelled():
             raise CancelledError("Save was cancelled.")
         try:
             result = write_safe(
                 frame,
-                dataset.source_path,
+                str(target),
                 dataset.format,
                 force_overwrite,
                 cancelled,
@@ -48,19 +53,22 @@ class SaveService:
         result["_committed"] = True
         return result
 
-    def submit(self, jobs, dataset_id, force_overwrite):
+    def submit(self, jobs, dataset_id, force_overwrite, destination=None):
         self.datasets.get(dataset_id)
         if not isinstance(force_overwrite, bool):
             raise ValueError("force_overwrite must be a boolean")
-        source_path = Path(self.datasets.get(dataset_id).source_path).expanduser()
-        if source_path.exists() and not force_overwrite:
+        dataset = self.datasets.get(dataset_id)
+        target = Path(destination or dataset.source_path).expanduser()
+        if target.exists() and not force_overwrite:
             raise SaveRequiredError(
-                "This will replace the source file. Confirm replacement to continue."
+                "This will replace the destination file. Confirm replacement to continue."
+                if destination
+                else "This will replace the source file. Confirm replacement to continue."
             )
         entry = self.datasets.history_service.current(dataset_id)
         return jobs.submit(
             "save",
             lambda cancelled: self.save_entry(
-                dataset_id, entry, force_overwrite, cancelled
+                dataset_id, entry, force_overwrite, cancelled, destination
             ),
         )

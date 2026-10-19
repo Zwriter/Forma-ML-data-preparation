@@ -12,6 +12,24 @@ const columns = [
 afterEach(cleanup);
 
 describe('FilterBuilder', () => {
+  it('keeps the workspace interactive while the popup stays open', () => {
+    const onClose = vi.fn();
+    const onWorkspaceAction = vi.fn();
+    const { container } = render(
+      <>
+        <button onClick={onWorkspaceAction}>Workspace action</button>
+        <FilterBuilder columns={columns} onApply={vi.fn()} onClose={onClose} />
+      </>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Workspace action' }));
+    fireEvent.mouseDown(container.querySelector('.dialog-backdrop')!);
+
+    expect(onWorkspaceAction).toHaveBeenCalledOnce();
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByRole('dialog', { name: 'Filter rows' })).toBeTruthy();
+  });
+
   it('edits multiple typed rules and submits all/any selection', () => {
     const onApply = vi.fn();
     render(<FilterBuilder columns={columns} onApply={onApply} onClose={vi.fn()} />);

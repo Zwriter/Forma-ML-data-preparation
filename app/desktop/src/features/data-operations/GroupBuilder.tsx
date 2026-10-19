@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import type { Column } from '../../types/dataset';
 import type { AggregateFunction, Aggregation, DataOperation } from '../../types/dataOperations';
+import { DragGrip } from '../../components/DragGrip';
+import { popupStyle } from '../workspace/popupPositions';
+import type { PopupPosition } from '../workspace/popupPositions';
 
 type Props = {
   columns: Column[];
   onApply: (operation: DataOperation) => void;
   onClose: () => void;
+  popupPosition?: PopupPosition;
   busy?: boolean;
 };
 type DraftAggregation = { column: string | null; function: AggregateFunction; output_name: string };
@@ -16,7 +20,7 @@ function numeric(column?: Column) {
   return /int|float|double|decimal|uint/i.test(column?.type ?? '');
 }
 
-export function GroupBuilder({ columns, onApply, onClose, busy = false }: Props) {
+export function GroupBuilder({ columns, onApply, onClose, busy = false, popupPosition }: Props) {
   const [groups, setGroups] = useState<string[]>(columns[0] ? [columns[0].name] : []);
   const firstMeasure = columns.find(numeric);
   const [aggregations, setAggregations] = useState<DraftAggregation[]>([
@@ -60,23 +64,20 @@ export function GroupBuilder({ columns, onApply, onClose, busy = false }: Props)
   }
 
   return (
-    <div className="dialog-backdrop" onMouseDown={onClose}>
+    <div className="dialog-backdrop data-operation-backdrop">
       <section
         className="data-operation-dialog"
+        style={popupStyle(popupPosition)}
         role="dialog"
-        aria-modal="true"
         aria-busy={busy}
         aria-labelledby="group-builder-title"
-        onMouseDown={(event) => event.stopPropagation()}
         onKeyDown={(event) => {
           if (event.key === 'Escape' && !busy) onClose();
         }}
       >
         <header>
+          <DragGrip />
           <h2 id="group-builder-title">Summarize rows</h2>
-          <button type="button" aria-label="Close summary" onClick={onClose}>
-            ×
-          </button>
         </header>
         <fieldset>
           <legend>Group rows by</legend>

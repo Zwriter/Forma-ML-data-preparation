@@ -1,14 +1,24 @@
 import { useMemo, useState } from 'react';
 import type { Column } from '../../types/dataset';
+import { DragGrip } from '../../components/DragGrip';
+import { popupStyle } from '../workspace/popupPositions';
+import type { PopupPosition } from '../workspace/popupPositions';
 
 type Props = {
   columns: Column[];
   selectedColumns: string[];
   onConfirm: (columns: string[]) => void;
   onClose: () => void;
+  popupPosition?: PopupPosition;
 };
 
-export function ColumnSelector({ columns, selectedColumns, onConfirm, onClose }: Props) {
+export function ColumnSelector({
+  columns,
+  selectedColumns,
+  onConfirm,
+  onClose,
+  popupPosition,
+}: Props) {
   const [draft, setDraft] = useState(selectedColumns);
   const [query, setQuery] = useState('');
   const [error, setError] = useState('');
@@ -44,22 +54,21 @@ export function ColumnSelector({ columns, selectedColumns, onConfirm, onClose }:
   }
 
   return (
-    <div className="dialog-backdrop column-selector-backdrop" onMouseDown={onClose}>
+    <div className="dialog-backdrop column-selector-backdrop">
       <section
         className="column-selector dialog"
+        style={popupStyle(popupPosition)}
         role="dialog"
-        aria-modal="true"
         aria-labelledby="column-selector-title"
-        onMouseDown={(event) => event.stopPropagation()}
         onKeyDown={(event) => {
           if (event.key === 'Escape') onClose();
         }}
       >
         <header>
-          <h2 id="column-selector-title">Select columns</h2>
-          <button type="button" aria-label="Close column selector" onClick={onClose}>
-            ×
-          </button>
+          <DragGrip />
+          <h2 id="column-selector-title" className="column-selector-title">
+            Select columns
+          </h2>
         </header>
         <label className="column-selector-search">
           Search columns

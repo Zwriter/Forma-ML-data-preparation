@@ -45,9 +45,14 @@ class DatasetHandlers:
         overwrite = params.get("force_overwrite", False)
         if not isinstance(overwrite, bool):
             raise RequestError("force_overwrite must be a boolean.")
+        destination = params.get("destination")
+        if destination is not None and (
+            not isinstance(destination, str) or not destination.strip()
+        ):
+            raise RequestError("destination must be a non-empty file path.")
         if self.saves is None or self.jobs is None:
             raise RequestError("Save is not available.")
-        return self.saves.submit(self.jobs, dataset_id, overwrite)
+        return self.saves.submit(self.jobs, dataset_id, overwrite, destination)
 
     def _move(self, params, direction):
         dataset_id = self._dataset_id(params)

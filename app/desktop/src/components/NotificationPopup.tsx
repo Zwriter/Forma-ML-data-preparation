@@ -8,7 +8,7 @@ export function NotificationPopup() {
 
   useEffect(() => {
     if (!notification) return;
-    const timeout = window.setTimeout(dismiss, notification.kind === 'error' ? 8000 : 5000);
+    const timeout = window.setTimeout(dismiss, 8000);
     return () => window.clearTimeout(timeout);
   }, [notification, dismiss]);
 
@@ -17,11 +17,24 @@ export function NotificationPopup() {
     <div
       key={notification.id}
       className={`notification-popup ${notification.kind}`}
-      role={notification.kind === 'error' ? 'alert' : 'status'}
-      aria-live={notification.kind === 'error' ? 'assertive' : 'polite'}
+      role="alert"
+      aria-live="assertive"
     >
-      <span>{notification.message}</span>
-      <button type="button" aria-label="Dismiss notification" onClick={dismiss}>
+      <div className="notification-content">
+        <span className="notification-icon" aria-hidden="true">
+          !
+        </span>
+        <div>
+          <h2>Action failed</h2>
+          <p>{notification.message}</p>
+        </div>
+      </div>
+      <button
+        className="notification-close"
+        type="button"
+        aria-label="Dismiss notification"
+        onClick={dismiss}
+      >
         ×
       </button>
     </div>

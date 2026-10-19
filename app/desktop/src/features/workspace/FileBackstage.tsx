@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Icon } from '../../components/Icon';
+import { SaveBehaviorSetting } from '../settings/SaveBehaviorSetting';
 import type { Dataset } from '../../types/dataset';
 
 type RecentFile = { path: string; name: string; lastOpened: number; favorite: boolean };
@@ -209,6 +210,7 @@ export function FileBackstage({
               />
               Show column details
             </label>
+            <SaveBehaviorSetting />
             <button
               type="button"
               className="about-settings-link"

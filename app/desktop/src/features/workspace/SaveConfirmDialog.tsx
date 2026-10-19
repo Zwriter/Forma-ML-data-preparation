@@ -1,12 +1,14 @@
 type Props = {
   mode: 'close' | 'overwrite';
+  destination?: string | null;
   onSave: (forceOverwrite: boolean) => void;
   onDiscard: () => void;
   onCancel: () => void;
 };
 
-export function SaveConfirmDialog({ mode, onSave, onDiscard, onCancel }: Props) {
+export function SaveConfirmDialog({ mode, destination, onSave, onDiscard, onCancel }: Props) {
   const closing = mode === 'close';
+  const replacingCopy = mode === 'overwrite' && Boolean(destination);
   return (
     <div className="dialog-backdrop" role="presentation">
       <section
@@ -17,12 +19,18 @@ export function SaveConfirmDialog({ mode, onSave, onDiscard, onCancel }: Props) 
         aria-describedby="save-confirm-description"
       >
         <h2 id="save-confirm-title">
-          {closing ? 'Save changes before closing?' : 'Replace source file?'}
+          {closing
+            ? 'Save changes before closing?'
+            : replacingCopy
+              ? 'Replace destination file?'
+              : 'Replace source file?'}
         </h2>
         <p id="save-confirm-description">
           {closing
             ? 'You have unsaved changes. Save them, discard them, or keep working.'
-            : 'Saving will replace the file at its current location.'}
+            : destination
+              ? `Saving will replace the file at ${destination}.`
+              : 'Saving will replace the file at its current location.'}
         </p>
         <div className="dialog-actions">
           <button type="button" onClick={() => onSave(mode === 'overwrite')}>

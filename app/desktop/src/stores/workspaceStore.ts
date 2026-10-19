@@ -3,7 +3,7 @@ import type { HistoryMetadata } from '../types/dataset';
 import type { SaveStatus } from '../types/dataOperations';
 export type WorkspaceNotification = {
   id: number;
-  kind: 'success' | 'error';
+  kind: 'error';
   message: string;
 };
 type State = {
@@ -15,7 +15,6 @@ type State = {
   commands: { save?: () => Promise<void>; undo?: () => Promise<void>; redo?: () => Promise<void> };
   setBusy: (busy: boolean) => void;
   setError: (error: string | null) => void;
-  notify: (kind: WorkspaceNotification['kind'], message: string) => void;
   dismissNotification: () => void;
   setHistory: (history: HistoryMetadata | null) => void;
   setSaveStatus: (status: SaveStatus) => void;
@@ -44,10 +43,6 @@ export const useWorkspaceStore = create<State>((set, get) => ({
         ...(state.notification?.kind === 'error' ? { notification: null } : {}),
       };
     }),
-  notify: (kind, message) =>
-    set((state) => ({
-      notification: { id: (state.notification?.id ?? 0) + 1, kind, message },
-    })),
   dismissNotification: () => set({ notification: null }),
   setHistory: (history) => set({ history, saveStatus: history?.is_dirty ? 'dirty' : 'saved' }),
   setSaveStatus: (saveStatus) => set({ saveStatus }),

@@ -11,6 +11,21 @@ const columns = [
 afterEach(cleanup);
 
 describe('ColumnSelector', () => {
+  it('keeps the title aligned to the right side of the popup header', () => {
+    render(
+      <ColumnSelector
+        columns={columns}
+        selectedColumns={['name']}
+        onConfirm={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    const title = screen.getByRole('heading', { name: 'Select columns' });
+    expect(title.className).toContain('column-selector-title');
+    expect(title.parentElement?.tagName).toBe('HEADER');
+  });
+
   it('searches, selects, clears, orders, and confirms columns', () => {
     const onConfirm = vi.fn();
     render(

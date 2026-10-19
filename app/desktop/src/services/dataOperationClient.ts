@@ -14,10 +14,11 @@ export const undoDataset = (datasetId: string) =>
 export const redoDataset = (datasetId: string) =>
   request<JobAcknowledgement>('dataset.redo', { dataset_id: datasetId });
 
-export const saveDataset = (datasetId: string, forceOverwrite: boolean) =>
+export const saveDataset = (datasetId: string, forceOverwrite: boolean, destination?: string) =>
   request<JobAcknowledgement>('dataset.save', {
     dataset_id: datasetId,
     force_overwrite: forceOverwrite,
+    ...(destination ? { destination } : {}),
   });
 
 export const getWorkingPreview = (

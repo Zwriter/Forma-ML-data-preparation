@@ -2,13 +2,17 @@ import { useState } from 'react';
 import type { Column } from '../../types/dataset';
 import type { DataOperation, FilterOperator, FilterRule } from '../../types/dataOperations';
 import { filterInputType, filterOperatorLabels, filterOperatorsFor } from './filterOptions';
+import { DragGrip } from '../../components/DragGrip';
+import { popupStyle } from '../workspace/popupPositions';
+import type { PopupPosition } from '../workspace/popupPositions';
 
 type Props = {
   columns: Column[];
   onApply: (operation: DataOperation) => void;
   onClose: () => void;
+  popupPosition?: PopupPosition;
 };
-export function FilterBuilder({ columns, onApply, onClose }: Props) {
+export function FilterBuilder({ columns, onApply, onClose, popupPosition }: Props) {
   const [rules, setRules] = useState<FilterRule[]>(() => [
     {
       column: columns[0]?.name ?? '',
@@ -42,22 +46,19 @@ export function FilterBuilder({ columns, onApply, onClose }: Props) {
   }
 
   return (
-    <div className="dialog-backdrop" onMouseDown={onClose}>
+    <div className="dialog-backdrop data-operation-backdrop">
       <section
         className="data-operation-dialog"
+        style={popupStyle(popupPosition)}
         role="dialog"
-        aria-modal="true"
         aria-labelledby="filter-builder-title"
-        onMouseDown={(event) => event.stopPropagation()}
         onKeyDown={(event) => {
           if (event.key === 'Escape') onClose();
         }}
       >
         <header>
+          <DragGrip />
           <h2 id="filter-builder-title">Filter rows</h2>
-          <button type="button" aria-label="Close filter" onClick={onClose}>
-            ×
-          </button>
         </header>
         <label>
           Match

@@ -31,6 +31,25 @@ def test_save_replaces_source_with_current_working_state(tmp_path):
     assert pl.read_csv(source).to_dicts() == [{"name": "Grace", "value": 3}]
 
 
+def test_save_copy_writes_destination_and_preserves_source(tmp_path):
+    datasets, opened, source = open_source(tmp_path)
+    original = source.read_bytes()
+    destination = tmp_path / "copy.csv"
+    current = pl.DataFrame({"name": ["Grace"], "value": [3]}).lazy()
+    schema = datasets.schema_service.inspect(current, "copy")["schema"]
+    derived = Dataset(opened["source_path"], "csv", schema, 1)
+    datasets.register_derived(opened["dataset_id"], derived, current, {"type": "test"})
+
+    result = SaveService(datasets).save(
+        derived.dataset_id, False, lambda: False, str(destination)
+    )
+
+    assert result["destination"] == str(destination.resolve())
+    assert source.read_bytes() == original
+    assert pl.read_csv(destination).to_dicts() == [{"name": "Grace", "value": 3}]
+    assert result["history"]["is_dirty"] is False
+
+
 def test_save_requires_explicit_overwrite_confirmation(tmp_path):
     datasets, opened, _ = open_source(tmp_path)
     with pytest.raises(SaveRequiredError):
@@ -38,6 +57,20 @@ def test_save_requires_explicit_overwrite_confirmation(tmp_path):
             type("Jobs", (), {"submit": lambda *_: pytest.fail("job queued")})(),
             opened["dataset_id"],
             False,
+        )
+
+
+def test_save_copy_requires_confirmation_when_destination_exists(tmp_path):
+    datasets, opened, _ = open_source(tmp_path)
+    destination = tmp_path / "copy.csv"
+    destination.write_text("old,data\nvalue,1\n", encoding="utf-8")
+
+    with pytest.raises(SaveRequiredError, match="destination file"):
+        SaveService(datasets).submit(
+            type("Jobs", (), {"submit": lambda *_: pytest.fail("job queued")})(),
+            opened["dataset_id"],
+            False,
+            str(destination),
         )
 
 

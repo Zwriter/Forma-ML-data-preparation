@@ -14,6 +14,7 @@ import { useJobStore } from '../../stores/jobStore';
 import { DataOperationDialog } from './DataOperationDialog';
 import { applyDataOperation } from '../../services/dataOperationClient';
 import type { DataOperation } from '../../types/dataOperations';
+import type { PopupPosition } from './popupPositions';
 
 import { useWorkflowJobEvents } from './useWorkflowJobEvents';
 
@@ -22,18 +23,19 @@ export function WorkflowActions({
   onSaveComplete,
   operationDialog,
   onCloseOperationDialog,
+  popupPosition,
 }: {
   activeTab: string;
   onSaveComplete?: (success: boolean) => void;
   operationDialog?: 'filter' | 'sort' | 'group_by' | 'pivot' | 'unpivot' | null;
   onCloseOperationDialog?: () => void;
+  popupPosition?: PopupPosition;
 }) {
   const { dataset, apply } = useCleaningJob();
   const profile = useProfileJob();
   const exportDataset = useExportJob();
   const addJob = useJobStore((state) => state.add);
   const setWorkspaceError = useWorkspaceStore((state) => state.setError);
-  const notify = useWorkspaceStore((state) => state.notify);
   const [comparison, setComparison] = useState<{
     before: Record<string, unknown>[];
     after: Record<string, unknown>[];
@@ -52,7 +54,6 @@ export function WorkflowActions({
       const result = await requestPreview(operation);
       setComparison(result);
       setMessage('Preview ready.');
-      notify('success', 'Transformation preview completed');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Preview failed.');
     } finally {
@@ -154,6 +155,7 @@ export function WorkflowActions({
       {activeTab === 'Data' && (
         <DataOperationDialog
           kind={operationDialog ?? null}
+          popupPosition={popupPosition}
           columns={dataset.schema}
           busy={busy}
           onApply={(operation) => void runDataOperation(operation)}

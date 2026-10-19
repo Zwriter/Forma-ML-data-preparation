@@ -12,6 +12,8 @@ import { useDraggablePopups } from './hooks/useDraggablePopups';
 import { useWorkspaceHistory } from './features/workspace/useWorkspaceHistory';
 import { useDatasetExplorer } from './features/explorer/useDatasetExplorer';
 import { useOpenFileTabs } from './features/workspace/useOpenFileTabs';
+import { popupPositionFromAnchor } from './features/workspace/popupPositions';
+import type { PopupPosition } from './features/workspace/popupPositions';
 import { useDatasetStore } from './stores/datasetStore';
 import { useWorkspaceStore } from './stores/workspaceStore';
 import {
@@ -45,6 +47,7 @@ export default function App() {
   const selectedColumns = useDatasetStore((state) => state.selectedColumns);
   const setError = useWorkspaceStore((state) => state.setError);
   const [saveDialogMode, setSaveDialogMode] = useState<'close' | 'overwrite' | null>(null);
+  const [overwriteDestination, setOverwriteDestination] = useState<string | null>(null);
   const closeWindow = useCallback(async () => {
     const window = getDesktopWindow();
     if (!window) {
@@ -61,14 +64,25 @@ export default function App() {
   const requestClose = useCallback(() => {
     if (!fileTabs.requestCloseWindow()) void closeWindow();
   }, [closeWindow, fileTabs.requestCloseWindow]);
-  const openOverwriteDialog = useCallback(() => setSaveDialogMode('overwrite'), []);
-  const { save, undo, redo } = useWorkspaceHistory({ onOverwriteRequired: openOverwriteDialog });
+  const openOverwriteDialog = useCallback((destination?: string) => {
+    setOverwriteDestination(destination ?? null);
+    setSaveDialogMode('overwrite');
+  }, []);
+  const { save, undo, redo, cancelPendingSave } = useWorkspaceHistory({
+    onOverwriteRequired: openOverwriteDialog,
+  });
 
   const [activeTab, setActiveTab] = useState('Data');
   const [showColumnSelector, setShowColumnSelector] = useState(false);
   const [operationDialog, setOperationDialog] = useState<
     'filter' | 'sort' | 'group_by' | 'pivot' | 'unpivot' | null
   >(null);
+  const [popupPosition, setPopupPosition] = useState<PopupPosition>({ left: 8, top: 100 });
+  function toggleOperationDialog(kind: NonNullable<typeof operationDialog>, anchor: HTMLElement) {
+    setPopupPosition(popupPositionFromAnchor(anchor));
+    setShowColumnSelector(false);
+    setOperationDialog((open) => (open === kind ? null : kind));
+  }
   useEffect(() => {
     const window = getDesktopWindow();
     if (!window) return;
@@ -146,14 +160,16 @@ export default function App() {
           }
         }}
         onReload={() => page(preview?.offset ?? 0)}
-        onSelectColumns={() => {
-          setShowColumnSelector(true);
+        onSelectColumns={(anchor) => {
+          setPopupPosition(popupPositionFromAnchor(anchor));
+          setOperationDialog(null);
+          setShowColumnSelector((show) => !show);
         }}
-        onFilter={() => setOperationDialog('filter')}
-        onSort={() => setOperationDialog('sort')}
-        onGroup={() => setOperationDialog('group_by')}
-        onPivot={() => setOperationDialog('pivot')}
-        onUnpivot={() => setOperationDialog('unpivot')}
+        onFilter={(anchor) => toggleOperationDialog('filter', anchor)}
+        onSort={(anchor) => toggleOperationDialog('sort', anchor)}
+        onGroup={(anchor) => toggleOperationDialog('group_by', anchor)}
+        onPivot={(anchor) => toggleOperationDialog('pivot', anchor)}
+        onUnpivot={(anchor) => toggleOperationDialog('unpivot', anchor)}
         hasDataset={Boolean(dataset)}
         onSave={() => {
           void save();
@@ -162,6 +178,8 @@ export default function App() {
         onRedo={() => void redo()}
         canUndo={history?.can_undo ?? false}
         canRedo={history?.can_redo ?? false}
+        operationDialog={operationDialog}
+        showColumnSelector={showColumnSelector}
       />
 
       <div className="workspace-body">
@@ -174,6 +192,8 @@ export default function App() {
           selectedColumns={selectedColumns}
           busy={busy}
           showColumnSelector={showColumnSelector}
+          operationDialogOpen={Boolean(operationDialog)}
+          popupPosition={popupPosition}
           onShowColumnSelector={setShowColumnSelector}
           onBack={() => setActiveTab('Data')}
           onBrowse={() => void browse()}
@@ -189,15 +209,21 @@ export default function App() {
           activeTab={activeTab}
           onSaveComplete={fileTabs.onSaveComplete}
           operationDialog={operationDialog}
+          popupPosition={popupPosition}
           onCloseOperationDialog={() => setOperationDialog(null)}
         />
       </div>
       {saveDialogMode && (
         <SaveConfirmDialog
           mode={saveDialogMode}
+          destination={overwriteDestination}
           onSave={saveFromDialog}
           onDiscard={fileTabs.discardClose}
-          onCancel={fileTabs.cancelClose}
+          onCancel={() => {
+            cancelPendingSave();
+            setOverwriteDestination(null);
+            fileTabs.cancelClose();
+          }}
         />
       )}
     </div>

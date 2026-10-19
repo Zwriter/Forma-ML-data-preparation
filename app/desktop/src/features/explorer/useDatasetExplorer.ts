@@ -16,7 +16,6 @@ export function useDatasetExplorer() {
   const setBusy = useWorkspaceStore((state) => state.setBusy);
   const setError = useWorkspaceStore((state) => state.setError);
   const setHistory = useWorkspaceStore((state) => state.setHistory);
-  const notify = useWorkspaceStore((state) => state.notify);
   const openDataset = useCallback(
     async (sourcePath = path) => {
       setBusy(true);
@@ -33,7 +32,6 @@ export function useDatasetExplorer() {
         setDatasetHistory(history);
         setHistory(history);
         setPreview(firstPage);
-        notify('success', 'Open dataset completed');
         return true;
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : 'Could not open the dataset.');
@@ -42,7 +40,7 @@ export function useDatasetExplorer() {
         setBusy(false);
       }
     },
-    [path, setBusy, setError, setSource, setPreview, setHistory, setDatasetHistory, notify],
+    [path, setBusy, setError, setSource, setPreview, setHistory, setDatasetHistory],
   );
   const page = useCallback(
     async (offset: number, limit = preview?.limit ?? 100) => {

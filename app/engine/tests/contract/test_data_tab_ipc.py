@@ -34,6 +34,7 @@ def test_history_returns_current_cursor_metadata(router_and_jobs, tmp_path):
         ("dataset.undo", {"dataset_id": ""}),
         ("dataset.redo", {"dataset_id": 3}),
         ("dataset.save", {"dataset_id": "d1", "force_overwrite": "yes"}),
+        ("dataset.save", {"dataset_id": "d1", "destination": ""}),
         ("data.apply", {"dataset_id": "d1", "operation": []}),
     ],
 )

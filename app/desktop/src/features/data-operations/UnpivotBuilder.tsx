@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import type { Column } from '../../types/dataset';
 import type { DataOperation } from '../../types/dataOperations';
+import { DragGrip } from '../../components/DragGrip';
+import { popupStyle } from '../workspace/popupPositions';
+import type { PopupPosition } from '../workspace/popupPositions';
 
 type Props = {
   columns: Column[];
   onApply: (operation: DataOperation) => void;
   onClose: () => void;
+  popupPosition?: PopupPosition;
   busy?: boolean;
 };
 
@@ -13,7 +17,7 @@ function numeric(column?: Column) {
   return /int|float|double|decimal|uint/i.test(column?.type ?? '');
 }
 
-export function UnpivotBuilder({ columns, onApply, onClose, busy = false }: Props) {
+export function UnpivotBuilder({ columns, onApply, onClose, busy = false, popupPosition }: Props) {
   const [identifiers, setIdentifiers] = useState<string[]>(columns[0] ? [columns[0].name] : []);
   const [values, setValues] = useState<string[]>(() => {
     const measures = columns.filter((column, index) => index > 0 && numeric(column));
@@ -47,23 +51,20 @@ export function UnpivotBuilder({ columns, onApply, onClose, busy = false }: Prop
   }
 
   return (
-    <div className="dialog-backdrop" onMouseDown={onClose}>
+    <div className="dialog-backdrop data-operation-backdrop">
       <section
         className="data-operation-dialog"
+        style={popupStyle(popupPosition)}
         role="dialog"
-        aria-modal="true"
         aria-busy={busy}
         aria-labelledby="unpivot-builder-title"
-        onMouseDown={(event) => event.stopPropagation()}
         onKeyDown={(event) => {
           if (event.key === 'Escape' && !busy) onClose();
         }}
       >
         <header>
+          <DragGrip />
           <h2 id="unpivot-builder-title">Turn columns into rows</h2>
-          <button type="button" aria-label="Close unpivot" onClick={onClose}>
-            ×
-          </button>
         </header>
         <fieldset>
           <legend>Keep as identifiers</legend>

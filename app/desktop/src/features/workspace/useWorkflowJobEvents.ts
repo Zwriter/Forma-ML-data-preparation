@@ -38,7 +38,6 @@ export function useWorkflowJobEvents(
   const setSaveStatus = useWorkspaceStore((state) => state.setSaveStatus);
   const setWorkspaceBusy = useWorkspaceStore((state) => state.setBusy);
   const setWorkspaceError = useWorkspaceStore((state) => state.setError);
-  const notify = useWorkspaceStore((state) => state.notify);
   const { acceptResult } = useCleaningJob();
 
   useEffect(() => {
@@ -63,8 +62,6 @@ export function useWorkflowJobEvents(
         setHistory(job.result.history);
         if (job.kind === 'save') setSaveStatus(job.result.history.is_dirty ? 'dirty' : 'saved');
       }
-      if (job.state === 'completed')
-        notify('success', `${actionNames[job.kind] ?? job.kind} completed`);
       if (job.state === 'failed') {
         if (job.kind === 'save') setSaveStatus('failed');
         const detail = job.error?.message ?? 'The last valid state remains active.';
@@ -90,7 +87,6 @@ export function useWorkflowJobEvents(
     addJob,
     onProfileResult,
     onSaveComplete,
-    notify,
     setDatasetHistory,
     setHistory,
     setMessage,

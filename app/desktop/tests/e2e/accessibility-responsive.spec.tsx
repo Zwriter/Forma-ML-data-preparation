@@ -128,7 +128,7 @@ describe('desktop accessibility and responsive shell', () => {
     useDatasetStore.getState().setDataset(dataset);
     render(<WorkflowActions activeTab="Data" operationDialog={operation} />);
     const dialog = screen.getByRole('dialog', { name: title });
-    expect(dialog.getAttribute('aria-modal')).toBe('true');
+    expect(dialog.getAttribute('aria-modal')).toBeNull();
     const firstButton = dialog.querySelector('button');
     expect(firstButton?.tabIndex).toBe(0);
   });

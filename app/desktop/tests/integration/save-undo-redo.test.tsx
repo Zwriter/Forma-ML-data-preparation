@@ -3,9 +3,12 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testi
 import App from '../../src/App';
 import { useDatasetStore } from '../../src/stores/datasetStore';
 import { useWorkspaceStore } from '../../src/stores/workspaceStore';
+import { useSettingsStore } from '../../src/stores/settingsStore';
+import { buildSaveCopyDestination } from '../../src/services/saveDestination';
 
-const { invoke, desktopWindow, listeners } = vi.hoisted(() => ({
+const { invoke, desktopWindow, listeners, saveFileDialog } = vi.hoisted(() => ({
   invoke: vi.fn(),
+  saveFileDialog: vi.fn(),
   listeners: {} as Record<string, (event: { payload: unknown }) => unknown>,
   desktopWindow: {
     isMaximized: vi.fn(async () => false),
@@ -29,7 +32,7 @@ vi.mock('@tauri-apps/api/event', () => ({
     };
   }),
 }));
-vi.mock('@tauri-apps/plugin-dialog', () => ({ open: vi.fn(), save: vi.fn() }));
+vi.mock('@tauri-apps/plugin-dialog', () => ({ open: vi.fn(), save: saveFileDialog }));
 
 const dataset = {
   dataset_id: 'dataset-1',
@@ -53,6 +56,8 @@ describe('workspace Save, Undo, and Redo', () => {
   afterEach(() => {
     cleanup();
     invoke.mockReset();
+    saveFileDialog.mockReset();
+    useSettingsStore.getState().setSaveBehavior('replace');
     Object.keys(listeners).forEach((name) => delete listeners[name]);
     desktopWindow.close.mockClear();
     desktopWindow.destroy.mockClear();
@@ -187,6 +192,62 @@ describe('workspace Save, Undo, and Redo', () => {
     });
 
     await waitFor(() => expect(desktopWindow.destroy).toHaveBeenCalledOnce());
+  });
+
+  it('saves a dated copy beside the source when copy behavior is selected', async () => {
+    Object.defineProperty(window, '__TAURI_INTERNALS__', { value: {}, configurable: true });
+    useDatasetStore.getState().setSource(dataset, preview);
+    useSettingsStore.getState().setSaveBehavior('copy');
+    invoke.mockResolvedValueOnce({
+      id: 'save-copy-1',
+      status: 'success',
+      result: { job_id: 'save-copy-job', state: 'pending' },
+      error: null,
+    });
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(invoke).toHaveBeenCalledOnce());
+    const destination = buildSaveCopyDestination(dataset.source_path, dataset.format);
+    expect(saveFileDialog).not.toHaveBeenCalled();
+    expect(invoke.mock.calls[0][1].request.params).toEqual({
+      dataset_id: 'dataset-1',
+      force_overwrite: false,
+      destination,
+    });
+  });
+
+  it('confirms and overwrites an existing copy destination', async () => {
+    Object.defineProperty(window, '__TAURI_INTERNALS__', { value: {}, configurable: true });
+    useDatasetStore.getState().setSource(dataset, preview);
+    useSettingsStore.getState().setSaveBehavior('copy');
+    invoke
+      .mockResolvedValueOnce({
+        id: 'save-copy-1',
+        status: 'error',
+        result: null,
+        error: { code: 'SAVE_REQUIRED', message: 'This will replace the destination file.' },
+      })
+      .mockResolvedValueOnce({
+        id: 'save-copy-2',
+        status: 'success',
+        result: { job_id: 'save-copy-job', state: 'pending' },
+        error: null,
+      });
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    const destination = buildSaveCopyDestination(dataset.source_path, dataset.format);
+    const confirmation = await screen.findByRole('dialog', { name: 'Replace destination file?' });
+    expect(confirmation.textContent).toContain(destination);
+    fireEvent.click(within(confirmation).getByRole('button', { name: 'Replace file' }));
+
+    await waitFor(() => expect(invoke).toHaveBeenCalledTimes(2));
+    expect(invoke.mock.calls.map((call) => call[1].request.params)).toEqual([
+      { dataset_id: 'dataset-1', force_overwrite: false, destination },
+      { dataset_id: 'dataset-1', force_overwrite: true, destination },
+    ]);
   });
 
   it('dispatches Ctrl+S/Z/X outside fields and preserves native editing shortcuts', async () => {

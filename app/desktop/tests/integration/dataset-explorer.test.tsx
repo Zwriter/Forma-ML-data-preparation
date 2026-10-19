@@ -73,6 +73,65 @@ describe('dataset explorer workflow', () => {
     expect(screen.getByRole('heading', { name: 'Settings' })).toBeTruthy();
   });
 
+  it('toggles ribbon popups from their buttons without popup close controls', () => {
+    useDatasetStore.getState().setSource(dataset, firstPage);
+    render(<App />);
+
+    const filterButton = screen.getByRole('button', { name: 'Filter row' });
+    vi.spyOn(filterButton, 'getBoundingClientRect').mockReturnValue({
+      x: 100,
+      y: 20,
+      top: 20,
+      right: 158,
+      bottom: 80,
+      left: 100,
+      width: 58,
+      height: 60,
+      toJSON: () => ({}),
+    });
+    fireEvent.click(filterButton);
+    const filterPopup = screen.getByRole('dialog', { name: 'Filter rows' });
+    expect(filterPopup).toBeTruthy();
+    expect(filterPopup.style.position).toBe('fixed');
+    expect(filterPopup.style.left).toBe('100px');
+    expect(filterPopup.style.top).toBe('88px');
+    expect(filterPopup.style.getPropertyValue('--popup-x')).toBe('0px');
+    expect(filterPopup.style.getPropertyValue('--popup-y')).toBe('0px');
+    expect(screen.getByText('⠿')).toBeTruthy();
+    expect(filterButton.getAttribute('aria-pressed')).toBe('true');
+    expect(screen.queryByRole('button', { name: 'Close filter' })).toBeNull();
+
+    const columnsButton = screen.getByRole('button', { name: 'Select columns' });
+    vi.spyOn(columnsButton, 'getBoundingClientRect').mockReturnValue({
+      x: 20,
+      y: 20,
+      top: 20,
+      right: 78,
+      bottom: 80,
+      left: 20,
+      width: 58,
+      height: 60,
+      toJSON: () => ({}),
+    });
+    fireEvent.click(columnsButton);
+    expect(screen.queryByRole('dialog', { name: 'Filter rows' })).toBeNull();
+    const selectorPopup = screen.getByRole('dialog', { name: 'Select columns' });
+    expect(selectorPopup).toBeTruthy();
+    expect(selectorPopup.style.position).toBe('fixed');
+    expect(selectorPopup.style.left).toBe('20px');
+    expect(selectorPopup.style.top).toBe('88px');
+    expect(selectorPopup.querySelector('header')?.children[0].className).toBe('drag-grip');
+    expect(selectorPopup.querySelector('header')?.children[1].textContent).toBe('Select columns');
+    expect(selectorPopup.style.getPropertyValue('--popup-x')).toBe('0px');
+    expect(selectorPopup.style.getPropertyValue('--popup-y')).toBe('0px');
+    expect(screen.getByText('⠿')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Close column selector' })).toBeNull();
+    expect(columnsButton.getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(columnsButton);
+    expect(screen.queryByRole('dialog', { name: 'Select columns' })).toBeNull();
+    expect(columnsButton.getAttribute('aria-pressed')).toBe('false');
+  });
+
   it('opens file, shows schema and bounded records', async () => {
     invoke
       .mockResolvedValueOnce({ id: 'ui-1', status: 'success', result: dataset, error: null })

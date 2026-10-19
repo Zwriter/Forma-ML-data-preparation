@@ -1,14 +1,18 @@
 import { useState } from 'react';
 import type { Column } from '../../types/dataset';
 import type { DataOperation, SortKey } from '../../types/dataOperations';
+import { DragGrip } from '../../components/DragGrip';
+import { popupStyle } from '../workspace/popupPositions';
+import type { PopupPosition } from '../workspace/popupPositions';
 
 type Props = {
   columns: Column[];
   onApply: (operation: DataOperation) => void;
   onClose: () => void;
+  popupPosition?: PopupPosition;
 };
 
-export function SortBuilder({ columns, onApply, onClose }: Props) {
+export function SortBuilder({ columns, onApply, onClose, popupPosition }: Props) {
   const [keys, setKeys] = useState<SortKey[]>([
     { column: columns[0]?.name ?? '', direction: 'ascending', nulls: 'last' },
   ]);
@@ -44,22 +48,19 @@ export function SortBuilder({ columns, onApply, onClose }: Props) {
   }
 
   return (
-    <div className="dialog-backdrop" onMouseDown={onClose}>
+    <div className="dialog-backdrop data-operation-backdrop">
       <section
         className="data-operation-dialog"
+        style={popupStyle(popupPosition)}
         role="dialog"
-        aria-modal="true"
         aria-labelledby="sort-builder-title"
-        onMouseDown={(event) => event.stopPropagation()}
         onKeyDown={(event) => {
           if (event.key === 'Escape') onClose();
         }}
       >
         <header>
+          <DragGrip />
           <h2 id="sort-builder-title">Sort rows</h2>
-          <button type="button" aria-label="Close sort" onClick={onClose}>
-            ×
-          </button>
         </header>
         <p>
           Sort keys run in listed priority order. Missing values stay first or last as selected.

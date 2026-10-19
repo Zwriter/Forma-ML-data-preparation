@@ -1,11 +1,15 @@
 import { useState } from 'react';
 import type { Column } from '../../types/dataset';
 import type { AggregateFunction, DataOperation } from '../../types/dataOperations';
+import { DragGrip } from '../../components/DragGrip';
+import { popupStyle } from '../workspace/popupPositions';
+import type { PopupPosition } from '../workspace/popupPositions';
 
 type Props = {
   columns: Column[];
   onApply: (operation: DataOperation) => void;
   onClose: () => void;
+  popupPosition?: PopupPosition;
   busy?: boolean;
 };
 const functions: AggregateFunction[] = ['count', 'sum', 'average', 'minimum', 'maximum'];
@@ -14,7 +18,7 @@ function numeric(column?: Column) {
   return /int|float|double|decimal|uint/i.test(column?.type ?? '');
 }
 
-export function PivotBuilder({ columns, onApply, onClose, busy = false }: Props) {
+export function PivotBuilder({ columns, onApply, onClose, busy = false, popupPosition }: Props) {
   const [rows, setRows] = useState<string[]>(columns[0] ? [columns[0].name] : []);
   const [category, setCategory] = useState(
     columns.find((column) => column.name !== columns[0]?.name)?.name ?? '',
@@ -44,23 +48,20 @@ export function PivotBuilder({ columns, onApply, onClose, busy = false }: Props)
   }
 
   return (
-    <div className="dialog-backdrop" onMouseDown={onClose}>
+    <div className="dialog-backdrop data-operation-backdrop">
       <section
         className="data-operation-dialog"
+        style={popupStyle(popupPosition)}
         role="dialog"
-        aria-modal="true"
         aria-busy={busy}
         aria-labelledby="pivot-builder-title"
-        onMouseDown={(event) => event.stopPropagation()}
         onKeyDown={(event) => {
           if (event.key === 'Escape' && !busy) onClose();
         }}
       >
         <header>
+          <DragGrip />
           <h2 id="pivot-builder-title">Turn categories into columns</h2>
-          <button type="button" aria-label="Close pivot" onClick={onClose}>
-            ×
-          </button>
         </header>
         <fieldset>
           <legend>Row labels</legend>
