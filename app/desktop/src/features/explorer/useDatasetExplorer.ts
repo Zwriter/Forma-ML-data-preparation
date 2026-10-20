@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { request } from '../../services/ipcClient';
 import { useDatasetStore } from '../../stores/datasetStore';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
@@ -17,8 +17,10 @@ export function useDatasetExplorer() {
   const setBusy = useWorkspaceStore((state) => state.setBusy);
   const setError = useWorkspaceStore((state) => state.setError);
   const setHistory = useWorkspaceStore((state) => state.setHistory);
+  const previewRequestId = useRef(0);
   const openDataset = useCallback(
     async (sourcePath = path) => {
+      previewRequestId.current += 1;
       setBusy(true);
       setError(null);
       try {
@@ -47,16 +49,17 @@ export function useDatasetExplorer() {
     [path, setBusy, setError, setSource, setPreview, setHistory, setDatasetHistory],
   );
   const page = useCallback(
-    async (offset: number, limit = preview?.limit ?? 100) => {
+    async (offset: number, limit = preview?.limit ?? 100, search = '') => {
       if (!dataset) return;
+      const requestId = ++previewRequestId.current;
       try {
-        setPreview(
-          await getWorkingPreview(dataset.dataset_id, {
-            offset,
-            limit: Math.min(500, Math.max(10, limit)),
-            columns: selectedColumns,
-          }),
-        );
+        const nextPreview = await getWorkingPreview(dataset.dataset_id, {
+          offset,
+          limit: Math.min(500, Math.max(10, limit)),
+          columns: selectedColumns,
+          search,
+        });
+        if (requestId === previewRequestId.current) setPreview(nextPreview);
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : 'Could not load this page.');
       }

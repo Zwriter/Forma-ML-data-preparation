@@ -23,13 +23,14 @@ export const saveDataset = (datasetId: string, forceOverwrite: boolean, destinat
 
 export const getWorkingPreview = (
   datasetId: string,
-  options: { offset?: number; limit?: number; columns?: string[] } = {},
+  options: { offset?: number; limit?: number; columns?: string[]; search?: string } = {},
 ) =>
   request<Preview>('dataset.preview', {
     dataset_id: datasetId,
     offset: options.offset ?? 0,
     limit: options.limit ?? 100,
     ...(options.columns ? { columns: options.columns } : {}),
+    ...(options.search ? { search: options.search } : {}),
   });
 
 export type CompletedDataOperation = {

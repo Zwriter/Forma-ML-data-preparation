@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { DatasetPreview } from '../../../src/features/explorer/DatasetPreview';
 import { SchemaSummary } from '../../../src/features/explorer/SchemaSummary';
 import type { Dataset, Preview } from '../../../src/types/dataset';
@@ -132,6 +132,28 @@ describe('dataset preview', () => {
       />,
     );
     expect(screen.getByText('Rows 101–101 of unknown')).toBeTruthy();
+  });
+
+  it('searches across the dataset and starts results from page one', async () => {
+    const onPage = vi.fn();
+    render(
+      <DatasetPreview
+        dataset={dataset}
+        preview={preview([{ value: 1 }])}
+        selectedColumn={null}
+        selectedColumns={['value']}
+        onOpenColumnSelector={() => undefined}
+        onSelectColumn={() => undefined}
+        onOpenColumnDetails={() => undefined}
+        onPage={onPage}
+      />,
+    );
+
+    fireEvent.change(screen.getByPlaceholderText('Search preview rows or columns...'), {
+      target: { value: 'needle' },
+    });
+
+    await waitFor(() => expect(onPage).toHaveBeenCalledWith(0, 100, 'needle'));
   });
 });
 

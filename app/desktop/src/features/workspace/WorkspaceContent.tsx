@@ -22,7 +22,7 @@ type Props = {
   onBack: () => void;
   onBrowse: () => void;
   onOpenDataset: (path: string) => Promise<boolean>;
-  onPage: (offset: number) => void;
+  onPage: (offset: number, limit?: number, search?: string) => void;
   onProjectColumns: (columns: string[]) => void;
 };
 

@@ -52,6 +52,7 @@ def test_open_applies_persisted_history_limit(router_and_jobs, tmp_path):
     "method,params",
     [
         ("dataset.history", {}),
+        ("dataset.preview", {"dataset_id": "d1", "search": 3}),
         ("dataset.undo", {"dataset_id": ""}),
         ("dataset.redo", {"dataset_id": 3}),
         ("dataset.save", {"dataset_id": "d1", "force_overwrite": "yes"}),

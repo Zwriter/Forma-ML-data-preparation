@@ -25,11 +25,15 @@ class DatasetHandlers:
             or any(not isinstance(item, str) for item in columns)
         ):
             raise RequestError("columns must be a list of column names.")
+        search = params.get("search")
+        if search is not None and not isinstance(search, str):
+            raise RequestError("search must be a string.")
         return self.datasets.preview(
             params["dataset_id"],
             params.get("offset", 0),
             params.get("limit", 100),
             columns,
+            search,
         )
 
     def history(self, params):

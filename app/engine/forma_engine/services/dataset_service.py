@@ -63,11 +63,14 @@ class DatasetService:
         offset: int = 0,
         limit: int = 100,
         columns: list[str] | None = None,
+        search: str | None = None,
     ) -> dict:
         if not isinstance(offset, int) or isinstance(offset, bool) or offset < 0:
             raise RequestError("offset must be a non-negative integer")
         if not isinstance(limit, int) or isinstance(limit, bool) or limit <= 0:
             raise RequestError("limit must be a positive integer")
+        if search is not None and not isinstance(search, str):
+            raise RequestError("search must be a string")
         self.get(dataset_id)
         entry = self.history_service.current(dataset_id)
         frame = entry.frame
@@ -76,6 +79,26 @@ class DatasetService:
         if columns is not None:
             if any(c not in names for c in columns):
                 raise RequestError("Requested preview contains an unknown column")
+        total_count = entry.dataset.rows
+        term = search.strip().lower() if search is not None else ""
+        if term:
+            search_columns = columns if columns is not None else names
+            header_matches = any(term in name.lower() for name in search_columns)
+            if not header_matches:
+                if not search_columns:
+                    frame = frame.limit(0)
+                else:
+                    matches = [
+                        pl.col(name)
+                        .cast(pl.String)
+                        .str.to_lowercase()
+                        .str.contains(term, literal=True)
+                        .fill_null(False)
+                        for name in search_columns
+                    ]
+                    frame = frame.filter(pl.any_horizontal(matches))
+                total_count = int(frame.select(pl.len()).collect().item())
+        if columns is not None:
             frame = frame.select(columns)
         data = frame.slice(offset, min(limit, MAX_PREVIEW)).collect()
         return {
@@ -84,5 +107,5 @@ class DatasetService:
             "records": data.to_dicts(),
             "offset": offset,
             "limit": min(limit, MAX_PREVIEW),
-            "total_count": entry.dataset.rows,
+            "total_count": total_count,
         }
