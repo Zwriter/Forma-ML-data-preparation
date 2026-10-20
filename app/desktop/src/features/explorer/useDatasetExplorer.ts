@@ -52,6 +52,7 @@ export function useDatasetExplorer() {
     async (offset: number, limit = preview?.limit ?? 100, search = '') => {
       if (!dataset) return;
       const requestId = ++previewRequestId.current;
+      const contextVersion = useDatasetStore.getState().previewContextVersion;
       try {
         const nextPreview = await getWorkingPreview(dataset.dataset_id, {
           offset,
@@ -59,9 +60,21 @@ export function useDatasetExplorer() {
           columns: selectedColumns,
           search,
         });
-        if (requestId === previewRequestId.current) setPreview(nextPreview);
+        const current = useDatasetStore.getState();
+        if (
+          requestId === previewRequestId.current &&
+          current.previewContextVersion === contextVersion &&
+          current.dataset?.dataset_id === dataset.dataset_id
+        )
+          setPreview(nextPreview);
       } catch (cause) {
-        setError(cause instanceof Error ? cause.message : 'Could not load this page.');
+        const current = useDatasetStore.getState();
+        if (
+          requestId === previewRequestId.current &&
+          current.previewContextVersion === contextVersion &&
+          current.dataset?.dataset_id === dataset.dataset_id
+        )
+          setError(cause instanceof Error ? cause.message : 'Could not load this page.');
       }
     },
     [dataset, preview?.limit, selectedColumns, setError, setPreview],

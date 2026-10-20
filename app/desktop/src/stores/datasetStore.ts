@@ -19,6 +19,7 @@ type State = {
   selectedColumns: string[];
   openFiles: OpenFileTab[];
   activeFileId: string | null;
+  previewContextVersion: number;
   setDataset: (value: Dataset) => void;
   setPreview: (value: Preview) => void;
   setSource: (dataset: Dataset, preview: Preview) => void;
@@ -60,12 +61,17 @@ export const useDatasetStore = create<State>((set) => ({
   selectedColumns: [],
   openFiles: [],
   activeFileId: null,
+  previewContextVersion: 0,
   setDataset: (dataset) =>
     set((state) => {
       const current = snapshot(state);
-      if (!current) return { dataset };
+      if (!current) return { dataset, previewContextVersion: state.previewContextVersion + 1 };
       const tab = { ...current, dataset };
-      return { dataset, openFiles: replaceTab(state, tab) };
+      return {
+        dataset,
+        openFiles: replaceTab(state, tab),
+        previewContextVersion: state.previewContextVersion + 1,
+      };
     }),
   setPreview: (preview) =>
     set((state) => {
@@ -90,6 +96,7 @@ export const useDatasetStore = create<State>((set) => ({
         ...workspaceFromTab(tab),
         activeFileId: tab.id,
         openFiles: [...state.openFiles.filter((item) => item.id !== tab.id), tab],
+        previewContextVersion: state.previewContextVersion + 1,
       };
     }),
   selectFile: (id) =>
@@ -98,7 +105,12 @@ export const useDatasetStore = create<State>((set) => ({
       if (!tab) return {};
       const current = snapshot(state);
       const openFiles = current ? replaceTab(state, current) : state.openFiles;
-      return { ...workspaceFromTab(tab), activeFileId: id, openFiles };
+      return {
+        ...workspaceFromTab(tab),
+        activeFileId: id,
+        openFiles,
+        previewContextVersion: state.previewContextVersion + 1,
+      };
     }),
   closeFile: (id) =>
     set((state) => {
@@ -106,7 +118,12 @@ export const useDatasetStore = create<State>((set) => ({
       if (state.activeFileId !== id) return { openFiles };
       const next = openFiles.at(-1);
       return next
-        ? { ...workspaceFromTab(next), activeFileId: next.id, openFiles }
+        ? {
+            ...workspaceFromTab(next),
+            activeFileId: next.id,
+            openFiles,
+            previewContextVersion: state.previewContextVersion + 1,
+          }
         : {
             dataset: null,
             preview: null,
@@ -116,6 +133,7 @@ export const useDatasetStore = create<State>((set) => ({
             selectedColumns: [],
             activeFileId: null,
             openFiles,
+            previewContextVersion: state.previewContextVersion + 1,
           };
     }),
   setHistory: (history) =>
@@ -128,9 +146,14 @@ export const useDatasetStore = create<State>((set) => ({
   setSelectedColumns: (selectedColumns) =>
     set((state) => {
       const current = snapshot(state);
-      if (!current) return { selectedColumns };
+      if (!current)
+        return { selectedColumns, previewContextVersion: state.previewContextVersion + 1 };
       const tab = { ...current, selectedColumns };
-      return { selectedColumns, openFiles: replaceTab(state, tab) };
+      return {
+        selectedColumns,
+        openFiles: replaceTab(state, tab),
+        previewContextVersion: state.previewContextVersion + 1,
+      };
     }),
   applyResult: (dataset, history, preview) =>
     set((state) => {
@@ -143,6 +166,7 @@ export const useDatasetStore = create<State>((set) => ({
         history,
         preview: preview ?? state.preview,
         selectedColumns: retained.length ? retained : dataset.schema.map((column) => column.name),
+        previewContextVersion: state.previewContextVersion + 1,
         ...(current
           ? {
               openFiles: replaceTab(state, {
