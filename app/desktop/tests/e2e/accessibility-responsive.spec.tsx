@@ -2,15 +2,17 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import App from '../../src/App';
 import { WorkflowActions } from '../../src/features/workspace/WorkflowActions';
+import { WorkspaceChrome } from '../../src/features/workspace/WorkspaceChrome';
+import { SaveConfirmDialog } from '../../src/features/workspace/SaveConfirmDialog';
 import { useDatasetStore } from '../../src/stores/datasetStore';
 import { useExportStore } from '../../src/stores/exportStore';
-import { useJobStore } from '../../src/stores/jobStore';
 import { useTransformationStore } from '../../src/stores/transformationStore';
 import { useWorkspaceStore } from '../../src/stores/workspaceStore';
 
 const invoke = vi.hoisted(() => vi.fn());
+const dialogOpen = vi.hoisted(() => vi.fn());
 vi.mock('@tauri-apps/api/core', () => ({ invoke }));
-vi.mock('@tauri-apps/plugin-dialog', () => ({ open: vi.fn(), save: vi.fn() }));
+vi.mock('@tauri-apps/plugin-dialog', () => ({ open: dialogOpen, save: vi.fn() }));
 vi.mock('@tauri-apps/api/event', () => ({ listen: vi.fn(async () => () => undefined) }));
 
 const originalWidth = window.innerWidth;
@@ -38,16 +40,26 @@ afterEach(() => {
   cleanup();
   Object.defineProperty(window, 'innerWidth', { configurable: true, value: originalWidth });
   invoke.mockReset();
+  dialogOpen.mockReset();
   useDatasetStore.setState({
     dataset: null,
     preview: null,
     sourceDataset: null,
     sourcePreview: null,
+    history: null,
+    selectedColumns: [],
+    openFiles: [],
+    activeFileId: null,
   });
   useExportStore.setState({ destination: '', overwrite: false });
-  useJobStore.setState({ jobs: [] });
   useTransformationStore.setState({ operations: [] });
-  useWorkspaceStore.setState({ busy: false, error: null });
+  useWorkspaceStore.setState({
+    busy: false,
+    error: null,
+    history: null,
+    saveStatus: 'idle',
+    commands: {},
+  });
 });
 
 describe('desktop accessibility and responsive shell', () => {
@@ -55,15 +67,8 @@ describe('desktop accessibility and responsive shell', () => {
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: width });
     render(<App />);
 
-    expect(screen.getByRole('heading', { name: 'Start with a dataset' })).toBeTruthy();
-    fireEvent.change(screen.getByLabelText('CSV or Parquet file'), {
-      target: { value: 'data.csv' },
-    });
-    const controls = [
-      screen.getByLabelText('CSV or Parquet file'),
-      screen.getByRole('button', { name: 'Browse files' }),
-      screen.getByRole('button', { name: 'Open dataset' }),
-    ];
+    expect(screen.getByRole('heading', { name: 'Forma' })).toBeTruthy();
+    const controls = [screen.getByRole('button', { name: 'Import file' })];
     for (const control of controls) {
       expect(control.tabIndex).toBe(0);
       control.focus();
@@ -71,7 +76,74 @@ describe('desktop accessibility and responsive shell', () => {
     }
   });
 
-  it('shows an actionable file error', async () => {
+  it.each([320, 390, 768, 1280])('keeps Data toolbar controls usable at %i px', (width) => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: width });
+    useDatasetStore.getState().setDataset(dataset);
+    const noop = () => undefined;
+    const { unmount } = render(
+      <WorkspaceChrome
+        activeTab="Data"
+        onTabChange={noop}
+        onReload={noop}
+        onSelectColumns={noop}
+        onFilter={noop}
+        onSort={noop}
+        onGroup={noop}
+        onPivot={noop}
+        onUnpivot={noop}
+        hasDataset
+        onSave={noop}
+        onUndo={noop}
+        onRedo={noop}
+        canUndo
+        canRedo
+      />,
+    );
+    for (const label of [
+      'Save',
+      'Undo',
+      'Redo',
+      'Select columns',
+      'Filter row',
+      'Sort',
+      'Group by',
+      'Pivot',
+      'Unpivot',
+    ]) {
+      const control = screen.getByRole('button', { name: label });
+      expect(control.tabIndex).toBe(0);
+    }
+    unmount();
+  });
+
+  it.each([
+    ['filter', 'Filter rows'],
+    ['sort', 'Sort rows'],
+    ['group_by', 'Summarize rows'],
+    ['pivot', 'Turn categories into columns'],
+    ['unpivot', 'Turn columns into rows'],
+  ] as const)('%s dialog exposes accessible controls', (operation, title) => {
+    useDatasetStore.getState().setDataset(dataset);
+    render(<WorkflowActions activeTab="Data" operationDialog={operation} />);
+    const dialog = screen.getByRole('dialog', { name: title });
+    expect(dialog.getAttribute('aria-modal')).toBeNull();
+    const firstButton = dialog.querySelector('button');
+    expect(firstButton?.tabIndex).toBe(0);
+  });
+
+  it('labels close confirmation and exposes all recovery choices', () => {
+    render(
+      <SaveConfirmDialog mode="close" onSave={vi.fn()} onDiscard={vi.fn()} onCancel={vi.fn()} />,
+    );
+    const dialog = screen.getByRole('dialog', { name: 'Save changes before closing?' });
+    expect(dialog.getAttribute('aria-modal')).toBe('true');
+    for (const label of ['Save', 'Discard changes', 'Cancel']) {
+      expect(screen.getByRole('button', { name: label }).tabIndex).toBe(0);
+    }
+  });
+
+  it('routes selected files through the import dialog', async () => {
+    dialogOpen.mockResolvedValueOnce(null);
     invoke.mockResolvedValueOnce({
       id: 'open-1',
       status: 'error',
@@ -79,58 +151,57 @@ describe('desktop accessibility and responsive shell', () => {
       error: { code: 'UNSUPPORTED_FORMAT', message: 'Choose a CSV or Parquet file.' },
     });
     render(<App />);
-    fireEvent.change(screen.getByLabelText('CSV or Parquet file'), {
-      target: { value: 'data.txt' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Open dataset' }));
-
-    expect((await screen.findByRole('alert')).textContent).toContain(
-      'Choose a CSV or Parquet file.',
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Import file' }));
+    await waitFor(() => expect(dialogOpen).toHaveBeenCalled());
+    expect(invoke).not.toHaveBeenCalled();
   });
 
-  it('shows pending profile state within one second', async () => {
+  it('keeps background profile jobs out of the worksheet', async () => {
     useDatasetStore.getState().setDataset(dataset);
     invoke.mockImplementation(async (_command: string, args: { request: { method: string } }) =>
       response(args.request.method),
     );
-    render(<WorkflowActions />);
+    render(<WorkflowActions activeTab="Profile" />);
     const started = performance.now();
 
     fireEvent.click(screen.getByText('Profile dataset'));
-    await waitFor(() =>
-      expect(screen.getByText('profile: Queued (progress unknown)')).toBeTruthy(),
-    );
+    await waitFor(() => expect(invoke).toHaveBeenCalled());
+    expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
+    expect(screen.queryByRole('status')).toBeNull();
 
     expect(performance.now() - started).toBeLessThan(1000);
   });
 
-  it('shows pending cleaning state within one second', async () => {
+  it('keeps background cleaning jobs out of the worksheet', async () => {
     useDatasetStore.getState().setDataset(dataset);
     invoke.mockImplementation(async (_command: string, args: { request: { method: string } }) =>
       response(args.request.method),
     );
-    render(<WorkflowActions />);
+    render(<WorkflowActions activeTab="Clean" />);
     fireEvent.click(screen.getByText('Add operation'));
     const started = performance.now();
 
     fireEvent.click(screen.getByText('Apply operations'));
-    await waitFor(() => expect(screen.getByText('clean: Queued (progress unknown)')).toBeTruthy());
+    await waitFor(() => expect(invoke).toHaveBeenCalled());
+    expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
+    expect(screen.queryByRole('status')).toBeNull();
 
     expect(performance.now() - started).toBeLessThan(1000);
   });
 
-  it('shows pending export state within one second', async () => {
+  it('keeps background export jobs out of the worksheet', async () => {
     useDatasetStore.getState().setDataset(dataset);
     useExportStore.getState().setDestination('cleaned.csv');
     invoke.mockImplementation(async (_command: string, args: { request: { method: string } }) =>
       response(args.request.method),
     );
-    render(<WorkflowActions />);
+    render(<WorkflowActions activeTab="Export" />);
     const started = performance.now();
 
     fireEvent.click(screen.getByText('Export CSV'));
-    await waitFor(() => expect(screen.getByText('export: Queued (progress unknown)')).toBeTruthy());
+    await waitFor(() => expect(invoke).toHaveBeenCalled());
+    expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
+    expect(screen.queryByRole('status')).toBeNull();
 
     expect(performance.now() - started).toBeLessThan(1000);
   });

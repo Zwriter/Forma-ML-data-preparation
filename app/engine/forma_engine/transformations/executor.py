@@ -35,7 +35,8 @@ def execute(
             raise CancelledError("Cleaning was cancelled.")
         if not operation.get("enabled", True):
             continue
-        validate(operation, current.collect_schema().names())
+        schema = current.collect_schema()
+        validate(operation, schema.names(), schema)
         if operation.get("type") == "fill_null" and operation.get("parameters", {}).get(
             "strategy"
         ) in {"mean", "median"}:

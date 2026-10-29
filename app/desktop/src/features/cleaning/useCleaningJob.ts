@@ -1,15 +1,18 @@
 import { useCallback } from 'react';
 import { request } from '../../services/ipcClient';
 import type { Operation } from '../../types/transformation';
-import { useJobStore } from '../../stores/jobStore';
+import type { JobAcknowledgement } from '../../types/dataOperations';
 import { useDatasetStore } from '../../stores/datasetStore';
-import type { Dataset, Preview } from '../../types/dataset';
+import type { Dataset, HistoryMetadata, Preview } from '../../types/dataset';
+import { useWorkspaceStore } from '../../stores/workspaceStore';
 
 export function useCleaningJob() {
   const dataset = useDatasetStore((state) => state.dataset);
   const setDataset = useDatasetStore((state) => state.setDataset);
   const setPreview = useDatasetStore((state) => state.setPreview);
-  const add = useJobStore((state) => state.add);
+  const setSelectedColumns = useDatasetStore((state) => state.setSelectedColumns);
+  const applyResult = useDatasetStore((state) => state.applyResult);
+  const setHistory = useWorkspaceStore((state) => state.setHistory);
   const preview = useCallback(
     async (operation: Operation) => {
       if (!dataset) return null;
@@ -23,29 +26,37 @@ export function useCleaningJob() {
   const apply = useCallback(
     async (operations: Operation[]) => {
       if (!dataset) return;
-      const job = await request<{ job_id: string; state: JobState }>('cleaning.apply', {
+      return request<JobAcknowledgement>('cleaning.apply', {
         dataset_id: dataset.dataset_id,
         operations,
       });
-      add({ ...job, kind: 'clean', progress: null, message: 'Queued' });
-      return job;
     },
-    [dataset, add],
+    [dataset],
   );
   const acceptResult = useCallback(
-    async (derived: Dataset) => {
+    async (derived: Dataset, history?: HistoryMetadata, resetProjection = false) => {
+      const visible = resetProjection
+        ? derived.schema.map((column) => column.name)
+        : useDatasetStore
+            .getState()
+            .selectedColumns.filter((name) =>
+              derived.schema.some((column) => column.name === name),
+            );
+      if (resetProjection) setSelectedColumns(visible);
+      const preview = await request<Preview>('dataset.preview', {
+        dataset_id: derived.dataset_id,
+        offset: 0,
+        limit: 100,
+        ...(visible.length ? { columns: visible } : {}),
+      });
       setDataset(derived);
-      setPreview(
-        await request<Preview>('dataset.preview', {
-          dataset_id: derived.dataset_id,
-          offset: 0,
-          limit: 100,
-        }),
-      );
+      setPreview(preview);
+      if (history) {
+        applyResult(derived, history, preview);
+        setHistory(history);
+      }
     },
-    [setDataset, setPreview],
+    [setDataset, setPreview, setSelectedColumns, applyResult, setHistory],
   );
   return { dataset, preview, apply, acceptResult };
 }
-
-type JobState = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';

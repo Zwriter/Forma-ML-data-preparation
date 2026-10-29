@@ -1,0 +1,59 @@
+.save-behavior-setting {
+  display: grid;
+  max-width: 520px;
+  gap: 10px;
+  padding: 16px;
+  margin: 22px 0 0;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #fbfcfe;
+}
+
+.save-behavior-setting legend {
+  padding: 0 6px;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.save-behavior-setting > p {
+  margin: -2px 0 2px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.save-behavior-setting label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 12px;
+  border: 1px solid #e3e7ef;
+  border-radius: 7px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.save-behavior-setting label:has(input:checked) {
+  border-color: #c7a3d8;
+  background: #f8f3fc;
+}
+
+.save-behavior-setting input {
+  margin: 3px 0 0;
+  accent-color: var(--purple);
+}
+
+.save-behavior-setting label span {
+  display: grid;
+  gap: 3px;
+}
+
+.save-behavior-setting strong {
+  color: var(--ink);
+  font-size: 12px;
+}
+
+.save-behavior-setting small {
+  color: var(--muted);
+  font-size: 11px;
+}

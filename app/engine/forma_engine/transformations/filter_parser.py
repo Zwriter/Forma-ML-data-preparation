@@ -3,7 +3,112 @@ import io
 import secrets
 import tokenize
 import polars as pl
+from datetime import date, datetime
 from forma_engine.domain.errors import InvalidTransformationError
+
+
+def compile_rules(rules: list[dict], mode: str, schema: pl.Schema) -> pl.Expr:
+    if not rules:
+        raise InvalidTransformationError("Add at least one filter condition.")
+    if mode not in {"all", "any"}:
+        raise InvalidTransformationError("Choose match all or match any conditions.")
+    expressions = []
+    for rule in rules:
+        name, operator = rule["column"], rule["operator"]
+        if name not in schema:
+            raise InvalidTransformationError(f"Unknown column: {name}")
+        dtype = schema[name]
+        column = pl.col(name)
+        if operator in {"is_empty", "is_not_empty"}:
+            expression = column.is_null()
+            if dtype == pl.String:
+                expression = expression | (column == "")
+            if operator == "is_not_empty":
+                expression = ~expression
+        else:
+            if (
+                operator in {"contains", "begins_with", "ends_with"}
+                and dtype != pl.String
+            ):
+                raise InvalidTransformationError(
+                    "Text matching requires a text column."
+                )
+            ordered = {"greater_than", "less_than", "at_least", "at_most"}
+            comparable = (
+                dtype.is_numeric() or dtype == pl.Date or isinstance(dtype, pl.Datetime)
+            )
+            if operator in ordered and not comparable:
+                raise InvalidTransformationError(
+                    "Ordered comparisons require a number or date column."
+                )
+            value = _typed_value(rule.get("value"), dtype)
+            literal = pl.lit(value)
+            if dtype == pl.String and not rule.get("case_sensitive", False):
+                column, literal = column.str.to_lowercase(), literal.str.to_lowercase()
+            expression = _comparison(column, literal, operator)
+        expressions.append(expression.fill_null(False))
+    result = expressions[0]
+    for expression in expressions[1:]:
+        result = result & expression if mode == "all" else result | expression
+    return result
+
+
+def _typed_value(value, dtype):
+    try:
+        if dtype == pl.String:
+            return str(value)
+        if dtype.is_integer():
+            if isinstance(value, bool):
+                raise ValueError
+            return int(value)
+        if dtype.is_float():
+            if isinstance(value, bool):
+                raise ValueError
+            return float(value)
+        if dtype == pl.Boolean:
+            if isinstance(value, bool):
+                return value
+            normalized = str(value).lower()
+            if normalized not in {"true", "false"}:
+                raise ValueError
+            return normalized == "true"
+        if dtype == pl.Date:
+            return value if isinstance(value, date) else date.fromisoformat(str(value))
+        if isinstance(dtype, pl.Datetime):
+            return (
+                value
+                if isinstance(value, datetime)
+                else datetime.fromisoformat(str(value))
+            )
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise InvalidTransformationError(
+            "Enter a value compatible with the selected column."
+        ) from exc
+    raise InvalidTransformationError(
+        "This column type does not support filter comparisons."
+    )
+
+
+def _comparison(column, literal, operator):
+    if operator == "equals":
+        return column == literal
+    if operator == "not_equals":
+        return column != literal
+    if operator == "contains":
+        return column.str.contains(literal, literal=True)
+    if operator == "begins_with":
+        return column.str.starts_with(literal)
+    if operator == "ends_with":
+        return column.str.ends_with(literal)
+    functions = {
+        "greater_than": lambda: column > literal,
+        "less_than": lambda: column < literal,
+        "at_least": lambda: column >= literal,
+        "at_most": lambda: column <= literal,
+    }
+    if operator not in functions:
+        raise InvalidTransformationError("Choose a supported filter condition.")
+    return functions[operator]()
 
 
 def _normalize(expression: str) -> tuple[str, dict[str, str]]:

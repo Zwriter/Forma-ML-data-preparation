@@ -3,17 +3,20 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testi
 import App from '../../src/App';
 import { useDatasetStore } from '../../src/stores/datasetStore';
 import { useExportStore } from '../../src/stores/exportStore';
-import { useJobStore } from '../../src/stores/jobStore';
 import { useTransformationStore } from '../../src/stores/transformationStore';
 import { useWorkspaceStore } from '../../src/stores/workspaceStore';
 
 const bridge = vi.hoisted(() => ({
   invoke: vi.fn(),
+  dialog: vi.fn(),
   listeners: {} as Record<string, (event: { payload: unknown }) => unknown>,
 }));
 
 vi.mock('@tauri-apps/api/core', () => ({ invoke: (...args: unknown[]) => bridge.invoke(...args) }));
-vi.mock('@tauri-apps/plugin-dialog', () => ({ open: vi.fn(), save: vi.fn() }));
+vi.mock('@tauri-apps/plugin-dialog', () => ({
+  open: (...args: unknown[]) => bridge.dialog(...args),
+  save: vi.fn(),
+}));
 vi.mock('@tauri-apps/api/event', () => ({
   listen: vi.fn(async (name: string, handler: (event: { payload: unknown }) => unknown) => {
     bridge.listeners[name] = handler;
@@ -57,24 +60,41 @@ async function emit(event: Record<string, unknown>) {
   });
 }
 
+function importFile(path: string) {
+  bridge.dialog.mockResolvedValueOnce(path);
+  const importButton = screen.queryByRole('button', { name: 'Import file' });
+  if (!importButton) fireEvent.click(screen.getByRole('button', { name: 'File' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Import file' }));
+}
+
 describe('import-clean-export desktop flow', () => {
   afterEach(() => {
     cleanup();
     bridge.invoke.mockReset();
+    bridge.dialog.mockReset();
     bridge.listeners = {};
     useDatasetStore.setState({
       dataset: null,
       preview: null,
       sourceDataset: null,
       sourcePreview: null,
+      history: null,
+      selectedColumns: [],
+      openFiles: [],
+      activeFileId: null,
     });
     useExportStore.setState({ destination: '', overwrite: false });
-    useJobStore.setState({ jobs: [] });
     useTransformationStore.setState({ operations: [] });
-    useWorkspaceStore.setState({ busy: false, error: null });
+    useWorkspaceStore.setState({
+      busy: false,
+      error: null,
+      history: null,
+      saveStatus: 'idle',
+      commands: {},
+    });
   });
 
-  it('cleans and reopens CSV and Parquet, preserves source, rejects bad conversion and overwrite, and cancels export', async () => {
+  it('cleans and reopens files, preserves source, and keeps background jobs out of the workspace', async () => {
     let jobSequence = 0;
     bridge.invoke.mockImplementation(
       async (
@@ -91,6 +111,16 @@ describe('import-clean-export desktop flow', () => {
                 : parquetOutput;
           return success(file, `open-${file.dataset_id}`);
         }
+        if (method === 'dataset.history')
+          return success({
+            history_id: `history-${params.dataset_id}`,
+            dataset_id: params.dataset_id,
+            current_index: 0,
+            saved_index: 0,
+            is_dirty: false,
+            can_undo: false,
+            can_redo: false,
+          });
         if (method === 'dataset.preview') {
           const rows = previews[params.dataset_id] ?? [];
           return success({
@@ -131,21 +161,17 @@ describe('import-clean-export desktop flow', () => {
         if (method === 'export.csv' || method === 'export.parquet') {
           return success({ job_id: `export-${++jobSequence}`, state: 'pending' });
         }
-        if (method === 'job.cancel') return success({ job_id: params.job_id, state: 'running' });
         throw new Error(`Unexpected IPC method: ${method}`);
       },
     );
 
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: 'Open another dataset' }));
-    fireEvent.change(screen.getByLabelText('CSV or Parquet file'), {
-      target: { value: 'source.csv' },
-    });
-    fireEvent.click(screen.getByText('Open dataset'));
+    importFile('source.csv');
     await screen.findByText('Dataset overview');
-    expect(screen.getAllByRole('row')).toHaveLength(3);
+    expect(screen.getAllByRole('row')).toHaveLength(4);
     const sourceSnapshot = useDatasetStore.getState().sourceDataset;
 
+    fireEvent.click(screen.getByRole('link', { name: 'Clean' }));
     fireEvent.click(screen.getByText('Add operation'));
     fireEvent.click(screen.getByText('Preview first enabled'));
     await screen.findByText('Transformation preview');
@@ -166,19 +192,38 @@ describe('import-clean-export desktop flow', () => {
       state: 'completed',
       progress: 1,
       message: 'Cleaned',
-      result: { dataset: derived },
+      result: {
+        dataset: derived,
+        history: {
+          history_id: 'history-source-1',
+          dataset_id: derived.dataset_id,
+          current_index: 1,
+          saved_index: 0,
+          is_dirty: true,
+          can_undo: true,
+          can_redo: false,
+        },
+      },
     });
     await waitFor(() => expect(useDatasetStore.getState().dataset?.dataset_id).toBe('derived-1'));
     expect(useDatasetStore.getState().sourceDataset).toEqual(sourceSnapshot);
     expect(useDatasetStore.getState().sourceDataset?.source_path).toBe('source.csv');
 
+    fireEvent.click(screen.getByRole('link', { name: 'Export' }));
     fireEvent.change(screen.getByLabelText('Destination path'), {
       target: { value: 'cleaned.csv' },
     });
     fireEvent.click(screen.getByText('Export CSV'));
     await waitFor(() =>
-      expect(useJobStore.getState().jobs.some((job) => job.job_id === 'export-1')).toBe(true),
+      expect(
+        bridge.invoke.mock.calls.some(
+          (call) =>
+            call[1].request.method === 'export.csv' &&
+            call[1].request.params.destination === 'cleaned.csv',
+        ),
+      ).toBe(true),
     );
+    expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
     expect(
       bridge.invoke.mock.calls.find((call) => call[1].request.method === 'export.csv')?.[1].request
         .params,
@@ -201,26 +246,25 @@ describe('import-clean-export desktop flow', () => {
         validated: true,
       },
     });
-    expect(useJobStore.getState().jobs.find((job) => job.job_id === 'export-1')?.state).toBe(
-      'completed',
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: 'Open another dataset' }));
-    fireEvent.change(screen.getByLabelText('CSV or Parquet file'), {
-      target: { value: 'cleaned.csv' },
-    });
-    fireEvent.click(screen.getByText('Open dataset'));
+    importFile('cleaned.csv');
     await waitFor(() =>
       expect(useDatasetStore.getState().dataset?.dataset_id).toBe('csv-output-1'),
     );
-    expect(screen.getAllByRole('row')).toHaveLength(2);
+    expect(screen.getAllByRole('row')).toHaveLength(3);
 
+    fireEvent.click(screen.getByRole('link', { name: 'Export' }));
     fireEvent.change(screen.getByLabelText('Destination path'), {
       target: { value: 'cleaned.parquet' },
     });
     fireEvent.click(screen.getByText('Export Parquet'));
     await waitFor(() =>
-      expect(useJobStore.getState().jobs.some((job) => job.job_id === 'export-2')).toBe(true),
+      expect(
+        bridge.invoke.mock.calls.some(
+          (call) =>
+            call[1].request.method === 'export.parquet' &&
+            call[1].request.params.destination === 'cleaned.parquet',
+        ),
+      ).toBe(true),
     );
     expect(
       bridge.invoke.mock.calls.find((call) => call[1].request.method === 'export.parquet')?.[1]
@@ -244,16 +288,13 @@ describe('import-clean-export desktop flow', () => {
         validated: true,
       },
     });
-    fireEvent.click(screen.getByRole('button', { name: 'Open another dataset' }));
-    fireEvent.change(screen.getByLabelText('CSV or Parquet file'), {
-      target: { value: 'cleaned.parquet' },
-    });
-    fireEvent.click(screen.getByText('Open dataset'));
+    importFile('cleaned.parquet');
     await waitFor(() =>
       expect(useDatasetStore.getState().dataset?.dataset_id).toBe('parquet-output-1'),
     );
     expect(useDatasetStore.getState().preview?.records).toEqual([{ x: 1 }]);
 
+    fireEvent.click(screen.getByRole('link', { name: 'Clean' }));
     fireEvent.click(screen.getByLabelText('Remove operation 1'));
     fireEvent.change(screen.getByLabelText('Operation'), { target: { value: 'convert_type' } });
     fireEvent.change(screen.getByLabelText('Parameters (JSON)'), {
@@ -264,6 +305,7 @@ describe('import-clean-export desktop flow', () => {
     expect(await screen.findByText('Invalid value in column x.')).toBeTruthy();
     expect(useDatasetStore.getState().dataset?.dataset_id).toBe('parquet-output-1');
 
+    fireEvent.click(screen.getByRole('link', { name: 'Export' }));
     fireEvent.change(screen.getByLabelText('Destination path'), {
       target: { value: 'existing.csv' },
     });
@@ -277,28 +319,30 @@ describe('import-clean-export desktop flow', () => {
     expect(rejectedExport?.[1].request.params.force_overwrite).toBe(false);
 
     fireEvent.change(screen.getByLabelText('Destination path'), {
-      target: { value: 'cancelled.csv' },
+      target: { value: 'failed.csv' },
     });
     fireEvent.click(screen.getByText('Export CSV'));
     await waitFor(() =>
-      expect(useJobStore.getState().jobs.some((job) => job.job_id === 'export-3')).toBe(true),
+      expect(
+        bridge.invoke.mock.calls.some(
+          (call) =>
+            call[1].request.method === 'export.csv' &&
+            call[1].request.params.destination === 'failed.csv',
+        ),
+      ).toBe(true),
     );
-    fireEvent.click(screen.getByText('Cancel'));
-    await waitFor(() =>
-      expect(bridge.invoke.mock.calls.some((call) => call[1].request.method === 'job.cancel')).toBe(
-        true,
-      ),
-    );
+    expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Cancel' })).toBeNull();
     await emit({
       job_id: 'export-3',
       kind: 'export',
-      state: 'cancelled',
+      state: 'failed',
       progress: null,
-      message: 'Export cancelled',
+      message: 'Export failed',
+      error: { code: 'EXPORT_FAILED', message: 'Could not write the output file.' },
     });
-    expect(screen.getByText('export: Export cancelled (progress unknown)')).toBeTruthy();
-    expect(useJobStore.getState().jobs.find((job) => job.job_id === 'export-3')?.state).toBe(
-      'cancelled',
+    expect((await screen.findByRole('alert')).textContent).toContain(
+      'Export failed: Could not write the output file.',
     );
   });
 });

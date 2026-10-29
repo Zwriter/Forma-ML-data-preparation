@@ -16,3 +16,15 @@ export type Preview = {
   limit: number;
   total_count: number | null;
 };
+
+export type HistoryMetadata = {
+  history_id: string;
+  dataset_id: string;
+  current_index: number;
+  saved_index: number;
+  is_dirty: boolean;
+  can_undo: boolean;
+  can_redo: boolean;
+};
+
+export type DatasetResult = { dataset: Dataset; history: HistoryMetadata };

@@ -5,8 +5,9 @@ import { useDatasetStore } from '../../src/stores/datasetStore';
 import { useWorkspaceStore } from '../../src/stores/workspaceStore';
 
 const invoke = vi.fn();
+const dialogOpen = vi.hoisted(() => vi.fn());
 vi.mock('@tauri-apps/api/core', () => ({ invoke: (...args: unknown[]) => invoke(...args) }));
-vi.mock('@tauri-apps/plugin-dialog', () => ({ open: vi.fn(), save: vi.fn() }));
+vi.mock('@tauri-apps/plugin-dialog', () => ({ open: dialogOpen, save: vi.fn() }));
 vi.mock('@tauri-apps/api/event', () => ({ listen: vi.fn(async () => () => undefined) }));
 
 const dataset = {
@@ -31,29 +32,43 @@ describe('dataset explorer workflow', () => {
   afterEach(() => {
     cleanup();
     invoke.mockReset();
+    dialogOpen.mockReset();
     useDatasetStore.setState({
       dataset: null,
       preview: null,
       sourceDataset: null,
       sourcePreview: null,
+      history: null,
+      selectedColumns: [],
+      openFiles: [],
+      activeFileId: null,
     });
-    useWorkspaceStore.setState({ busy: false, error: null });
+    useWorkspaceStore.setState({
+      busy: false,
+      error: null,
+      notification: null,
+      history: null,
+      saveStatus: 'idle',
+      commands: {},
+    });
+  });
+
+  it('starts on the File tab when no dataset is loaded', () => {
+    render(<App />);
+
+    expect(screen.getByRole('heading', { name: 'Forma' })).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'Start with a dataset' })).toBeNull();
   });
 
   it('shows the full ribbon and workspace navigation with the purple accent controls', () => {
     render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Back to workspace' }));
 
     for (const action of [
       'Save',
-      'Reload',
       'Select columns',
-      'Filter rows',
+      'Filter row',
       'Sort',
-      'Data type',
-      'Replace',
-      'Fill',
-      'Split',
-      'Merge',
       'Group by',
       'Pivot',
       'Unpivot',
@@ -61,26 +76,108 @@ describe('dataset explorer workflow', () => {
       expect(screen.getByText(action)).toBeTruthy();
     }
     expect(screen.getByRole('link', { name: 'Pipelines' })).toBeTruthy();
-    fireEvent.click(screen.getByRole('link', { name: 'Settings' }));
+    fireEvent.click(screen.getByRole('button', { name: 'File' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     expect(screen.getByRole('heading', { name: 'Settings' })).toBeTruthy();
+  });
+
+  it('keeps column details above ribbon popups', () => {
+    useDatasetStore.getState().setSource(dataset, firstPage);
+    render(<App />);
+
+    fireEvent.contextMenu(screen.getByRole('button', { name: 'Show details for value' }));
+
+    const details = screen.getByRole('complementary', { name: 'Column details' }).parentElement;
+    expect(details?.className).toBe('column-details-popover');
+  });
+
+  it('toggles ribbon popups from their buttons without popup close controls', () => {
+    useDatasetStore.getState().setSource(dataset, firstPage);
+    render(<App />);
+
+    const filterButton = screen.getByRole('button', { name: 'Filter row' });
+    vi.spyOn(filterButton, 'getBoundingClientRect').mockReturnValue({
+      x: 100,
+      y: 20,
+      top: 20,
+      right: 158,
+      bottom: 80,
+      left: 100,
+      width: 58,
+      height: 60,
+      toJSON: () => ({}),
+    });
+    fireEvent.click(filterButton);
+    const filterPopup = screen.getByRole('dialog', { name: 'Filter rows' });
+    expect(filterPopup).toBeTruthy();
+    expect(filterPopup.style.position).toBe('fixed');
+    expect(filterPopup.style.left).toBe('100px');
+    expect(filterPopup.style.top).toBe('88px');
+    expect(filterPopup.style.getPropertyValue('--popup-x')).toBe('0px');
+    expect(filterPopup.style.getPropertyValue('--popup-y')).toBe('0px');
+    expect(screen.getByText('⠿')).toBeTruthy();
+    expect(filterButton.getAttribute('aria-pressed')).toBe('true');
+    expect(screen.queryByRole('button', { name: 'Close filter' })).toBeNull();
+
+    const columnsButton = screen.getByRole('button', { name: 'Select columns' });
+    vi.spyOn(columnsButton, 'getBoundingClientRect').mockReturnValue({
+      x: 20,
+      y: 20,
+      top: 20,
+      right: 78,
+      bottom: 80,
+      left: 20,
+      width: 58,
+      height: 60,
+      toJSON: () => ({}),
+    });
+    fireEvent.click(columnsButton);
+    expect(screen.queryByRole('dialog', { name: 'Filter rows' })).toBeNull();
+    const selectorPopup = screen.getByRole('dialog', { name: 'Select columns' });
+    expect(selectorPopup).toBeTruthy();
+    expect(selectorPopup.style.position).toBe('fixed');
+    expect(selectorPopup.style.left).toBe('20px');
+    expect(selectorPopup.style.top).toBe('88px');
+    expect(selectorPopup.querySelector('header')?.children[0].className).toBe('drag-grip');
+    expect(selectorPopup.querySelector('header')?.children[1].textContent).toBe('Select columns');
+    expect(selectorPopup.style.getPropertyValue('--popup-x')).toBe('0px');
+    expect(selectorPopup.style.getPropertyValue('--popup-y')).toBe('0px');
+    expect(screen.getByText('⠿')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Close column selector' })).toBeNull();
+    expect(columnsButton.getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(columnsButton);
+    expect(screen.queryByRole('dialog', { name: 'Select columns' })).toBeNull();
+    expect(columnsButton.getAttribute('aria-pressed')).toBe('false');
   });
 
   it('opens file, shows schema and bounded records', async () => {
     invoke
       .mockResolvedValueOnce({ id: 'ui-1', status: 'success', result: dataset, error: null })
-      .mockResolvedValueOnce({ id: 'ui-2', status: 'success', result: firstPage, error: null });
+      .mockResolvedValueOnce({ id: 'ui-2', status: 'success', result: firstPage, error: null })
+      .mockResolvedValueOnce({
+        id: 'ui-3',
+        status: 'success',
+        result: {
+          history_id: 'history-1',
+          dataset_id: dataset.dataset_id,
+          current_index: 0,
+          saved_index: 0,
+          is_dirty: false,
+          can_undo: false,
+          can_redo: false,
+        },
+        error: null,
+      });
 
+    dialogOpen.mockResolvedValueOnce('source.csv');
     render(<App />);
-    fireEvent.change(screen.getByLabelText('CSV or Parquet file'), {
-      target: { value: 'source.csv' },
-    });
-    fireEvent.click(screen.getByText('Open dataset'));
+    fireEvent.click(screen.getByRole('button', { name: 'Import file' }));
 
     await waitFor(() => expect(screen.getByText('Dataset overview')).toBeTruthy());
     expect(screen.getByText('source.csv')).toBeTruthy();
     expect(screen.getAllByText('Int64').length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('row')).toHaveLength(101);
-    expect(invoke).toHaveBeenCalledTimes(2);
+    expect(screen.getAllByRole('row')).toHaveLength(102);
+    expect(invoke).toHaveBeenCalledTimes(3);
     expect(invoke.mock.calls[1][1].request.params).toMatchObject({ offset: 0, limit: 100 });
   });
 
@@ -93,14 +190,12 @@ describe('dataset explorer workflow', () => {
         }),
     );
 
+    dialogOpen.mockResolvedValueOnce('slow.csv');
     render(<App />);
-    fireEvent.change(screen.getByLabelText('CSV or Parquet file'), {
-      target: { value: 'slow.csv' },
-    });
-    fireEvent.click(screen.getByText('Open dataset'));
+    fireEvent.click(screen.getByRole('button', { name: 'Import file' }));
 
-    expect(screen.getByText('Opening…')).toBeTruthy();
-    expect((screen.getByText('Opening…') as HTMLButtonElement).disabled).toBe(true);
+    await waitFor(() => expect(screen.getByText('Importing…')).toBeTruthy());
+    expect((screen.getByText('Importing…') as HTMLButtonElement).disabled).toBe(true);
     finishOpen?.({
       id: 'ui-3',
       status: 'error',
@@ -122,14 +217,13 @@ describe('dataset explorer workflow', () => {
       error: { code: 'INVALID_DATASET', message: 'The file has no columns.' },
     });
 
+    dialogOpen.mockResolvedValueOnce('invalid.csv');
     render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: 'Open another dataset' }));
-    fireEvent.change(screen.getByLabelText('CSV or Parquet file'), {
-      target: { value: 'invalid.csv' },
-    });
-    fireEvent.click(screen.getByText('Open dataset'));
+    fireEvent.click(screen.getByRole('button', { name: 'File' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Import file' }));
 
     expect((await screen.findByRole('alert')).textContent).toContain('The file has no columns.');
+    fireEvent.click(screen.getByRole('button', { name: 'Back to workspace' }));
     expect(screen.getByText('Dataset overview')).toBeTruthy();
     expect(screen.getByText('source.csv')).toBeTruthy();
     expect(useDatasetStore.getState().dataset?.dataset_id).toBe('dataset-1');
@@ -155,5 +249,79 @@ describe('dataset explorer workflow', () => {
       limit: 100,
     });
     expect(useDatasetStore.getState().sourcePreview?.records).toEqual(firstPage.records);
+  });
+
+  it('applies a column projection with a bounded preview and no history change', async () => {
+    useDatasetStore.getState().setSource(dataset, firstPage);
+    useWorkspaceStore.getState().setHistory({
+      history_id: 'history-1',
+      dataset_id: dataset.dataset_id,
+      current_index: 0,
+      saved_index: 0,
+      is_dirty: false,
+      can_undo: false,
+      can_redo: false,
+    });
+    invoke.mockResolvedValueOnce({
+      id: 'projection-1',
+      status: 'success',
+      result: { ...firstPage, records: [{ value: 1 }] },
+      error: null,
+    });
+
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Select columns' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Apply columns' }));
+
+    await waitFor(() => expect(invoke).toHaveBeenCalledTimes(1));
+    expect(invoke.mock.calls[0][1].request.params).toMatchObject({
+      dataset_id: 'dataset-1',
+      offset: 0,
+      limit: 100,
+      columns: ['value'],
+    });
+    expect(useWorkspaceStore.getState().history?.is_dirty).toBe(false);
+    expect(useWorkspaceStore.getState().history?.current_index).toBe(0);
+  });
+
+  it('submits filter and sort through data.apply without changing history before commit', async () => {
+    useDatasetStore.getState().setSource(dataset, firstPage);
+    useWorkspaceStore.getState().setHistory({
+      history_id: 'history-1',
+      dataset_id: dataset.dataset_id,
+      current_index: 0,
+      saved_index: 0,
+      is_dirty: false,
+      can_undo: false,
+      can_redo: false,
+    });
+    invoke
+      .mockResolvedValueOnce({
+        id: 'filter-job',
+        status: 'success',
+        result: { job_id: 'job-1', state: 'pending' },
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        id: 'sort-job',
+        status: 'success',
+        result: { job_id: 'job-2', state: 'pending' },
+        error: null,
+      });
+
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Filter row' }));
+    fireEvent.change(screen.getByLabelText('Filter value 1'), { target: { value: '4' } });
+    fireEvent.click(screen.getByText('Apply filter'));
+    await waitFor(() => expect(invoke).toHaveBeenCalledTimes(1));
+    expect(invoke.mock.calls[0][1].request.method).toBe('data.apply');
+    expect(invoke.mock.calls[0][1].request.params.operation.type).toBe('filter_rows');
+    expect(useWorkspaceStore.getState().history?.is_dirty).toBe(false);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Sort' }));
+    fireEvent.click(screen.getByText('Apply sort'));
+    await waitFor(() => expect(invoke).toHaveBeenCalledTimes(2));
+    expect(invoke.mock.calls[1][1].request.method).toBe('data.apply');
+    expect(invoke.mock.calls[1][1].request.params.operation.type).toBe('sort_rows');
   });
 });

@@ -1,6 +1,5 @@
-from uuid import uuid4
 from forma_engine.domain.entities import Dataset
-from forma_engine.domain.errors import InvalidTransformationError
+from forma_engine.domain.errors import CancelledError, InvalidTransformationError
 from forma_engine.io.readers import schema_for, row_count
 from forma_engine.services.dataset_service import DatasetService
 from forma_engine.transformations.executor import execute
@@ -28,9 +27,9 @@ class CleaningService:
         }
 
     def apply(self, dataset_id, operations, cancelled):
+        source_dataset = self.datasets.get(dataset_id)
         source = self.datasets.frame(dataset_id)
         result = execute(source, operations, cancelled)
-        path = f"derived://{uuid4()}"
         try:
             rows = row_count(result)
         except Exception as exc:
@@ -38,15 +37,23 @@ class CleaningService:
                 "The transformation result could not be materialized; "
                 "the last valid dataset remains available."
             ) from exc
-        dataset = Dataset(path, "parquet", schema_for(result), rows)
-        self.datasets.datasets[dataset.dataset_id] = dataset
-        self.datasets.frames[dataset.dataset_id] = result
-        return dataset.to_dict()
+        dataset = Dataset(
+            source_dataset.source_path,
+            source_dataset.format,
+            schema_for(result),
+            rows,
+        )
+        if cancelled():
+            raise CancelledError("Cleaning was cancelled.")
+        history = self.datasets.register_derived(
+            dataset_id, dataset, result, {"type": "cleaning", "operations": operations}
+        )
+        return {"dataset": dataset.to_dict(), "history": history, "_committed": True}
 
     def submit(self, dataset_id, operations):
         if self.jobs is None:
             raise RuntimeError("Cleaning job manager is not configured")
         return self.jobs.submit(
             "clean",
-            lambda cancel: {"dataset": self.apply(dataset_id, operations, cancel)},
+            lambda cancel: self.apply(dataset_id, operations, cancel),
         )

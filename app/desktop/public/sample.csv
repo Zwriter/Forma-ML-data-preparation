@@ -1,0 +1,31 @@
+date,region,product,units,revenue,returned
+2026-01-03,North,Notebook,18,270,false
+2026-01-04,South,Pen set,32,160,false
+2026-01-05,West,Desk lamp,7,245,true
+2026-01-06,East,Notebook,24,360,false
+2026-01-07,North,Pen set,15,75,false
+2026-01-08,South,Desk lamp,11,385,false
+2026-01-09,West,Notebook,9,135,true
+2026-01-10,East,Pen set,28,140,false
+2026-01-11,North,Desk lamp,6,210,false
+2026-01-12,South,Notebook,21,315,false
+2026-01-13,West,Pen set,19,95,false
+2026-01-14,East,Desk lamp,8,280,true
+2026-01-15,North,Notebook,13,195,false
+2026-01-16,South,Pen set,25,125,false
+2026-01-17,West,Desk lamp,10,350,false
+2026-01-18,East,Notebook,16,240,false
+2026-01-19,North,Pen set,22,110,true
+2026-01-20,South,Desk lamp,5,175,false
+2026-01-21,West,Notebook,27,405,false
+2026-01-22,East,Pen set,12,60,false
+2026-01-23,North,Desk lamp,9,315,false
+2026-01-24,South,Notebook,14,210,true
+2026-01-25,West,Pen set,31,155,false
+2026-01-26,East,Desk lamp,4,140,false
+2026-01-27,North,Notebook,20,300,false
+2026-01-28,South,Pen set,17,85,false
+2026-01-29,West,Desk lamp,12,420,true
+2026-01-30,East,Notebook,11,165,false
+2026-01-31,North,Pen set,26,130,false
+2026-02-01,South,Desk lamp,7,245,false

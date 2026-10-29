@@ -1,7 +1,7 @@
 # Local development
 
 Forma has a Python engine under `app/engine` and a React/Tauri desktop client under
-`app/frontend/desktop`. Python owns all dataset access; the browser layer receives bounded
+`app/desktop`. Python owns all dataset access; the browser layer receives bounded
 previews and schema metadata only.
 
 ## Engine
@@ -37,16 +37,21 @@ rustc --version
 Install Python 3.11 or newer and the Forma engine package as described above. Then launch:
 
 ```powershell
-Set-Location app/frontend/desktop
+Set-Location app/desktop
 npm install
 npm run tauri dev
 ```
 
-`npm run dev` starts only the frontend; it has no native file picker or local engine bridge and
-cannot open datasets in a browser.
+`npm run dev` starts the frontend in browser demo mode. It offers the sample dataset and a browser
+file picker for CSVs, but has no native file picker or local engine bridge. The Tauri dev command
+also uses the demo Vite mode, but detects the native Tauri runtime and continues to route requests
+through the local engine.
 
-The MVP selects files by entering a local path. The engine validates file access and schema and
-does not write to imported source files. Preview requests have a maximum of 500 records.
+The MVP selects files by entering a local path. The engine validates file access and schema.
+Data-tab Save writes the current working state to its source path after overwrite confirmation.
+Preview requests have a maximum of 500 records, including after filter, sort, group, pivot, and
+unpivot operations. See the
+[data-tab quickstart](../specs/002-data-tab-operations/quickstart.md) for workflow validation.
 
 ## Code quality checks
 
@@ -57,9 +62,12 @@ py -m ruff check .
 py -m ruff format --check .
 ```
 
-From `app/frontend/desktop`, run the configured Prettier check for TypeScript, TSX, CSS, and JSON:
+From `app/desktop`, run frontend tests, the TypeScript production build, and the configured
+Prettier check for TypeScript, TSX, CSS, and JSON:
 
 ```powershell
+npm test
+npm run build
 npm run format:check
 ```
 

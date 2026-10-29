@@ -2,8 +2,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { WorkflowActions } from '../../src/features/workspace/WorkflowActions';
 import { useDatasetStore } from '../../src/stores/datasetStore';
-import { useJobStore } from '../../src/stores/jobStore';
 import { useTransformationStore } from '../../src/stores/transformationStore';
+import { useWorkspaceStore } from '../../src/stores/workspaceStore';
 
 const eventBus = vi.hoisted(() => ({
   handlers: {} as Record<string, (event: { payload: any }) => unknown>,
@@ -49,12 +49,22 @@ describe('profile and cleaning workflow', () => {
       preview: null,
       sourceDataset: null,
       sourcePreview: null,
+      history: null,
+      selectedColumns: [],
+      openFiles: [],
+      activeFileId: null,
     });
-    useJobStore.setState({ jobs: [] });
     useTransformationStore.setState({ operations: [] });
+    useWorkspaceStore.setState({
+      busy: false,
+      error: null,
+      history: null,
+      saveStatus: 'idle',
+      commands: {},
+    });
   });
 
-  it('shows visible profile state immediately, progress, completion, and statistics', async () => {
+  it('applies profile results without displaying background job status', async () => {
     useDatasetStore.getState().setDataset(dataset);
     let finishProfile: ((value: unknown) => void) | undefined;
     invoke.mockImplementationOnce(
@@ -63,7 +73,7 @@ describe('profile and cleaning workflow', () => {
           finishProfile = resolve;
         }),
     );
-    render(<WorkflowActions />);
+    render(<WorkflowActions activeTab="Profile" />);
 
     fireEvent.click(screen.getByText('Profile dataset'));
     expect((screen.getByText('Profile dataset') as HTMLButtonElement).disabled).toBe(true);
@@ -76,7 +86,7 @@ describe('profile and cleaning workflow', () => {
         message: 'Queued',
       }),
     );
-    await waitFor(() => expect(screen.getByText(/Profile job queued/)).toBeTruthy());
+    expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
 
     emitJob({
       job_id: 'profile-1',
@@ -85,8 +95,7 @@ describe('profile and cleaning workflow', () => {
       progress: 0.4,
       message: 'Profiling rows',
     });
-    await waitFor(() => expect(screen.getByText('profile: Profiling rows (40%)')).toBeTruthy());
-    expect(screen.getByLabelText('profile progress')).toBeTruthy();
+    expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
 
     emitJob({
       job_id: 'profile-1',
@@ -97,7 +106,7 @@ describe('profile and cleaning workflow', () => {
       result: { row_count: 2, column_count: 1, missing_counts: { x: 0 } },
     });
     await waitFor(() => expect(screen.getByText(/"row_count": 2/)).toBeTruthy());
-    expect(screen.getByText('profile: Profile complete (100%)')).toBeTruthy();
+    expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
   });
 
   it('shows before and after preview, then reports cleaning failure without losing source dataset', async () => {
@@ -110,13 +119,12 @@ describe('profile and cleaning workflow', () => {
       total_count: 2,
     });
     invoke.mockResolvedValueOnce(ipcResult({ before: [{ x: 1 }], after: [{ x: 2 }] }));
-    render(<WorkflowActions />);
+    render(<WorkflowActions activeTab="Clean" />);
 
     fireEvent.click(screen.getByText('Add operation'));
     fireEvent.click(screen.getByText('Preview first enabled'));
 
-    await waitFor(() => expect(screen.getByText('Preview ready.')).toBeTruthy());
-    expect(screen.getByText('Transformation preview')).toBeTruthy();
+    await waitFor(() => expect(screen.getByText('Transformation preview')).toBeTruthy());
     expect(screen.getByText(/"x": 1/)).toBeTruthy();
     expect(screen.getByText(/"x": 2/)).toBeTruthy();
     expect(invoke.mock.calls[0][1].request.params.dataset_id).toBe('dataset-1');
@@ -131,7 +139,12 @@ describe('profile and cleaning workflow', () => {
       }),
     );
     fireEvent.click(screen.getByText('Apply operations'));
-    await waitFor(() => expect(screen.getByText('Cleaning job queued.')).toBeTruthy());
+    await waitFor(() =>
+      expect(invoke.mock.calls.some((call) => call[1].request.method === 'cleaning.apply')).toBe(
+        true,
+      ),
+    );
+    expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
 
     emitJob({
       job_id: 'clean-1',
@@ -140,45 +153,28 @@ describe('profile and cleaning workflow', () => {
       progress: null,
       message: 'Applying operations',
     });
-    await waitFor(() =>
-      expect(screen.getByText('clean: Applying operations (progress unknown)')).toBeTruthy(),
-    );
+    expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
     emitJob({
       job_id: 'clean-1',
       kind: 'clean',
       state: 'failed',
       progress: null,
       message: 'Invalid transformation',
+      error: { code: 'INVALID_TRANSFORMATION', message: 'Invalid transformation.' },
     });
 
     await waitFor(() =>
-      expect(screen.getByText('clean: Invalid transformation (progress unknown)')).toBeTruthy(),
+      expect(useWorkspaceStore.getState().error).toBe('Cleaning failed: Invalid transformation.'),
     );
     expect(useDatasetStore.getState().dataset?.dataset_id).toBe('dataset-1');
     expect(useDatasetStore.getState().sourcePreview?.records).toEqual([{ x: 1 }]);
   });
 
-  it('requests cancellation for a running job and keeps responsive controls', async () => {
+  it('does not render job status or cancellation controls beneath workflow tabs', () => {
     useDatasetStore.getState().setDataset(dataset);
-    useJobStore.getState().add({
-      job_id: 'clean-2',
-      kind: 'clean',
-      state: 'running',
-      progress: 0.2,
-      message: 'Cleaning rows',
-    });
-    invoke.mockResolvedValueOnce(ipcResult({ job_id: 'clean-2', state: 'running' }));
-    render(<WorkflowActions />);
+    render(<WorkflowActions activeTab="Clean" />);
 
-    expect(screen.getByText('clean: Cleaning rows (20%)')).toBeTruthy();
-    fireEvent.click(screen.getByText('Cancel'));
-
-    await waitFor(() =>
-      expect(screen.getByRole('status').textContent).toContain('Cancellation requested.'),
-    );
-    expect(invoke.mock.calls[0][1].request).toMatchObject({
-      method: 'job.cancel',
-      params: { job_id: 'clean-2' },
-    });
+    expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Cancel' })).toBeNull();
   });
 });

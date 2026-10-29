@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Dataset, Preview } from '../../types/dataset';
 import { Icon } from '../../components/Icon';
 import { SchemaSummary } from './SchemaSummary';
@@ -8,7 +8,10 @@ type Props = {
   preview: Preview | null;
   selectedColumn: string | null;
   onSelectColumn: (name: string) => void;
-  onPage: (offset: number, limit?: number) => void;
+  onOpenColumnDetails: (name: string) => void;
+  selectedColumns: string[];
+  onOpenColumnSelector: () => void;
+  onPage: (offset: number, limit?: number, search?: string) => void;
 };
 
 export function DatasetPreview({
@@ -16,24 +19,28 @@ export function DatasetPreview({
   preview,
   selectedColumn,
   onSelectColumn,
+  onOpenColumnDetails,
+  selectedColumns,
+  onOpenColumnSelector,
   onPage,
 }: Props) {
   const offset = preview?.offset ?? 0;
   const [query, setQuery] = useState('');
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [activeCell, setActiveCell] = useState<{ row: number; column: string } | null>(null);
-  const records = useMemo(() => {
-    if (!preview) return [];
-    const normalized = query.trim().toLowerCase();
-    return normalized
-      ? preview.records.filter((record) =>
-          preview.columns.some((column) =>
-            `${column.name} ${String(record[column.name] ?? '')}`
-              .toLowerCase()
-              .includes(normalized),
-          ),
-        )
-      : preview.records;
-  }, [preview, query]);
+  const records = preview?.records ?? [];
+
+  useEffect(
+    () => () => {
+      if (searchTimer.current) clearTimeout(searchTimer.current);
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    setQuery('');
+  }, [dataset.dataset_id]);
 
   const activeRowIndex = activeCell?.row ?? offset;
   const activeColumn = activeCell?.column ?? preview?.columns[0]?.name;
@@ -53,6 +60,14 @@ export function DatasetPreview({
     return label;
   }
 
+  function requestPage(offset: number, limit?: number) {
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+    searchTimer.current = null;
+    if (query.trim()) onPage(offset, limit, query);
+    else if (limit === undefined) onPage(offset);
+    else onPage(offset, limit);
+  }
+
   return (
     <section className="data-card" id="dataset-table" aria-labelledby="preview-title">
       <h2 className="sr-only" id="preview-title">
@@ -67,21 +82,28 @@ export function DatasetPreview({
           <input
             id="preview-search"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              const search = event.target.value;
+              setQuery(search);
+              if (searchTimer.current) clearTimeout(searchTimer.current);
+              searchTimer.current = setTimeout(
+                () =>
+                  search.trim()
+                    ? onPage(0, preview?.limit ?? 100, search)
+                    : onPage(0, preview?.limit ?? 100),
+                250,
+              );
+            }}
             placeholder="Search preview rows or columns..."
           />
         </label>
         <span className="preview-selection">
-          {selectedColumn ? '1 column selected' : 'No column selected'}
+          {`${selectedColumns.length} of ${dataset.columns} columns visible`}
         </span>
-        <button
-          type="button"
-          className="toolbar-link"
-          onClick={() => onSelectColumn(preview?.columns[0]?.name ?? '')}
-        >
+        <button type="button" className="toolbar-link" onClick={onOpenColumnSelector}>
           <Icon name="columns" /> Columns
         </button>
-        <SchemaSummary dataset={dataset} />
+        <SchemaSummary dataset={dataset} visibleColumns={selectedColumns.length} />
       </div>
       {records.length ? (
         <div className="table-wrap">
@@ -106,6 +128,10 @@ export function DatasetPreview({
                       aria-label={`Show details for ${column.name}`}
                       aria-pressed={selectedColumn === column.name}
                       onClick={() => onSelectColumn(column.name)}
+                      onContextMenu={(event) => {
+                        event.preventDefault();
+                        onOpenColumnDetails(column.name);
+                      }}
                     >
                       <strong>{column.name}</strong>
                       <small>
@@ -145,13 +171,18 @@ export function DatasetPreview({
         </div>
       ) : (
         <p className="table-empty">
-          {query ? 'No preview rows match this search.' : 'This dataset has no records to preview.'}
+          {query
+            ? 'No preview rows match this search.'
+            : preview?.total_count === 0
+              ? 'No rows match the active filter.'
+              : 'This dataset has no records to preview.'}
         </p>
       )}
       <div className="table-footer">
         <span>
-          Rows {offset + 1}–{offset + (preview?.records.length ?? 0)} of{' '}
-          {preview?.total_count ?? 'unknown'}
+          {preview?.total_count === 0
+            ? '0 rows'
+            : `Rows ${offset + 1}–${offset + (preview?.records.length ?? 0)} of ${preview?.total_count ?? 'unknown'}`}
         </span>
         <div className="pagination-controls">
           <label htmlFor="rows-per-page">Rows per page</label>
@@ -159,7 +190,7 @@ export function DatasetPreview({
             id="rows-per-page"
             value={preview?.limit ?? 100}
             aria-label="Rows per page (10 to 500)"
-            onChange={(event) => onPage(0, Number(event.target.value))}
+            onChange={(event) => requestPage(0, Number(event.target.value))}
           >
             <option value="10">10</option>
             <option value="25">25</option>
@@ -169,7 +200,7 @@ export function DatasetPreview({
             <option value="500">500</option>
           </select>
           <button
-            onClick={() => onPage(Math.max(0, offset - (preview?.limit ?? 100)))}
+            onClick={() => requestPage(Math.max(0, offset - (preview?.limit ?? 100)))}
             disabled={!offset}
             aria-label="Previous page"
           >
@@ -177,7 +208,7 @@ export function DatasetPreview({
           </button>
           <span className="page-number">{Math.floor(offset / (preview?.limit ?? 100)) + 1}</span>
           <button
-            onClick={() => onPage(offset + (preview?.limit ?? 100))}
+            onClick={() => requestPage(offset + (preview?.limit ?? 100))}
             disabled={
               !preview ||
               preview.records.length < preview.limit ||

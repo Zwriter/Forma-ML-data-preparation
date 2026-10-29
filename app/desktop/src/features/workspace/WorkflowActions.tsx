@@ -1,66 +1,55 @@
-import { useEffect, useState } from 'react';
-import { listen } from '@tauri-apps/api/event';
-import type { Dataset } from '../../types/dataset';
-import type { Job } from '../../types/job';
+import { useState } from 'react';
 import { TransformationBuilder } from '../cleaning/TransformationBuilder';
 import { BeforeAfterComparison } from '../cleaning/BeforeAfterComparison';
 import { ProfilePanel } from '../profiling/ProfilePanel';
 import { ExportDialog } from '../export/ExportDialog';
-import { JobStatus } from '../jobs/JobStatus';
 import { useCleaningJob } from '../cleaning/useCleaningJob';
 import { useProfileJob } from '../profiling/useProfileJob';
 import { useExportJob } from '../export/useExportJob';
-import { useJobStore } from '../../stores/jobStore';
 import { request } from '../../services/ipcClient';
 import type { Operation } from '../../types/transformation';
-import { getTauriRuntimeError, isTauriRuntime } from '../../services/tauriRuntime';
+import { useWorkspaceStore } from '../../stores/workspaceStore';
+import { DataOperationDialog } from './DataOperationDialog';
+import { applyDataOperation } from '../../services/dataOperationClient';
+import type { DataOperation } from '../../types/dataOperations';
+import type { PopupPosition } from './popupPositions';
 
-type EventJob = Job & { result?: { dataset?: Dataset } & Record<string, unknown> };
-export function WorkflowActions({ activeTab }: { activeTab: string }) {
-  const { dataset, apply, acceptResult } = useCleaningJob();
+import { useWorkflowJobEvents } from './useWorkflowJobEvents';
+
+export function WorkflowActions({
+  activeTab,
+  onSaveComplete,
+  operationDialog,
+  onCloseOperationDialog,
+  popupPosition,
+}: {
+  activeTab: string;
+  onSaveComplete?: (success: boolean) => void;
+  operationDialog?: 'filter' | 'sort' | 'group_by' | 'pivot' | 'unpivot' | null;
+  onCloseOperationDialog?: () => void;
+  popupPosition?: PopupPosition;
+}) {
+  const { dataset, apply } = useCleaningJob();
   const profile = useProfileJob();
   const exportDataset = useExportJob();
-  const addJob = useJobStore((state) => state.add);
+  const setWorkspaceError = useWorkspaceStore((state) => state.setError);
   const [comparison, setComparison] = useState<{
     before: Record<string, unknown>[];
     after: Record<string, unknown>[];
   } | null>(null);
   const [report, setReport] = useState<Record<string, unknown> | null>(null);
-  const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
-
-  useEffect(() => {
-    if (!isTauriRuntime()) {
-      setMessage(getTauriRuntimeError().message);
-      return;
-    }
-    let stop: (() => void) | undefined;
-    listen<EventJob>('engine-event', async (event) => {
-      const job = event.payload;
-      addJob(job);
-      setMessage(`${job.kind}: ${job.message}`);
-      if (job.result?.dataset) await acceptResult(job.result.dataset);
-      if (job.kind === 'profile' && job.result) setReport(job.result);
-    })
-      .then((unlisten) => {
-        stop = unlisten;
-      })
-      .catch((cause: unknown) => {
-        setMessage(cause instanceof Error ? cause.message : getTauriRuntimeError().message);
-      });
-    return () => stop?.();
-  }, [acceptResult, addJob]);
+  const setStoreBusy = useWorkspaceStore((state) => state.setBusy);
+  useWorkflowJobEvents(onSaveComplete, setReport);
 
   if (!dataset) return null;
   async function previewOperation(operation: Operation) {
     setBusy(true);
-    setMessage('');
     try {
       const result = await requestPreview(operation);
       setComparison(result);
-      setMessage('Preview ready.');
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Preview failed.');
+      setWorkspaceError(error instanceof Error ? error.message : 'Preview failed.');
     } finally {
       setBusy(false);
     }
@@ -69,9 +58,8 @@ export function WorkflowActions({ activeTab }: { activeTab: string }) {
     setBusy(true);
     try {
       await apply(operations);
-      setMessage('Cleaning job queued.');
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Cleaning failed.');
+      setWorkspaceError(error instanceof Error ? error.message : 'Cleaning failed.');
     } finally {
       setBusy(false);
     }
@@ -87,9 +75,8 @@ export function WorkflowActions({ activeTab }: { activeTab: string }) {
     setBusy(true);
     try {
       await profile();
-      setMessage('Profile job queued.');
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Profile failed.');
+      setWorkspaceError(error instanceof Error ? error.message : 'Profile failed.');
     } finally {
       setBusy(false);
     }
@@ -98,9 +85,25 @@ export function WorkflowActions({ activeTab }: { activeTab: string }) {
     setBusy(true);
     try {
       await exportDataset(destination, format, overwrite);
-      setMessage('Export job queued.');
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Export failed.');
+      setWorkspaceError(error instanceof Error ? error.message : 'Export failed.');
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function runDataOperation(operation: DataOperation) {
+    if (!dataset) return;
+    const rawLabel = operation.type.replaceAll('_', ' ');
+    const label = rawLabel.charAt(0).toUpperCase() + rawLabel.slice(1);
+    setBusy(true);
+    setStoreBusy(true);
+    try {
+      await applyDataOperation(dataset.dataset_id, operation);
+      onCloseOperationDialog?.();
+    } catch (cause) {
+      setStoreBusy(false);
+      const detail = cause instanceof Error ? cause.message : 'Could not start this operation.';
+      setWorkspaceError(`${label} failed: ${detail}`);
     } finally {
       setBusy(false);
     }
@@ -138,17 +141,21 @@ export function WorkflowActions({ activeTab }: { activeTab: string }) {
           }
         />
       )}
+      {activeTab === 'Data' && (
+        <DataOperationDialog
+          kind={operationDialog ?? null}
+          popupPosition={popupPosition}
+          columns={dataset.schema}
+          busy={busy}
+          onApply={(operation) => void runDataOperation(operation)}
+          onClose={() => onCloseOperationDialog?.()}
+        />
+      )}
       {activeTab === 'Pipelines' && (
         <section className="card workflow-card" id="pipelines">
           <h2>Pipelines</h2>
           <p>Pipeline management is not available yet.</p>
         </section>
-      )}
-      {['Clean', 'Profile', 'Export', 'Pipelines'].includes(activeTab) && <JobStatus />}
-      {message && ['Clean', 'Profile', 'Export', 'Pipelines'].includes(activeTab) && (
-        <p role="status" aria-live="polite">
-          {message}
-        </p>
       )}
     </>
   );

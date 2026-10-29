@@ -18,6 +18,14 @@ class JobState(StrEnum):
     CANCELLED = "cancelled"
 
 
+class DataOperationType(StrEnum):
+    FILTER_ROWS = "filter_rows"
+    SORT_ROWS = "sort_rows"
+    GROUP_BY = "group_by"
+    PIVOT = "pivot"
+    UNPIVOT = "unpivot"
+
+
 TRANSFORMATION_TYPES = {
     "drop_duplicates",
     "drop_null_rows",
@@ -26,8 +34,46 @@ TRANSFORMATION_TYPES = {
     "drop_columns",
     "convert_type",
     "filter_rows",
+    "sort_rows",
+    "group_by",
+    "pivot",
+    "unpivot",
 }
 MAX_PREVIEW = 500
+
+
+@dataclass
+class WorkingStateEntry:
+    dataset: "Dataset"
+    frame: Any
+    operation: dict[str, Any] | None = None
+
+    @property
+    def dataset_id(self) -> str:
+        return self.dataset.dataset_id
+
+
+@dataclass
+class ChangeHistory:
+    history_id: str = field(default_factory=lambda: str(uuid4()))
+    states: list[WorkingStateEntry] = field(default_factory=list)
+    current_index: int = 0
+    saved_index: int = 0
+
+    @property
+    def current(self) -> WorkingStateEntry:
+        return self.states[self.current_index]
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "history_id": self.history_id,
+            "dataset_id": self.current.dataset_id,
+            "current_index": self.current_index,
+            "saved_index": self.saved_index,
+            "is_dirty": self.current_index != self.saved_index,
+            "can_undo": self.current_index > 0,
+            "can_redo": self.current_index < len(self.states) - 1,
+        }
 
 
 @dataclass
@@ -60,6 +106,9 @@ class Dataset:
             "rows": self.rows,
             "state": self.state.value,
         }
+
+
+DatasetWorkingState = Dataset
 
 
 @dataclass

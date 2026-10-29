@@ -2,78 +2,35 @@ import { useState } from 'react';
 import { Icon } from '../../components/Icon';
 import type { IconName } from '../../components/Icon';
 import { topTabs } from './navigation';
+import { commandIcons, ribbonCommands } from './ribbonCommands';
 
 type Props = {
   activeTab: string;
   onTabChange: (tab: string) => void;
   onReload: () => void;
-  onSelectColumns: () => void;
+  onSelectColumns: (anchor: HTMLButtonElement) => void;
+  onFilter: (anchor: HTMLButtonElement) => void;
+  onSort: (anchor: HTMLButtonElement) => void;
+  onGroup: (anchor: HTMLButtonElement) => void;
+  onPivot: (anchor: HTMLButtonElement) => void;
+  onUnpivot: (anchor: HTMLButtonElement) => void;
   hasDataset: boolean;
+  onSave: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
+  operationDialog?: 'filter' | 'sort' | 'group_by' | 'pivot' | 'unpivot' | null;
+  showColumnSelector?: boolean;
 };
 
 type Tool = {
   label: string;
   icon: IconName;
   href?: string;
-  onClick?: () => void;
+  onClick?: (anchor: HTMLButtonElement) => void;
   disabled?: boolean;
-};
-type RibbonGroup = { group: string; commands: string[] };
-
-const ribbonCommands: Record<string, RibbonGroup[]> = {
-  Data: [
-    { group: 'File', commands: ['Save', 'Undo', 'Redo'] },
-    { group: 'Table', commands: ['Select column', 'Filter row', 'Sort'] },
-    { group: 'Reshape', commands: ['Group by', 'Pivot', 'Unpivot'] },
-  ],
-  Clean: [
-    { group: 'Transform', commands: ['Convert', 'Replace', 'Fill'] },
-    { group: 'Combine', commands: ['Split', 'Merge'] },
-    { group: 'Columns and rows', commands: ['Remove', 'Rename'] },
-  ],
-  Profile: [
-    { group: 'Overview', commands: ['Refresh', 'Column details'] },
-    { group: 'Quality', commands: ['Data quality', 'Distribution', 'Duplicates'] },
-    { group: 'Insights', commands: ['Creations', 'Patterns', 'Anomalies', 'Recommendations'] },
-  ],
-  Pipelines: [{ group: 'Pipeline', commands: ['Create pipeline', 'Run pipeline'] }],
-  Export: [
-    { group: 'Export', commands: ['Export'] },
-    { group: 'Database', commands: ['Connect to DB', 'Test connection'] },
-  ],
-};
-
-const commandIcons: Record<string, IconName> = {
-  Save: 'save',
-  Undo: 'undo',
-  Redo: 'redo',
-  'Select column': 'columns',
-  'Filter row': 'filter',
-  Sort: 'sort',
-  'Group by': 'group',
-  Pivot: 'pivot',
-  Unpivot: 'unpivot',
-  Convert: 'datatype',
-  Replace: 'replace',
-  Fill: 'fill',
-  Split: 'split',
-  Merge: 'merge',
-  Remove: 'clean',
-  Rename: 'columns',
-  Refresh: 'reload',
-  'Column details': 'columns',
-  'Data quality': 'profile',
-  Distribution: 'profile',
-  Creations: 'profile',
-  Patterns: 'profile',
-  Anomalies: 'profile',
-  Duplicates: 'profile',
-  Recommendations: 'profile',
-  'Create pipeline': 'pipeline',
-  'Run pipeline': 'pipeline',
-  Export: 'export',
-  'Connect to DB': 'database',
-  'Test connection': 'database',
+  active?: boolean;
 };
 
 export function WorkspaceChrome({
@@ -81,21 +38,83 @@ export function WorkspaceChrome({
   onTabChange,
   onReload,
   onSelectColumns,
+  onFilter,
+  onSort,
+  onGroup,
+  onPivot,
+  onUnpivot,
   hasDataset,
+  onSave,
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo,
+  operationDialog = null,
+  showColumnSelector = false,
 }: Props) {
   const [showDbPanel, setShowDbPanel] = useState(false);
   const [connectionMessage, setConnectionMessage] = useState('');
   const groups = ribbonCommands[activeTab] ?? [];
 
   function toolFor(label: string): Tool {
-    if (label === 'Save' || label === 'Export')
+    if (label === 'Save')
+      return { label, icon: commandIcons[label], onClick: onSave, disabled: !hasDataset };
+    if (label === 'Undo')
+      return { label, icon: commandIcons[label], onClick: onUndo, disabled: !canUndo };
+    if (label === 'Redo')
+      return { label, icon: commandIcons[label], onClick: onRedo, disabled: !canRedo };
+    if (label === 'Export')
       return { label, icon: commandIcons[label], href: '#export', disabled: !hasDataset };
-    if (label === 'Undo' || label === 'Redo')
-      return { label, icon: commandIcons[label], disabled: true };
     if (label === 'Refresh')
       return { label, icon: commandIcons[label], onClick: onReload, disabled: !hasDataset };
-    if (label === 'Select column' || label === 'Column details')
-      return { label, icon: commandIcons[label], onClick: onSelectColumns, disabled: !hasDataset };
+    if (label === 'Select columns' || label === 'Column details')
+      return {
+        label,
+        icon: commandIcons[label],
+        onClick: onSelectColumns,
+        disabled: !hasDataset,
+        active: label === 'Select columns' && showColumnSelector,
+      };
+    if (label === 'Filter row')
+      return {
+        label,
+        icon: commandIcons[label],
+        onClick: onFilter,
+        disabled: !hasDataset,
+        active: operationDialog === 'filter',
+      };
+    if (label === 'Sort')
+      return {
+        label,
+        icon: commandIcons[label],
+        onClick: onSort,
+        disabled: !hasDataset,
+        active: operationDialog === 'sort',
+      };
+    if (label === 'Group by')
+      return {
+        label,
+        icon: commandIcons[label],
+        onClick: onGroup,
+        disabled: !hasDataset,
+        active: operationDialog === 'group_by',
+      };
+    if (label === 'Pivot')
+      return {
+        label,
+        icon: commandIcons[label],
+        onClick: onPivot,
+        disabled: !hasDataset,
+        active: operationDialog === 'pivot',
+      };
+    if (label === 'Unpivot')
+      return {
+        label,
+        icon: commandIcons[label],
+        onClick: onUnpivot,
+        disabled: !hasDataset,
+        active: operationDialog === 'unpivot',
+      };
     if (label === 'Connect to DB')
       return {
         label,
@@ -189,7 +208,7 @@ export function WorkspaceChrome({
 }
 
 function ToolButton({ action, onTabChange }: { action: Tool; onTabChange: (tab: string) => void }) {
-  const className = `ribbon-action${action.disabled ? ' unavailable' : ''}`;
+  const className = `ribbon-action${action.disabled ? ' unavailable' : ''}${action.active ? ' active' : ''}`;
   if (action.href)
     return (
       <a
@@ -210,8 +229,9 @@ function ToolButton({ action, onTabChange }: { action: Tool; onTabChange: (tab: 
       type="button"
       className={className}
       aria-label={action.label}
+      aria-pressed={action.active}
       disabled={action.disabled}
-      onClick={action.onClick}
+      onClick={(event) => action.onClick?.(event.currentTarget)}
     >
       <Icon name={action.icon} />
       <span>{action.label}</span>
