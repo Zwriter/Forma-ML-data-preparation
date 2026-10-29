@@ -41,9 +41,7 @@ def test_open_applies_persisted_history_limit(router_and_jobs, tmp_path):
     source = tmp_path / "sample.csv"
     source.write_text("value\n1\n", encoding="utf-8")
 
-    router.dispatch(
-        "dataset.open", {"path": str(source), "history_limit": 7}
-    )
+    router.dispatch("dataset.open", {"path": str(source), "history_limit": 7})
 
     assert router.datasets.history_service.max_actions == 7
 
