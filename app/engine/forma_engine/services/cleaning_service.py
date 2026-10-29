@@ -1,30 +1,30 @@
 from forma_engine.domain.entities import Dataset
 from forma_engine.domain.errors import CancelledError, InvalidTransformationError
 from forma_engine.io.readers import schema_for, row_count
+from forma_engine.services.cleaning_preview import CleaningPreviewer
 from forma_engine.services.dataset_service import DatasetService
+from forma_engine.services.step_validator import StepValidator
 from forma_engine.transformations.executor import execute
 
 
 class CleaningService:
     def __init__(self, datasets: DatasetService, jobs=None):
         self.datasets, self.jobs = datasets, jobs
+        self.validator = StepValidator()
 
-    def preview(self, dataset_id, operation):
+    def preview(self, dataset_id, operations, limit=100):
         source = self.datasets.frame(dataset_id)
-        result = execute(source, [operation])
         try:
-            before = source.limit(100).collect().to_dicts()
-            after = result.limit(100).collect().to_dicts()
+            return CleaningPreviewer(limit, self.validator).preview(source, operations)
+        except InvalidTransformationError:
+            raise
         except Exception as exc:
             raise InvalidTransformationError(
                 "The transformation could not produce a valid preview."
             ) from exc
-        return {
-            "before": before,
-            "after": after,
-            "columns": schema_for(result),
-            "validation": {"valid": True},
-        }
+
+    def validate_steps(self, dataset_id, operations):
+        return self.validator.validate(self.datasets.frame(dataset_id), operations)
 
     def apply(self, dataset_id, operations, cancelled):
         source_dataset = self.datasets.get(dataset_id)

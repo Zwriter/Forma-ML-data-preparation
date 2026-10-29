@@ -1,6 +1,7 @@
 from forma_engine.domain.errors import InvalidTransformationError
 from forma_engine.transformations.filter_parser import parse_filter
 from forma_engine.transformations.reshape_validators import validate_reshape
+from forma_engine.transformations.cleaning_validators import RULES, validate_cleaning
 
 SUPPORTED = {
     "drop_duplicates",
@@ -14,6 +15,9 @@ SUPPORTED = {
     "group_by",
     "pivot",
     "unpivot",
+    "replace_values",
+    "split_column",
+    "merge_columns",
 }
 
 
@@ -33,20 +37,8 @@ def validate(operation: dict, columns: list[str], schema=None) -> None:
         or operation["order"] < 0
     ):
         raise InvalidTransformationError("order must be a non-negative integer.")
-    if kind in {"fill_null", "convert_type"} and params.get("column") not in columns:
-        raise InvalidTransformationError("Select an existing column.")
-    if kind == "fill_null":
-        strategy = params.get("strategy")
-        if strategy not in {"constant", "mean", "median", "mode"}:
-            raise InvalidTransformationError("Choose constant, mean, median, or mode.")
-        if strategy == "constant" and "value" not in params:
-            raise InvalidTransformationError(
-                "Constant fill requires a replacement value."
-            )
-        if strategy in {"mean", "median"} and params["column"] not in columns:
-            raise InvalidTransformationError(
-                "Select a numeric column for mean or median fill."
-            )
+    if kind in RULES:
+        validate_cleaning(kind, params, columns, schema)
     if kind == "rename_columns":
         mapping = params.get("mapping")
         if not isinstance(mapping, dict) or any(
@@ -75,14 +67,6 @@ def validate(operation: dict, columns: list[str], schema=None) -> None:
             raise InvalidTransformationError(
                 "Select existing columns for this operation."
             )
-    if kind == "convert_type" and params.get("to") not in {
-        "string",
-        "integer",
-        "float",
-        "boolean",
-        "date",
-    }:
-        raise InvalidTransformationError("Choose a supported conversion type.")
     if kind == "filter_rows":
         if "expression" in params:
             parse_filter(params.get("expression"), columns)

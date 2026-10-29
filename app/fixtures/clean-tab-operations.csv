@@ -1,0 +1,9 @@
+customerID,full_name,city,country,SeniorCitizen,TotalCharges,Churn
+7590-VHVEG,Ana Pop,Cluj,Romania,0,29.85,No
+5575-GNVDE,Ion Rusu,Iasi,Romania,0,56.95,No
+3668-QPYBK,Maria Ene,Brasov,Romania,0,,Yes
+7795-CFOCW,Dan Stan,,Romania,1,1889.50,N/A
+9237-HQITU,Elena Dima,Arad,Romania,0,29.85,No
+9237-HQITU,Elena Dima,Arad,Romania,0,29.85,No
+9305-CDSKC,Radu Marin Ilie,Sibiu,Romania,0,73.20,No
+1452-KIOLO,Ioana Vlad,Oradea,,0,61.90,N/A

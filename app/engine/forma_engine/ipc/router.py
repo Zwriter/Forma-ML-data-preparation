@@ -43,6 +43,7 @@ class Router:
             "data.apply": data_operation.apply,
             "dataset.profile": profile.profile,
             "cleaning.preview": clean.preview,
+            "cleaning.validate": clean.validate,
             "cleaning.apply": clean.apply,
             "export.csv": lambda p: export.export(p, "csv"),
             "export.parquet": lambda p: export.export(p, "parquet"),
