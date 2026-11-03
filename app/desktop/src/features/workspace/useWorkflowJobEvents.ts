@@ -6,6 +6,7 @@ import { getTauriRuntimeError, isDemoRuntime, isTauriRuntime } from '../../servi
 import { useDatasetStore } from '../../stores/datasetStore';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
 import { useCleaningJob } from '../cleaning/useCleaningJob';
+import { draftKey, useCleaningStore } from '../../stores/cleaningStore';
 
 type EventJob = Job & {
   result?: { dataset?: Dataset; history?: HistoryMetadata } & Record<string, unknown>;
@@ -46,6 +47,12 @@ export function useWorkflowJobEvents(
     let stop: (() => void) | undefined;
     listen<EventJob>('engine-event', async (event) => {
       const job = event.payload;
+      if (job.kind === 'clean' && ['completed', 'failed', 'cancelled'].includes(job.state)) {
+        const cleaning = useCleaningStore.getState();
+        cleaning.setApplyJobId(null);
+        // The draft key is the open file, which survives the dataset swap below.
+        if (job.state === 'completed') cleaning.clear(draftKey(useDatasetStore.getState()));
+      }
       if (job.state === 'completed' && job.result?.dataset)
         await acceptResult(
           job.result.dataset,

@@ -1,0 +1,102 @@
+import { create } from 'zustand';
+import type {
+  CleaningPreview,
+  CleaningStep,
+  Operation,
+  StepForm,
+  StepType,
+  StepValidation,
+} from '../types/cleaning';
+import type { Dataset } from '../types/dataset';
+
+type Parameters = Record<string, unknown>;
+
+type State = {
+  drafts: Record<string, CleaningStep[]>;
+  form: StepForm | null;
+  preview: CleaningPreview | null;
+  previewStale: boolean;
+  validation: StepValidation[];
+  applyJobId: string | null;
+  add: (fileId: string, type: StepType, parameters: Parameters) => void;
+  update: (fileId: string, id: string, parameters: Parameters) => void;
+  toggle: (fileId: string, id: string) => void;
+  move: (fileId: string, id: string, offset: -1 | 1) => void;
+  duplicate: (fileId: string, id: string) => void;
+  remove: (fileId: string, id: string) => void;
+  clear: (fileId: string) => void;
+  openForm: (type: StepType, editingId?: string | null) => void;
+  closeForm: () => void;
+  setPreview: (preview: CleaningPreview | null) => void;
+  setValidation: (validation: StepValidation[]) => void;
+  setApplyJobId: (jobId: string | null) => void;
+};
+
+let sequence = 0;
+const nextId = () => `step-${++sequence}`;
+
+export const useCleaningStore = create<State>((set) => {
+  function change(fileId: string, edit: (steps: CleaningStep[]) => CleaningStep[]) {
+    set((state) => ({
+      drafts: { ...state.drafts, [fileId]: edit(state.drafts[fileId] ?? []) },
+      previewStale: state.preview !== null,
+    }));
+  }
+  return {
+    drafts: {},
+    form: null,
+    preview: null,
+    previewStale: false,
+    validation: [],
+    applyJobId: null,
+    add: (fileId, type, parameters) =>
+      change(fileId, (steps) => [...steps, { id: nextId(), type, parameters, enabled: true }]),
+    update: (fileId, id, parameters) =>
+      change(fileId, (steps) =>
+        steps.map((step) => (step.id === id ? { ...step, parameters } : step)),
+      ),
+    toggle: (fileId, id) =>
+      change(fileId, (steps) =>
+        steps.map((step) => (step.id === id ? { ...step, enabled: !step.enabled } : step)),
+      ),
+    move: (fileId, id, offset) =>
+      change(fileId, (steps) => {
+        const from = steps.findIndex((step) => step.id === id);
+        const to = from + offset;
+        if (from < 0 || to < 0 || to >= steps.length) return steps;
+        const moved = [...steps];
+        [moved[from], moved[to]] = [moved[to], moved[from]];
+        return moved;
+      }),
+    duplicate: (fileId, id) =>
+      change(fileId, (steps) =>
+        steps.flatMap((step) => (step.id === id ? [step, { ...step, id: nextId() }] : [step])),
+      ),
+    remove: (fileId, id) => change(fileId, (steps) => steps.filter((step) => step.id !== id)),
+    clear: (fileId) =>
+      set((state) => {
+        const { [fileId]: _removed, ...drafts } = state.drafts;
+        return { drafts, preview: null, previewStale: false, validation: [] };
+      }),
+    openForm: (type, editingId = null) => set({ form: { type, editingId } }),
+    closeForm: () => set({ form: null }),
+    setPreview: (preview) => set({ preview, previewStale: false }),
+    setValidation: (validation) => set({ validation }),
+    setApplyJobId: (applyJobId) => set({ applyJobId }),
+  };
+});
+
+/** Drafts are keyed by open file so switching tabs keeps each file's steps. */
+export function draftKey(state: { activeFileId: string | null; dataset: Dataset | null }) {
+  return state.activeFileId ?? state.dataset?.dataset_id ?? '';
+}
+
+export function toOperations(steps: CleaningStep[]): Operation[] {
+  return steps.map((step, order) => ({
+    type: step.type,
+    parameters: step.parameters,
+    enabled: step.enabled,
+    order,
+    operation_id: step.id,
+  }));
+}

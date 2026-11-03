@@ -32,11 +32,11 @@ description: "Executable implementation tasks for Clean Tab Operations"
 
 **Independent Test**: Add fill and remove-duplicates steps through forms, apply, verify one undoable change.
 
-- [ ] T011 [P] [US1] Add `app/desktop/src/types/cleaning.ts` and the step catalog (titles, icons, ribbon mapping, summaries, defaults) in `app/desktop/src/features/cleaning/stepCatalog.ts` with tests in `app/desktop/tests/unit/cleaning/stepCatalog.test.ts`.
-- [ ] T012 [US1] Write store tests, then implement `app/desktop/src/stores/cleaningStore.ts` (per-file drafts, add/update/toggle/move/duplicate/remove/clear, form state, stale flag) replacing `transformationStore.ts`.
-- [ ] T013 [US1] Extend `app/desktop/src/features/cleaning/useCleaningJob.ts` with `validate` and multi-step `preview`.
-- [ ] T014 [US1] Build `CleanTab.tsx`, `StepList.tsx`, `StepCard.tsx`, `AddStepMenu.tsx`, and the footer (step count, original-unchanged note, Cancel with confirmation, Apply N steps, Stop while running) in `app/desktop/src/features/cleaning/`.
-- [ ] T015 [US1] Wire Clean ribbon commands to `cleaningStore.openForm` in `WorkspaceChrome.tsx`, render `CleanTab` from `WorkflowActions.tsx`, remove the old builder, comparison, and source-comparison block, and clear the draft on `clean` job completion in `useWorkflowJobEvents.ts`.
+- [x] T011 [P] [US1] Add `app/desktop/src/types/cleaning.ts` and the step catalog (titles, icons, ribbon mapping, summaries, defaults) in `app/desktop/src/features/cleaning/stepCatalog.ts` with tests in `app/desktop/tests/unit/cleaning/stepCatalog.test.ts`.
+- [x] T012 [US1] Write store tests, then implement `app/desktop/src/stores/cleaningStore.ts` (per-file drafts, add/update/toggle/move/duplicate/remove/clear, form state, stale flag) replacing `transformationStore.ts`.
+- [x] T013 [US1] Extend `app/desktop/src/features/cleaning/useCleaningJob.ts` with `validate` and multi-step `preview`.
+- [x] T014 [US1] Build `CleanTab.tsx`, `StepList.tsx`, `StepCard.tsx`, `AddStepMenu.tsx`, and the footer (step count, original-unchanged note, Cancel with confirmation, Apply N steps, Stop while running) in `app/desktop/src/features/cleaning/`.
+- [x] T015 [US1] Wire Clean ribbon commands to `cleaningStore.openForm` in `WorkspaceChrome.tsx`, render `CleanTab` from `WorkflowActions.tsx`, remove the old builder, comparison, and source-comparison block, and clear the draft on `clean` job completion in `useWorkflowJobEvents.ts`.
 
 ## Phase 4: User Story 4 - Fill, Replace, Convert (P1)
 

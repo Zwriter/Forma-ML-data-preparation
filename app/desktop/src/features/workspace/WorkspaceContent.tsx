@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { ColumnDetails } from '../explorer/ColumnDetails';
 import { ColumnSelector } from '../data-operations/ColumnSelector';
 import { DatasetPreview } from '../explorer/DatasetPreview';
-import { BeforeAfterComparison } from '../cleaning/BeforeAfterComparison';
 import { FileBackstage } from './FileBackstage';
 import type { Dataset, Preview } from '../../types/dataset';
 import type { PopupPosition } from './popupPositions';
@@ -11,8 +10,6 @@ type Props = {
   activeTab: string;
   dataset: Dataset | null;
   preview: Preview | null;
-  sourceDataset: Dataset | null;
-  sourcePreview: Preview | null;
   selectedColumns: string[];
   busy: boolean;
   showColumnSelector: boolean;
@@ -30,8 +27,6 @@ export function WorkspaceContent({
   activeTab,
   dataset,
   preview,
-  sourceDataset,
-  sourcePreview,
   selectedColumns,
   busy,
   showColumnSelector,
@@ -130,15 +125,6 @@ export function WorkspaceContent({
                 </div>
               )}
             </div>
-          ) : activeTab === 'Clean' && sourceDataset ? (
-            <section className="card source-comparison">
-              <h2>Source comparison</h2>
-              <p>Original dataset: {sourceDataset.source_path}</p>
-              <BeforeAfterComparison
-                before={sourcePreview?.records ?? []}
-                after={preview?.records ?? []}
-              />
-            </section>
           ) : null}
         </>
       ) : null}

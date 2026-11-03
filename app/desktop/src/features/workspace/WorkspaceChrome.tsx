@@ -3,6 +3,8 @@ import { Icon } from '../../components/Icon';
 import type { IconName } from '../../components/Icon';
 import { topTabs } from './navigation';
 import { commandIcons, ribbonCommands } from './ribbonCommands';
+import { ribbonStepTypes } from '../cleaning/stepCatalog';
+import { useCleaningStore } from '../../stores/cleaningStore';
 
 type Props = {
   activeTab: string;
@@ -132,6 +134,14 @@ export function WorkspaceChrome({
           setShowDbPanel(true);
           setConnectionMessage('Connection testing is not available yet.');
         },
+      };
+    const stepType = activeTab === 'Clean' ? ribbonStepTypes[label] : undefined;
+    if (stepType)
+      return {
+        label,
+        icon: commandIcons[label],
+        onClick: () => useCleaningStore.getState().openForm(stepType),
+        disabled: !hasDataset,
       };
     return {
       label,

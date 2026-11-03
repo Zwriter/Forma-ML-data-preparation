@@ -34,8 +34,6 @@ export default function App() {
   const { dataset, preview, openDataset, page, projectColumns } = useDatasetExplorer();
   const busy = useWorkspaceStore((state) => state.busy);
   const history = useWorkspaceStore((state) => state.history);
-  const sourceDataset = useDatasetStore((state) => state.sourceDataset);
-  const sourcePreview = useDatasetStore((state) => state.sourcePreview);
   const selectedColumns = useDatasetStore((state) => state.selectedColumns);
   const setError = useWorkspaceStore((state) => state.setError);
   const [saveDialogMode, setSaveDialogMode] = useState<'close' | 'overwrite' | null>(null);
@@ -208,8 +206,6 @@ export default function App() {
           activeTab={activeTab}
           dataset={dataset}
           preview={preview}
-          sourceDataset={sourceDataset}
-          sourcePreview={sourcePreview}
           selectedColumns={selectedColumns}
           busy={busy}
           showColumnSelector={showColumnSelector}

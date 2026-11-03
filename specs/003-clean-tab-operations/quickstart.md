@@ -10,7 +10,7 @@ cd app/engine
 cd ../desktop
 npx vitest run
 npx tsc --noEmit
-npm run format:check
+npm run format:check   # on a CRLF Windows checkout, run `npx prettier --check <changed files>` instead
 
 cd ..
 ./scripts/check_source_limits.ps1

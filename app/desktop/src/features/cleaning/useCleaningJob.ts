@@ -1,10 +1,11 @@
 import { useCallback } from 'react';
 import { request } from '../../services/ipcClient';
-import type { Operation } from '../../types/transformation';
+import type { CleaningPreview, CleaningStep, StepValidation } from '../../types/cleaning';
 import type { JobAcknowledgement } from '../../types/dataOperations';
 import { useDatasetStore } from '../../stores/datasetStore';
 import type { Dataset, HistoryMetadata, Preview } from '../../types/dataset';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
+import { toOperations } from '../../stores/cleaningStore';
 
 export function useCleaningJob() {
   const dataset = useDatasetStore((state) => state.dataset);
@@ -13,22 +14,33 @@ export function useCleaningJob() {
   const setSelectedColumns = useDatasetStore((state) => state.setSelectedColumns);
   const applyResult = useDatasetStore((state) => state.applyResult);
   const setHistory = useWorkspaceStore((state) => state.setHistory);
-  const preview = useCallback(
-    async (operation: Operation) => {
+  const validate = useCallback(
+    async (steps: CleaningStep[]) => {
       if (!dataset) return null;
-      return request<{ before: Record<string, unknown>[]; after: Record<string, unknown>[] }>(
-        'cleaning.preview',
-        { dataset_id: dataset.dataset_id, operation },
-      );
+      return request<{ valid: boolean; steps: StepValidation[] }>('cleaning.validate', {
+        dataset_id: dataset.dataset_id,
+        operations: toOperations(steps),
+      });
+    },
+    [dataset],
+  );
+  const preview = useCallback(
+    async (steps: CleaningStep[], limit = 100) => {
+      if (!dataset) return null;
+      return request<CleaningPreview>('cleaning.preview', {
+        dataset_id: dataset.dataset_id,
+        operations: toOperations(steps),
+        limit,
+      });
     },
     [dataset],
   );
   const apply = useCallback(
-    async (operations: Operation[]) => {
+    async (steps: CleaningStep[]) => {
       if (!dataset) return;
       return request<JobAcknowledgement>('cleaning.apply', {
         dataset_id: dataset.dataset_id,
-        operations,
+        operations: toOperations(steps),
       });
     },
     [dataset],
@@ -58,5 +70,5 @@ export function useCleaningJob() {
     },
     [setDataset, setPreview, setSelectedColumns, applyResult, setHistory],
   );
-  return { dataset, preview, apply, acceptResult };
+  return { dataset, validate, preview, apply, acceptResult };
 }

@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { WorkflowActions } from '../../src/features/workspace/WorkflowActions';
 import { useDatasetStore } from '../../src/stores/datasetStore';
-import { useTransformationStore } from '../../src/stores/transformationStore';
+import { useCleaningStore } from '../../src/stores/cleaningStore';
 import { useWorkspaceStore } from '../../src/stores/workspaceStore';
 
 const eventBus = vi.hoisted(() => ({
@@ -36,7 +36,43 @@ function ipcResult(result: unknown) {
 }
 
 function emitJob(job: Record<string, unknown>) {
-  eventBus.handlers['engine-event']?.({ payload: job });
+  return eventBus.handlers['engine-event']?.({ payload: job });
+}
+
+const sourcePreview = {
+  dataset_id: 'dataset-1',
+  columns: dataset.schema,
+  records: [{ x: 1 }],
+  offset: 0,
+  limit: 100,
+  total_count: 2,
+};
+
+function respond(_command: string, args: { request: { method: string; params: any } }) {
+  const { method, params } = args.request;
+  if (method === 'cleaning.validate')
+    return ipcResult({
+      valid: true,
+      steps: params.operations.map((_: unknown, index: number) => ({ index, valid: true })),
+    });
+  if (method === 'cleaning.apply') return ipcResult({ job_id: 'clean-1', state: 'pending' });
+  if (method === 'dataset.preview') return ipcResult({ ...sourcePreview, dataset_id: 'derived-1' });
+  throw new Error(`Unexpected ${method}`);
+}
+
+function addDuplicateStep() {
+  fireEvent.click(screen.getByRole('button', { name: 'Add step' }));
+  fireEvent.click(screen.getByRole('menuitem', { name: 'Remove duplicate rows' }));
+  fireEvent.click(
+    within(screen.getByRole('dialog', { name: 'Remove duplicate rows' })).getByRole('button', {
+      name: 'Add step',
+    }),
+  );
+}
+
+async function applyDraft() {
+  fireEvent.click(screen.getByRole('button', { name: 'Apply 1 step' }));
+  await screen.findByRole('button', { name: 'Stop' });
 }
 
 describe('profile and cleaning workflow', () => {
@@ -54,7 +90,7 @@ describe('profile and cleaning workflow', () => {
       openFiles: [],
       activeFileId: null,
     });
-    useTransformationStore.setState({ operations: [] });
+    useCleaningStore.setState({ drafts: {}, form: null, validation: [], applyJobId: null });
     useWorkspaceStore.setState({
       busy: false,
       error: null,
@@ -109,65 +145,68 @@ describe('profile and cleaning workflow', () => {
     expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
   });
 
-  it('shows before and after preview, then reports cleaning failure without losing source dataset', async () => {
-    useDatasetStore.getState().setSource(dataset, {
-      dataset_id: 'dataset-1',
-      columns: dataset.schema,
-      records: [{ x: 1 }],
-      offset: 0,
-      limit: 100,
-      total_count: 2,
-    });
-    invoke.mockResolvedValueOnce(ipcResult({ before: [{ x: 1 }], after: [{ x: 2 }] }));
+  it('keeps the draft and source dataset when a cleaning job fails', async () => {
+    useDatasetStore.getState().setSource(dataset, sourcePreview);
+    invoke.mockImplementation(respond);
     render(<WorkflowActions activeTab="Clean" />);
-
-    fireEvent.click(screen.getByText('Add operation'));
-    fireEvent.click(screen.getByText('Preview first enabled'));
-
-    await waitFor(() => expect(screen.getByText('Transformation preview')).toBeTruthy());
-    expect(screen.getByText(/"x": 1/)).toBeTruthy();
-    expect(screen.getByText(/"x": 2/)).toBeTruthy();
-    expect(invoke.mock.calls[0][1].request.params.dataset_id).toBe('dataset-1');
-
-    invoke.mockResolvedValueOnce(
-      ipcResult({
-        job_id: 'clean-1',
-        kind: 'clean',
-        state: 'pending',
-        progress: null,
-        message: 'Queued',
-      }),
-    );
-    fireEvent.click(screen.getByText('Apply operations'));
-    await waitFor(() =>
-      expect(invoke.mock.calls.some((call) => call[1].request.method === 'cleaning.apply')).toBe(
-        true,
-      ),
-    );
-    expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
-
-    emitJob({
-      job_id: 'clean-1',
-      kind: 'clean',
-      state: 'running',
-      progress: null,
-      message: 'Applying operations',
+    addDuplicateStep();
+    await applyDraft();
+    const apply = invoke.mock.calls.find((call) => call[1].request.method === 'cleaning.apply');
+    expect(apply?.[1].request.params).toEqual({
+      dataset_id: 'dataset-1',
+      operations: [expect.objectContaining({ type: 'drop_duplicates', order: 0 })],
     });
-    expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
-    emitJob({
+
+    await emitJob({
       job_id: 'clean-1',
       kind: 'clean',
       state: 'failed',
       progress: null,
       message: 'Invalid transformation',
-      error: { code: 'INVALID_TRANSFORMATION', message: 'Invalid transformation.' },
+      error: { code: 'INVALID_TRANSFORMATION', message: 'Step 1: Invalid transformation.' },
     });
 
     await waitFor(() =>
-      expect(useWorkspaceStore.getState().error).toBe('Cleaning failed: Invalid transformation.'),
+      expect(useWorkspaceStore.getState().error).toBe(
+        'Cleaning failed: Step 1: Invalid transformation.',
+      ),
     );
+    expect(screen.getAllByRole('listitem')).toHaveLength(1);
+    expect(screen.getByRole('button', { name: 'Apply 1 step' })).toBeTruthy();
     expect(useDatasetStore.getState().dataset?.dataset_id).toBe('dataset-1');
     expect(useDatasetStore.getState().sourcePreview?.records).toEqual([{ x: 1 }]);
+  });
+
+  it('clears the draft once the cleaning job completes', async () => {
+    useDatasetStore.getState().setSource(dataset, sourcePreview);
+    invoke.mockImplementation(respond);
+    render(<WorkflowActions activeTab="Clean" />);
+    addDuplicateStep();
+    await applyDraft();
+
+    await emitJob({
+      job_id: 'clean-1',
+      kind: 'clean',
+      state: 'completed',
+      progress: 1,
+      message: 'Cleaned',
+      result: {
+        dataset: { ...dataset, dataset_id: 'derived-1' },
+        history: {
+          history_id: 'history-1',
+          dataset_id: 'derived-1',
+          current_index: 1,
+          saved_index: 0,
+          is_dirty: true,
+          can_undo: true,
+          can_redo: false,
+        },
+      },
+    });
+
+    await waitFor(() => expect(screen.getByText(/No cleaning steps yet/)).toBeTruthy());
+    expect(useCleaningStore.getState().applyJobId).toBeNull();
+    expect(useWorkspaceStore.getState().history?.can_undo).toBe(true);
   });
 
   it('does not render job status or cancellation controls beneath workflow tabs', () => {
@@ -175,6 +214,6 @@ describe('profile and cleaning workflow', () => {
     render(<WorkflowActions activeTab="Clean" />);
 
     expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
-    expect(screen.queryByRole('button', { name: 'Cancel' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Stop' })).toBeNull();
   });
 });
