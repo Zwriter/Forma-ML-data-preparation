@@ -9,6 +9,7 @@ cd app/engine
 
 cd ../desktop
 npx vitest run
+npm run test:ui        # Playwright: layout, scrolling, responsive widths, keyboard (demo build)
 npx tsc --noEmit
 npm run format:check   # on a CRLF Windows checkout, run `npx prettier --check <changed files>` instead
 

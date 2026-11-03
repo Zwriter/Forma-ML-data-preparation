@@ -57,9 +57,9 @@ description: "Executable implementation tasks for Clean Tab Operations"
 
 ## Phase 8: Polish & Cross-Cutting
 
-- [ ] T021 Add Clean-tab styles with a stacked layout below 960 px in `app/desktop/src/styles/cleaning.css`.
+- [ ] T021 Add Clean-tab styles with a stacked layout below 960 px in `app/desktop/src/styles/cleaning.css`, covered by a Playwright test in `app/desktop/tests/ui/clean-tab.pw.ts`.
 - [ ] T022 Replace the JSON-builder tests in `tests/unit/cleaning/TransformationBuilder.test.tsx`, `tests/integration/profile-clean-workflow.test.tsx`, `tests/e2e/import-clean-export.spec.tsx`, and `tests/e2e/accessibility-responsive.spec.tsx` with guided-flow equivalents; add `tests/integration/clean-tab-workflow.test.tsx` (add → preview → apply → draft cleared; failure keeps draft).
-- [ ] T023 Run quickstart automated checks: pytest, Ruff, Vitest, `tsc --noEmit`, Prettier, `check_source_limits.ps1`; record the constitution review in this file.
+- [ ] T023 Run quickstart automated checks: pytest, Ruff, Vitest, Playwright (`npm run test:ui`), `tsc --noEmit`, Prettier, `check_source_limits.ps1`; record the constitution review in this file.
 
 ## Dependencies
 
