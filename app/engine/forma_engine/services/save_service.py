@@ -9,13 +9,24 @@ from forma_engine.domain.errors import (
 from forma_engine.io.writers import write_safe
 
 
+def _confirm_overwrite(target: Path, destination, force_overwrite: bool) -> None:
+    """Refuse to replace an existing file unless the user confirmed it."""
+    if target.exists() and not force_overwrite:
+        kind = "destination" if destination else "source"
+        raise SaveRequiredError(
+            f"This will replace the {kind} file. Confirm replacement to continue."
+        )
+
+
 class SaveService:
     def __init__(self, datasets):
         self.datasets = datasets
 
     def save(self, dataset_id, force_overwrite, cancelled, destination=None):
         entry = self.datasets.history_service.current(dataset_id)
-        return self.save_entry(dataset_id, entry, force_overwrite, cancelled, destination)
+        return self.save_entry(
+            dataset_id, entry, force_overwrite, cancelled, destination
+        )
 
     def save_entry(
         self, history_dataset_id, entry, force_overwrite, cancelled, destination=None
@@ -23,12 +34,7 @@ class SaveService:
         dataset, frame = entry.dataset, entry.frame
         target_path = destination or dataset.source_path
         target = Path(target_path).expanduser()
-        if target.exists() and not force_overwrite:
-            raise SaveRequiredError(
-                "This will replace the destination file. Confirm replacement to continue."
-                if destination
-                else "This will replace the source file. Confirm replacement to continue."
-            )
+        _confirm_overwrite(target, destination, force_overwrite)
         if cancelled():
             raise CancelledError("Save was cancelled.")
         try:
@@ -59,12 +65,7 @@ class SaveService:
             raise ValueError("force_overwrite must be a boolean")
         dataset = self.datasets.get(dataset_id)
         target = Path(destination or dataset.source_path).expanduser()
-        if target.exists() and not force_overwrite:
-            raise SaveRequiredError(
-                "This will replace the destination file. Confirm replacement to continue."
-                if destination
-                else "This will replace the source file. Confirm replacement to continue."
-            )
+        _confirm_overwrite(target, destination, force_overwrite)
         entry = self.datasets.history_service.current(dataset_id)
         return jobs.submit(
             "save",

@@ -60,9 +60,7 @@ def test_data_filter_paginates_filtered_rows_across_original_page_boundaries(tmp
             "type": "filter_rows",
             "parameters": {
                 "mode": "all",
-                "rules": [
-                    {"column": "value", "operator": "at_least", "value": 900}
-                ],
+                "rules": [{"column": "value", "operator": "at_least", "value": 900}],
             },
         },
         lambda: False,

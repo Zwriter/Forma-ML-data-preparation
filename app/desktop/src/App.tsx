@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { listen } from '@tauri-apps/api/event';
-import { getCurrentWindow } from '@tauri-apps/api/window';
 import { open } from '@tauri-apps/plugin-dialog';
 import { WorkflowActions } from './features/workspace/WorkflowActions';
 import { WorkspaceChrome } from './features/workspace/WorkspaceChrome';
@@ -17,6 +16,7 @@ import type { PopupPosition } from './features/workspace/popupPositions';
 import { useDatasetStore } from './stores/datasetStore';
 import { useWorkspaceStore } from './stores/workspaceStore';
 import {
+  getDesktopWindow,
   getTauriRuntimeError,
   isDemoRuntime,
   isTauriRuntime,
@@ -28,15 +28,6 @@ import './styles/workspace.css';
 import './styles/workspace-content.css';
 import './styles/explorer.css';
 import './styles/inspector.css';
-
-function getDesktopWindow() {
-  if (!isTauriRuntime()) return undefined;
-  try {
-    return getCurrentWindow();
-  } catch {
-    return undefined;
-  }
-}
 
 export default function App() {
   useDraggablePopups();

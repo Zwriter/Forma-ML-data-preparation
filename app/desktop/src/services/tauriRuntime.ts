@@ -1,3 +1,5 @@
+import { getCurrentWindow } from '@tauri-apps/api/window';
+
 const runtimeMessage =
   'Forma needs the Tauri desktop runtime. Run `npm run tauri dev` from app/frontend/desktop.';
 
@@ -11,6 +13,16 @@ export function isDemoRuntime(): boolean {
 
 export function getTauriRuntimeError(): Error {
   return new Error(runtimeMessage);
+}
+
+/** The current desktop window, or undefined outside the Tauri runtime. */
+export function getDesktopWindow() {
+  if (!isTauriRuntime()) return undefined;
+  try {
+    return getCurrentWindow();
+  } catch {
+    return undefined;
+  }
 }
 
 export { runtimeMessage };
