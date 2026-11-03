@@ -2,7 +2,8 @@ import { useState } from 'react';
 
 const plural = (count: number) => `${count} ${count === 1 ? 'step' : 'steps'}`;
 
-export function CleanFooter({
+/** Cancel and Apply for the draft, shown at the bottom of the steps panel. */
+export function DraftActions({
   stepCount,
   enabledCount,
   running,
@@ -21,30 +22,24 @@ export function CleanFooter({
 }) {
   const [confirming, setConfirming] = useState(false);
   return (
-    <footer className="clean-footer">
-      <div className="clean-footer-text">
-        <strong>{plural(stepCount)}</strong>
-        <span>Changes apply to a new version of the data. The original file stays unchanged.</span>
-      </div>
-      <div className="clean-footer-actions">
-        <button
-          type="button"
-          className="quiet-button"
-          disabled={!stepCount || running}
-          onClick={() => setConfirming(true)}
-        >
-          Cancel
+    <div className="draft-actions">
+      <button
+        type="button"
+        className="quiet-button"
+        disabled={!stepCount || running}
+        onClick={() => setConfirming(true)}
+      >
+        Cancel
+      </button>
+      {running ? (
+        <button type="button" onClick={onStop}>
+          Stop
         </button>
-        {running ? (
-          <button type="button" onClick={onStop}>
-            Stop
-          </button>
-        ) : (
-          <button type="button" disabled={!canApply} onClick={onApply}>
-            Apply {plural(enabledCount)}
-          </button>
-        )}
-      </div>
+      ) : (
+        <button type="button" disabled={!canApply} onClick={onApply}>
+          Apply {plural(enabledCount)}
+        </button>
+      )}
       {running && (
         <span className="sr-only" role="status">
           Applying cleaning steps
@@ -85,6 +80,6 @@ export function CleanFooter({
           </section>
         </div>
       )}
-    </footer>
+    </div>
   );
 }

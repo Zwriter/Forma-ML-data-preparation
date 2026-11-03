@@ -1,7 +1,8 @@
 import polars as pl
 
-from forma_engine.domain.errors import InvalidTransformationError
+from forma_engine.domain.errors import InvalidTransformationError, RequestError
 from forma_engine.io.readers import schema_for
+from forma_engine.services.dataset_service import search_rows
 from forma_engine.services.step_validator import StepValidator
 from forma_engine.transformations.executor import execute
 from forma_engine.transformations.lineage import Lineage, initial_lineage, track
@@ -10,32 +11,47 @@ ROW_ID = "__forma_row_id__"
 
 
 class CleaningPreviewer:
-    """Run draft steps on the full frame and describe their effect.
+    """Run draft steps on the full frame and describe one worksheet page of the result.
 
-    A hidden row id follows every row through the steps, so the bounded sample can
-    mark removed rows and changed cells, while the summary covers every row.
+    A hidden row id follows every row through the steps, so the page can keep removed
+    rows in their source position and mark changed cells, while the summary covers
+    every row.
     """
 
-    def __init__(self, limit: int = 100, validator: StepValidator | None = None):
-        self.limit = limit
+    def __init__(self, validator: StepValidator | None = None):
         self.validator = validator or StepValidator()
 
-    def preview(self, frame: pl.LazyFrame, operations: list[dict]) -> dict:
+    def preview(
+        self,
+        frame: pl.LazyFrame,
+        operations: list[dict],
+        offset: int = 0,
+        limit: int = 100,
+        columns: list[str] | None = None,
+        search: str | None = None,
+    ) -> dict:
         self._raise_first_invalid(frame, operations)
+        names = frame.collect_schema().names()
+        if columns is not None and any(name not in names for name in columns):
+            raise RequestError("Requested preview contains an unknown column")
         source = frame.with_row_index(ROW_ID)
-        result, lineage = self._run(source, frame.collect_schema().names(), operations)
-        before = source.limit(self.limit).collect()
-        after = result.filter(pl.col(ROW_ID) < self.limit).collect()
-        removed, changed = self._markers(before, after, lineage)
+        result, lineage = self._run(source, names, operations)
+        visible = self._visible(lineage, columns)
+        matching, _ = search_rows(
+            source, columns if columns is not None else names, search
+        )
+        page = matching.slice(offset, limit).collect()
+        after = result.join(page.lazy().select(ROW_ID), on=ROW_ID, how="semi")
+        rows, changed = self._rows(page, after.collect(), visible)
+        schema = {column["name"]: column for column in schema_for(result.drop(ROW_ID))}
         return {
-            "columns_before": schema_for(frame),
-            "columns": schema_for(result.drop(ROW_ID)),
-            "before": before.drop(ROW_ID).to_dicts(),
-            "after": after.drop(ROW_ID).to_dicts(),
-            "removed_rows": removed,
+            "columns": [{**schema[name], "origin": origin} for name, origin in visible],
+            "rows": rows,
             "changed_cells": changed,
+            "offset": offset,
+            "limit": limit,
+            "total_count": matching.select(pl.len()).collect().item(),
             "summary": self._summary(source, result, lineage),
-            "validation": {"valid": True},
         }
 
     def _raise_first_invalid(self, frame, operations):
@@ -71,17 +87,48 @@ class CleaningPreviewer:
         return operation
 
     @staticmethod
-    def _markers(before: pl.DataFrame, after: pl.DataFrame, lineage: Lineage):
-        kept = set(after[ROW_ID].to_list())
-        removed = [i for i, row_id in enumerate(before[ROW_ID]) if row_id not in kept]
-        originals = before.rows_by_key(ROW_ID, named=True, unique=True)
-        changed = []
-        for index, row in enumerate(after.iter_rows(named=True)):
-            original = originals[row[ROW_ID]]
-            for column, origin in lineage.items():
-                if origin and _text(original[origin]) != _text(row[column]):
-                    changed.append({"row": index, "column": column})
-        return removed, changed
+    def _visible(lineage: Lineage, columns: list[str] | None):
+        """Project the worksheet's visible source columns onto result columns.
+
+        Columns added by steps have no source, so they are always shown, last.
+        """
+        if columns is None:
+            return list(lineage.items())
+        shown = [
+            (name, origin)
+            for wanted in columns
+            for name, origin in lineage.items()
+            if origin == wanted
+        ]
+        return shown + [
+            (name, origin) for name, origin in lineage.items() if not origin
+        ]
+
+    @staticmethod
+    def _rows(page: pl.DataFrame, after: pl.DataFrame, visible):
+        survivors = after.rows_by_key(ROW_ID, named=True, unique=True)
+        rows, changed = [], []
+        for index, original in enumerate(page.iter_rows(named=True)):
+            result = survivors.get(original[ROW_ID])
+            if result is None:
+                values = {
+                    name: original[origin] if origin else None
+                    for name, origin in visible
+                }
+                rows.append({"values": values, "removed": True})
+                continue
+            rows.append(
+                {
+                    "values": {name: result[name] for name, _ in visible},
+                    "removed": False,
+                }
+            )
+            changed += [
+                {"row": index, "column": name}
+                for name, origin in visible
+                if origin and _text(original[origin]) != _text(result[name])
+            ]
+        return rows, changed
 
     @staticmethod
     def _summary(source: pl.LazyFrame, result: pl.LazyFrame, lineage: Lineage):

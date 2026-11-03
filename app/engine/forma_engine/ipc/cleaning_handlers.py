@@ -1,4 +1,5 @@
 from forma_engine.domain.errors import RequestError
+from forma_engine.ipc.dataset_handlers import page_params
 
 MAX_PREVIEW_ROWS = 500
 
@@ -22,7 +23,10 @@ class CleaningHandlers:
             raise RequestError(
                 f"limit must be an integer from 1 to {MAX_PREVIEW_ROWS}."
             )
-        return self.cleaning.preview(dataset_id, operations, limit)
+        offset, columns, search = page_params(params)
+        return self.cleaning.preview(
+            dataset_id, operations, limit, offset, columns, search
+        )
 
     def validate(self, params):
         dataset_id = self._dataset_id(params)

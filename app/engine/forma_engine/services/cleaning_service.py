@@ -1,5 +1,9 @@
 from forma_engine.domain.entities import Dataset
-from forma_engine.domain.errors import CancelledError, InvalidTransformationError
+from forma_engine.domain.errors import (
+    CancelledError,
+    InvalidTransformationError,
+    RequestError,
+)
 from forma_engine.io.readers import schema_for, row_count
 from forma_engine.services.cleaning_preview import CleaningPreviewer
 from forma_engine.services.dataset_service import DatasetService
@@ -12,11 +16,15 @@ class CleaningService:
         self.datasets, self.jobs = datasets, jobs
         self.validator = StepValidator()
 
-    def preview(self, dataset_id, operations, limit=100):
+    def preview(
+        self, dataset_id, operations, limit=100, offset=0, columns=None, search=None
+    ):
         source = self.datasets.frame(dataset_id)
         try:
-            return CleaningPreviewer(limit, self.validator).preview(source, operations)
-        except InvalidTransformationError:
+            return CleaningPreviewer(self.validator).preview(
+                source, operations, offset, limit, columns, search
+            )
+        except (InvalidTransformationError, RequestError):
             raise
         except Exception as exc:
             raise InvalidTransformationError(

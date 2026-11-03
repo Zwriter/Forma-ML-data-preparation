@@ -1,7 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import type { Dataset, Preview } from '../../types/dataset';
+import type { WorksheetMarkers } from '../../types/cleaning';
+import { useDatasetStore } from '../../stores/datasetStore';
 import { Icon } from '../../components/Icon';
 import { SchemaSummary } from './SchemaSummary';
+import { TablePager } from './TablePager';
 
 type Props = {
   dataset: Dataset;
@@ -12,6 +15,8 @@ type Props = {
   selectedColumns: string[];
   onOpenColumnSelector: () => void;
   onPage: (offset: number, limit?: number, search?: string) => void;
+  /** Read-only change markers shown by the Clean tab's live preview. */
+  markers?: WorksheetMarkers;
 };
 
 export function DatasetPreview({
@@ -23,24 +28,32 @@ export function DatasetPreview({
   selectedColumns,
   onOpenColumnSelector,
   onPage,
+  markers,
 }: Props) {
   const offset = preview?.offset ?? 0;
-  const [query, setQuery] = useState('');
+  const query = useDatasetStore((state) => state.search);
+  const activeCell = useDatasetStore((state) => state.activeCell);
+  const activeFileId = useDatasetStore((state) => state.activeFileId);
+  const setView = useDatasetStore((state) => state.setView);
   const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [activeCell, setActiveCell] = useState<{ row: number; column: string } | null>(null);
+  const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tableWrap = useRef<HTMLDivElement>(null);
   const records = preview?.records ?? [];
+  const setActiveCell = (cell: { row: number; column: string }) => setView({ activeCell: cell });
 
   useEffect(
     () => () => {
       if (searchTimer.current) clearTimeout(searchTimer.current);
+      if (scrollTimer.current) clearTimeout(scrollTimer.current);
     },
     [],
   );
 
-  useEffect(() => {
-    if (searchTimer.current) clearTimeout(searchTimer.current);
-    setQuery('');
-  }, [dataset.dataset_id]);
+  // Restore where this file's worksheet was left, in either tab.
+  useLayoutEffect(() => {
+    const { top, left } = useDatasetStore.getState().scroll;
+    tableWrap.current?.scrollTo?.({ top, left });
+  }, [activeFileId, records.length > 0]);
 
   const activeRowIndex = activeCell?.row ?? offset;
   const activeColumn = activeCell?.column ?? preview?.columns[0]?.name;
@@ -84,7 +97,7 @@ export function DatasetPreview({
             value={query}
             onChange={(event) => {
               const search = event.target.value;
-              setQuery(search);
+              setView({ search });
               if (searchTimer.current) clearTimeout(searchTimer.current);
               searchTimer.current = setTimeout(
                 () =>
@@ -106,7 +119,15 @@ export function DatasetPreview({
         <SchemaSummary dataset={dataset} visibleColumns={selectedColumns.length} />
       </div>
       {records.length ? (
-        <div className="table-wrap">
+        <div
+          className="table-wrap"
+          ref={tableWrap}
+          onScroll={(event) => {
+            const { scrollTop: top, scrollLeft: left } = event.currentTarget;
+            if (scrollTimer.current) clearTimeout(scrollTimer.current);
+            scrollTimer.current = setTimeout(() => setView({ scroll: { top, left } }), 150);
+          }}
+        >
           <table>
             <thead>
               <tr className="spreadsheet-column-letters">
@@ -140,6 +161,9 @@ export function DatasetPreview({
                         </span>{' '}
                         {column.type}
                       </small>
+                      {markers?.columnNotes[column.name] && (
+                        <small className="column-note">{markers.columnNotes[column.name]}</small>
+                      )}
                     </button>
                   </th>
                 ))}
@@ -147,13 +171,16 @@ export function DatasetPreview({
             </thead>
             <tbody>
               {records.map((record, index) => (
-                <tr key={`${offset}-${index}`}>
+                <tr
+                  key={`${offset}-${index}`}
+                  className={markers?.removed.has(index) ? 'worksheet-removed' : undefined}
+                >
                   <td className="row-number">{offset + index + 2}</td>
-                  {preview?.columns.map((column) => (
+                  {preview?.columns.map((column, position) => (
                     <td
                       key={column.name}
                       role="gridcell"
-                      className={`${selectedColumn === column.name ? 'selected-column' : ''}${activeRowIndex === offset + index && activeColumn === column.name ? ' active-cell' : ''}`}
+                      className={`${selectedColumn === column.name ? 'selected-column' : ''}${activeRowIndex === offset + index && activeColumn === column.name ? ' active-cell' : ''}${markers?.changed.has(`${index}:${column.name}`) ? ' cell-changed' : ''}`}
                       tabIndex={0}
                       aria-selected={
                         activeRowIndex === offset + index && activeColumn === column.name
@@ -161,7 +188,15 @@ export function DatasetPreview({
                       onFocus={() => setActiveCell({ row: offset + index, column: column.name })}
                       onClick={() => setActiveCell({ row: offset + index, column: column.name })}
                     >
-                      {String(record[column.name] ?? '—')}
+                      {markers ? (
+                        <MarkedValue
+                          value={record[column.name]}
+                          changed={markers.changed.has(`${index}:${column.name}`)}
+                          removed={position === 0 && markers.removed.has(index)}
+                        />
+                      ) : (
+                        String(record[column.name] ?? '—')
+                      )}
                     </td>
                   ))}
                 </tr>
@@ -178,48 +213,29 @@ export function DatasetPreview({
               : 'This dataset has no records to preview.'}
         </p>
       )}
-      <div className="table-footer">
-        <span>
-          {preview?.total_count === 0
-            ? '0 rows'
-            : `Rows ${offset + 1}–${offset + (preview?.records.length ?? 0)} of ${preview?.total_count ?? 'unknown'}`}
-        </span>
-        <div className="pagination-controls">
-          <label htmlFor="rows-per-page">Rows per page</label>
-          <select
-            id="rows-per-page"
-            value={preview?.limit ?? 100}
-            aria-label="Rows per page (10 to 500)"
-            onChange={(event) => requestPage(0, Number(event.target.value))}
-          >
-            <option value="10">10</option>
-            <option value="25">25</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-            <option value="250">250</option>
-            <option value="500">500</option>
-          </select>
-          <button
-            onClick={() => requestPage(Math.max(0, offset - (preview?.limit ?? 100)))}
-            disabled={!offset}
-            aria-label="Previous page"
-          >
-            <span className="sr-only">Previous</span>‹
-          </button>
-          <span className="page-number">{Math.floor(offset / (preview?.limit ?? 100)) + 1}</span>
-          <button
-            onClick={() => requestPage(offset + (preview?.limit ?? 100))}
-            disabled={
-              !preview ||
-              preview.records.length < preview.limit ||
-              (!!preview.total_count && offset + preview.records.length >= preview.total_count)
-            }
-            aria-label="Next page"
-          >
-            <span className="sr-only">Next</span>›
-          </button>
-        </div>
-      </div>
+      <TablePager preview={preview} onPage={requestPage} />
     </section>
+  );
+}
+
+function MarkedValue({
+  value,
+  changed,
+  removed,
+}: {
+  value: unknown;
+  changed: boolean;
+  removed: boolean;
+}) {
+  return (
+    <>
+      {removed && <span className="cell-flag">Removed</span>}
+      {value === null || value === undefined ? (
+        <em className="cell-missing">missing</em>
+      ) : (
+        String(value)
+      )}
+      {changed && <span className="sr-only"> (changed)</span>}
+    </>
   );
 }

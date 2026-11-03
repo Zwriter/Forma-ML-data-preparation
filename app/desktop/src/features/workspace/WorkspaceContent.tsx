@@ -3,6 +3,8 @@ import { ColumnDetails } from '../explorer/ColumnDetails';
 import { ColumnSelector } from '../data-operations/ColumnSelector';
 import { DatasetPreview } from '../explorer/DatasetPreview';
 import { FileBackstage } from './FileBackstage';
+import { CleanTab } from '../cleaning/CleanTab';
+import type { WorksheetMarkers } from '../../types/cleaning';
 import type { Dataset, Preview } from '../../types/dataset';
 import type { PopupPosition } from './popupPositions';
 
@@ -45,17 +47,65 @@ export function WorkspaceContent({
   const fileName = dataset?.source_path.split(/[\\/]/).pop() ?? '';
   const title = fileName.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ') || 'Dataset';
 
+  // Data and Clean share one worksheet, including its column selector and details.
+  const worksheetTab = activeTab === 'Data' || activeTab === 'Clean';
+
   useEffect(() => {
-    if (activeTab !== 'Data' || showColumnSelector || operationDialogOpen) {
+    if (!worksheetTab || showColumnSelector || operationDialogOpen) {
       setShowColumnDetails(false);
     }
-    if (activeTab !== 'Data') {
+    if (!worksheetTab) {
       onShowColumnSelector(false);
     }
-  }, [activeTab, showColumnSelector, operationDialogOpen, onShowColumnSelector]);
+  }, [worksheetTab, showColumnSelector, operationDialogOpen, onShowColumnSelector]);
+
+  function worksheet(page: Preview | null, markers?: WorksheetMarkers) {
+    if (!dataset) return null;
+    return (
+      <div className="spreadsheet-stage">
+        <DatasetPreview
+          dataset={dataset}
+          preview={page}
+          markers={markers}
+          selectedColumn={column?.name ?? null}
+          selectedColumns={selectedColumns}
+          onOpenColumnSelector={() => onShowColumnSelector(true)}
+          onSelectColumn={(name) => {
+            setSelectedColumn(name);
+          }}
+          onOpenColumnDetails={(name) => {
+            setSelectedColumn(name);
+            setShowColumnDetails(true);
+          }}
+          onPage={onPage}
+        />
+        {showColumnSelector && (
+          <ColumnSelector
+            columns={dataset.schema}
+            selectedColumns={selectedColumns}
+            popupPosition={popupPosition}
+            onClose={() => onShowColumnSelector(false)}
+            onConfirm={(columns) => {
+              onShowColumnSelector(false);
+              onProjectColumns(columns);
+            }}
+          />
+        )}
+        {showColumnDetails && column && (
+          <div className="column-details-popover">
+            <ColumnDetails
+              column={column}
+              records={page?.records ?? []}
+              onClose={() => setShowColumnDetails(false)}
+            />
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
-    <main className={`work-area${activeTab === 'Data' && dataset ? ' worksheet-work-area' : ''}`}>
+    <main className={`work-area${worksheetTab && dataset ? ' worksheet-work-area' : ''}`}>
       {activeTab === 'File' && (
         <FileBackstage
           dataset={dataset}
@@ -87,44 +137,9 @@ export function WorkspaceContent({
             </div>
           </div>
           {activeTab === 'Data' ? (
-            <div className="spreadsheet-stage">
-              <DatasetPreview
-                dataset={dataset}
-                preview={preview}
-                selectedColumn={column?.name ?? null}
-                selectedColumns={selectedColumns}
-                onOpenColumnSelector={() => onShowColumnSelector(true)}
-                onSelectColumn={(name) => {
-                  setSelectedColumn(name);
-                }}
-                onOpenColumnDetails={(name) => {
-                  setSelectedColumn(name);
-                  setShowColumnDetails(true);
-                }}
-                onPage={onPage}
-              />
-              {showColumnSelector && (
-                <ColumnSelector
-                  columns={dataset.schema}
-                  selectedColumns={selectedColumns}
-                  popupPosition={popupPosition}
-                  onClose={() => onShowColumnSelector(false)}
-                  onConfirm={(columns) => {
-                    onShowColumnSelector(false);
-                    onProjectColumns(columns);
-                  }}
-                />
-              )}
-              {showColumnDetails && column && (
-                <div className="column-details-popover">
-                  <ColumnDetails
-                    column={column}
-                    records={preview?.records ?? []}
-                    onClose={() => setShowColumnDetails(false)}
-                  />
-                </div>
-              )}
-            </div>
+            worksheet(preview)
+          ) : activeTab === 'Clean' ? (
+            <CleanTab worksheet={worksheet} />
           ) : null}
         </>
       ) : null}

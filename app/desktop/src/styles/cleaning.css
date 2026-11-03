@@ -1,26 +1,60 @@
-/* The Clean card takes the space left under the dataset heading and scrolls on its own. */
-.workspace-body:has(> .clean-tab) {
-  grid-template-rows: auto minmax(0, 1fr);
+/* The Clean tab reuses the Data worksheet; the steps panel floats over its right side. */
+.clean-stage {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
 }
 
-.clean-tab {
+.steps-panel {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  bottom: 8px;
+  z-index: 5;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  min-height: 0;
-  margin: 0 18px 16px;
-  overflow-y: auto;
+  gap: 10px;
+  width: min(22rem, calc(100% - 16px));
+  padding: 12px;
+  overflow: hidden;
+  background: var(--surface, white);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 0.75rem 2rem rgb(18 16 28 / 18%);
 }
 
-.clean-header {
+.steps-panel-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
 }
 
-.clean-header h2 {
+.steps-panel-header h2 {
+  flex: 1 1 auto;
   margin: 0;
+  font-size: 15px;
+}
+
+.steps-panel-collapse {
+  padding: 4px 9px;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.steps-panel-tab {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  z-index: 5;
+  padding: 12px 6px;
+  color: #fff;
+  background: var(--purple);
+  border: 0;
+  border-radius: 8px 0 0 8px;
+  writing-mode: vertical-rl;
+  translate: 0 -50%;
 }
 
 .add-step-menu {
@@ -61,11 +95,38 @@
 
 .step-list {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: 8px;
+  min-height: 0;
   padding: 0;
   margin: 0;
+  overflow-y: auto;
   list-style: none;
+}
+
+/* Cancel and Apply stay visible while the step list scrolls. */
+.steps-panel-footer {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.steps-panel-footer p {
+  margin: 0;
+}
+
+.clean-status:empty {
+  display: none;
+}
+
+.draft-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .step-card {
@@ -121,30 +182,34 @@
   color: #9a2f34;
 }
 
-.clean-empty {
-  margin: 0;
-  color: #5f6b80;
+/* Change markers in the shared worksheet: each pairs colour with text. */
+.table-wrap td.cell-changed {
+  background: #e9f6ec;
+  box-shadow: inset 3px 0 0 #2f8a4a;
 }
 
-.clean-footer {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--line);
+.table-wrap tr.worksheet-removed td:not(.row-number) {
+  color: #7a3036;
+  text-decoration: line-through;
+  background: #fff0f0;
 }
 
-.clean-footer-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.cell-flag {
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  text-decoration: none;
 }
 
-.clean-footer-actions {
-  display: flex;
-  gap: 8px;
+.cell-missing {
+  color: #8a6d1f;
+}
+
+.column-note {
+  display: block;
+  color: var(--purple);
+  font-size: 10px;
 }
 
 .step-form-dialog form {
@@ -153,9 +218,18 @@
   gap: 4px;
 }
 
+.step-form-dialog label {
+  display: block;
+  margin: 10px 0 7px;
+  font-size: 12px;
+}
+
 .step-form-dialog select,
 .step-form-dialog input:not([type='checkbox']) {
   width: 100%;
+  padding: 9px 10px;
+  border: 1px solid #cbd1dd;
+  border-radius: 6px;
 }
 
 .column-checklist {

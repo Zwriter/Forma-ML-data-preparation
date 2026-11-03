@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { request } from '../../services/ipcClient';
-import type { CleaningPreview, CleaningStep, StepValidation } from '../../types/cleaning';
+import type { CleaningStep, StepValidation } from '../../types/cleaning';
 import type { JobAcknowledgement } from '../../types/dataOperations';
 import { useDatasetStore } from '../../stores/datasetStore';
 import type { Dataset, HistoryMetadata, Preview } from '../../types/dataset';
@@ -20,17 +20,6 @@ export function useCleaningJob() {
       return request<{ valid: boolean; steps: StepValidation[] }>('cleaning.validate', {
         dataset_id: dataset.dataset_id,
         operations: toOperations(steps),
-      });
-    },
-    [dataset],
-  );
-  const preview = useCallback(
-    async (steps: CleaningStep[], limit = 100) => {
-      if (!dataset) return null;
-      return request<CleaningPreview>('cleaning.preview', {
-        dataset_id: dataset.dataset_id,
-        operations: toOperations(steps),
-        limit,
       });
     },
     [dataset],
@@ -70,5 +59,5 @@ export function useCleaningJob() {
     },
     [setDataset, setPreview, setSelectedColumns, applyResult, setHistory],
   );
-  return { dataset, validate, preview, apply, acceptResult };
+  return { dataset, validate, apply, acceptResult };
 }

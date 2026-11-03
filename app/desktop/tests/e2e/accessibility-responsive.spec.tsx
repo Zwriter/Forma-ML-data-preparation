@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import App from '../../src/App';
 import { WorkflowActions } from '../../src/features/workspace/WorkflowActions';
+import { CleanTab } from '../../src/features/cleaning/CleanTab';
 import { WorkspaceChrome } from '../../src/features/workspace/WorkspaceChrome';
 import { SaveConfirmDialog } from '../../src/features/workspace/SaveConfirmDialog';
 import { useDatasetStore } from '../../src/stores/datasetStore';
@@ -39,8 +40,7 @@ function response(method: string) {
 }
 
 function addStep(title: string) {
-  fireEvent.click(screen.getByRole('button', { name: 'Add step' }));
-  fireEvent.click(screen.getByRole('menuitem', { name: title }));
+  act(() => useCleaningStore.getState().openForm('drop_duplicates'));
   fireEvent.click(
     within(screen.getByRole('dialog', { name: title })).getByRole('button', { name: 'Add step' }),
   );
@@ -187,13 +187,18 @@ describe('desktop accessibility and responsive shell', () => {
     invoke.mockImplementation(async (_command: string, args: { request: { method: string } }) =>
       response(args.request.method),
     );
-    render(<WorkflowActions activeTab="Clean" />);
+    render(
+      <>
+        <WorkflowActions activeTab="Clean" />
+        <CleanTab worksheet={() => null} />
+      </>,
+    );
     addStep('Remove duplicate rows');
     const started = performance.now();
 
     fireEvent.click(screen.getByRole('button', { name: 'Apply 1 step' }));
     expect(await screen.findByRole('button', { name: 'Stop' })).toBeTruthy();
-    expect(screen.getByRole('status').textContent).toBe('Applying cleaning steps');
+    expect(screen.getByText('Applying cleaning steps').getAttribute('role')).toBe('status');
     expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
 
     expect(performance.now() - started).toBeLessThan(1000);

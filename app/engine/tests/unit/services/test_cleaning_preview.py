@@ -1,6 +1,6 @@
 import polars as pl
 import pytest
-from forma_engine.domain.errors import InvalidTransformationError
+from forma_engine.domain.errors import InvalidTransformationError, RequestError
 from forma_engine.services.cleaning_preview import CleaningPreviewer
 
 FRAME = pl.DataFrame(
@@ -11,23 +11,42 @@ FRAME = pl.DataFrame(
     }
 ).lazy()
 
+FILL_AND_DEDUPE = [
+    {
+        "type": "fill_null",
+        "parameters": {"column": "charges", "strategy": "constant", "value": 0.0},
+    },
+    {"type": "drop_duplicates", "parameters": {}},
+]
+
 
 def step(kind: str, **parameters) -> dict:
     return {"type": kind, "parameters": parameters}
 
 
-def test_preview_marks_filled_cells_and_removed_duplicate_rows():
-    result = CleaningPreviewer(limit=100).preview(
-        FRAME,
-        [
-            step("fill_null", column="charges", strategy="constant", value=0.0),
-            step("drop_duplicates"),
-        ],
-    )
-    assert result["before"][1] == {"id": "b", "charges": None, "flag": "1"}
-    assert [row["id"] for row in result["after"]] == ["a", "b", "c"]
-    assert result["removed_rows"] == [2]
+def preview(operations, frame=FRAME, **page):
+    return CleaningPreviewer().preview(frame, operations, **page)
+
+
+def ids(result):
+    return [(row["values"]["id"], row["removed"]) for row in result["rows"]]
+
+
+def test_page_keeps_removed_rows_in_place_and_marks_changed_cells():
+    result = preview(FILL_AND_DEDUPE)
+    assert result["rows"] == [
+        {"values": {"id": "a", "charges": 1.0, "flag": "0"}, "removed": False},
+        {"values": {"id": "b", "charges": 0.0, "flag": "1"}, "removed": False},
+        {"values": {"id": "b", "charges": None, "flag": "1"}, "removed": True},
+        {"values": {"id": "c", "charges": 5.0, "flag": "0"}, "removed": False},
+    ]
     assert result["changed_cells"] == [{"row": 1, "column": "charges"}]
+    assert [(c["name"], c["origin"]) for c in result["columns"]] == [
+        ("id", "id"),
+        ("charges", "charges"),
+        ("flag", "flag"),
+    ]
+    assert (result["offset"], result["limit"], result["total_count"]) == (0, 100, 4)
     assert result["summary"] == {
         "rows_before": 4,
         "rows_after": 3,
@@ -39,28 +58,89 @@ def test_preview_marks_filled_cells_and_removed_duplicate_rows():
     }
 
 
-def test_statistics_use_the_full_dataset_not_only_the_sample():
-    result = CleaningPreviewer(limit=2).preview(
-        FRAME, [step("fill_null", column="charges", strategy="mean")]
+def test_pages_over_source_rows_while_summary_covers_the_full_dataset():
+    result = preview(FILL_AND_DEDUPE, offset=1, limit=2)
+    assert ids(result) == [("b", False), ("b", True)]
+    assert result["changed_cells"] == [{"row": 0, "column": "charges"}]
+    assert result["total_count"] == 4
+    assert result["summary"]["rows_removed"] == 1
+
+
+def test_search_filters_source_rows_like_the_worksheet():
+    result = preview(FILL_AND_DEDUPE, search="B")
+    assert ids(result) == [("b", False), ("b", True)]
+    assert result["total_count"] == 2
+    assert result["summary"]["rows_before"] == 4
+
+
+def test_visible_columns_follow_lineage_and_keep_added_columns():
+    result = preview(
+        [
+            step("rename_columns", mapping={"charges": "total"}),
+            step(
+                "merge_columns",
+                columns=["id", "flag"],
+                separator="-",
+                into="key",
+                drop_sources=False,
+            ),
+        ],
+        columns=["charges", "id"],
     )
-    assert len(result["before"]) == 2
-    assert result["after"][1]["charges"] == 3.0
+    assert [(c["name"], c["origin"]) for c in result["columns"]] == [
+        ("total", "charges"),
+        ("id", "id"),
+        ("key", None),
+    ]
+    assert result["rows"][0]["values"] == {"total": 1.0, "id": "a", "key": "a-0"}
+
+
+def test_removed_rows_show_source_values_under_result_names():
+    result = preview(
+        [
+            step("rename_columns", mapping={"charges": "total"}),
+            step("drop_null_rows", columns=["total"]),
+        ],
+        limit=2,
+    )
+    assert result["rows"][1] == {
+        "values": {"id": "b", "total": None, "flag": "1"},
+        "removed": True,
+    }
+
+
+def test_unknown_visible_column_is_rejected():
+    with pytest.raises(RequestError):
+        preview(FILL_AND_DEDUPE, columns=["nope"])
+
+
+def test_without_enabled_steps_the_source_page_is_unchanged():
+    result = preview([{**step("drop_duplicates"), "enabled": False}])
+    assert ids(result) == [("a", False), ("b", False), ("b", False), ("c", False)]
+    assert result["changed_cells"] == []
+    assert result["summary"]["rows_removed"] == 0
+    assert result["summary"]["values_changed"] == 0
+
+
+def test_statistics_use_the_full_dataset_not_only_the_page():
+    result = preview(
+        [step("fill_null", column="charges", strategy="mean")], offset=1, limit=1
+    )
+    assert result["rows"][0]["values"]["charges"] == 3.0
     assert result["summary"]["values_changed"] == 2
 
 
 def test_type_conversion_with_equal_text_is_not_a_change():
-    result = CleaningPreviewer().preview(
-        FRAME, [step("convert_type", column="flag", to="integer")]
-    )
-    assert result["after"][0]["flag"] == 0
+    result = preview([step("convert_type", column="flag", to="integer")])
+    assert result["rows"][0]["values"]["flag"] == 0
     assert result["changed_cells"] == []
     assert result["summary"]["values_changed"] == 0
-    assert {"name": "flag", "type": "Int64", "nullable": True} in result["columns"]
+    flag = next(c for c in result["columns"] if c["name"] == "flag")
+    assert flag["type"] == "Int64"
 
 
 def test_column_changes_are_reported_and_renamed_values_compared():
-    result = CleaningPreviewer().preview(
-        FRAME,
+    result = preview(
         [
             step("rename_columns", mapping={"charges": "total"}),
             step("fill_null", column="total", strategy="constant", value=9.0),
@@ -72,7 +152,7 @@ def test_column_changes_are_reported_and_renamed_values_compared():
                 drop_sources=False,
             ),
             step("drop_columns", columns=["flag"]),
-        ],
+        ]
     )
     summary = result["summary"]
     assert summary["columns_added"] == ["key"]
@@ -80,29 +160,16 @@ def test_column_changes_are_reported_and_renamed_values_compared():
     assert summary["columns_renamed"] == [{"from": "charges", "to": "total"}]
     assert summary["values_changed"] == 2
     assert {"row": 1, "column": "total"} in result["changed_cells"]
-    assert [column["name"] for column in result["columns_before"]] == [
-        "id",
-        "charges",
-        "flag",
-    ]
-
-
-def test_disabled_steps_are_skipped():
-    result = CleaningPreviewer().preview(
-        FRAME, [{**step("drop_duplicates"), "enabled": False}]
-    )
-    assert result["removed_rows"] == []
-    assert result["summary"]["rows_after"] == 4
+    assert [c["name"] for c in result["columns"]] == ["id", "total", "key"]
 
 
 def test_invalid_step_error_names_its_position():
     with pytest.raises(InvalidTransformationError, match=r"^Step 2: ") as error:
-        CleaningPreviewer().preview(
-            FRAME,
+        preview(
             [
                 step("drop_duplicates"),
                 step("fill_null", column="nope", strategy="mean"),
-            ],
+            ]
         )
     assert error.value.details == {"step": 1}
 
@@ -110,13 +177,11 @@ def test_invalid_step_error_names_its_position():
 def test_execution_failure_error_names_its_position():
     frame = pl.DataFrame({"x": ["1", "bad"]}).lazy()
     with pytest.raises(InvalidTransformationError, match=r"^Step 1: 1 value in 'x'"):
-        CleaningPreviewer().preview(
-            frame, [step("convert_type", column="x", to="integer")]
-        )
+        preview([step("convert_type", column="x", to="integer")], frame=frame)
 
 
-def test_preview_rows_are_bounded_by_limit():
+def test_page_rows_are_bounded_by_limit():
     frame = pl.DataFrame({"x": list(range(10))}).lazy()
-    result = CleaningPreviewer(limit=3).preview(frame, [step("drop_duplicates")])
-    assert len(result["before"]) == 3 and len(result["after"]) == 3
+    result = preview([step("drop_duplicates")], frame=frame, limit=3)
+    assert len(result["rows"]) == 3
     assert result["summary"]["rows_before"] == 10

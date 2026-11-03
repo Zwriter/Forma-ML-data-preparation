@@ -3,8 +3,12 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/re
 import { DatasetPreview } from '../../../src/features/explorer/DatasetPreview';
 import { SchemaSummary } from '../../../src/features/explorer/SchemaSummary';
 import type { Dataset, Preview } from '../../../src/types/dataset';
+import { useDatasetStore } from '../../../src/stores/datasetStore';
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  useDatasetStore.setState({ search: '', activeCell: null, scroll: { top: 0, left: 0 } });
+});
 
 const column = { name: 'value', type: 'Int64', nullable: true };
 const dataset: Dataset = {
@@ -173,5 +177,53 @@ describe('schema summary', () => {
 
     expect(screen.getByText(/Unknown rows/)).toBeTruthy();
     expect(screen.getByText('CSV')).toBeTruthy();
+  });
+
+  it('shares its search and selected cell through the dataset store', () => {
+    useDatasetStore.setState({ search: 'kept' });
+    render(
+      <DatasetPreview
+        dataset={dataset}
+        preview={preview([{ value: 1 }, { value: 2 }])}
+        selectedColumn={null}
+        onSelectColumn={vi.fn()}
+        onOpenColumnDetails={vi.fn()}
+        selectedColumns={['value']}
+        onOpenColumnSelector={vi.fn()}
+        onPage={vi.fn()}
+      />,
+    );
+    expect((screen.getByPlaceholderText(/Search preview/) as HTMLInputElement).value).toBe('kept');
+    fireEvent.change(screen.getByPlaceholderText(/Search preview/), { target: { value: 'new' } });
+    expect(useDatasetStore.getState().search).toBe('new');
+    fireEvent.click(screen.getAllByRole('gridcell')[1]);
+    expect(useDatasetStore.getState().activeCell).toEqual({ row: 1, column: 'value' });
+  });
+
+  it('marks changed cells, missing values, removed rows, and column changes without colour alone', () => {
+    render(
+      <DatasetPreview
+        dataset={dataset}
+        preview={preview([{ value: 1 }, { value: null }])}
+        selectedColumn={null}
+        onSelectColumn={vi.fn()}
+        onOpenColumnDetails={vi.fn()}
+        selectedColumns={['value']}
+        onOpenColumnSelector={vi.fn()}
+        onPage={vi.fn()}
+        markers={{
+          changed: new Set(['0:value']),
+          removed: new Set([1]),
+          columnNotes: { value: 'Renamed from amount' },
+        }}
+      />,
+    );
+    const [changed, missing] = screen.getAllByRole('gridcell');
+    expect(changed.className).toContain('cell-changed');
+    expect(changed.textContent).toBe('1 (changed)');
+    expect(missing.textContent).toContain('missing');
+    expect(missing.closest('tr')!.className).toContain('worksheet-removed');
+    expect(missing.closest('tr')!.textContent).toContain('Removed');
+    expect(screen.getByText('Renamed from amount')).toBeTruthy();
   });
 });

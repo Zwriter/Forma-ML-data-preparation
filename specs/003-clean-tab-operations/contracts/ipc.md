@@ -22,32 +22,70 @@ Response:
 - `operations` must be a list of objects, else `INVALID_REQUEST`.
 - Unsupported types and bad parameters are reported per step, never raised.
 
-## `cleaning.preview` (extended)
+## `cleaning.preview` (revised 2026-11-03: one worksheet page)
 
-Request: `{ dataset_id, operations: Operation[], limit?: int (1–500, default 100) }`.
+The Clean-tab worksheet calls this for the page on screen after every draft change and every
+page or view change. Paging, projection, and search mirror `dataset.preview` so the Data and
+Clean worksheets share one view state.
+
+Request:
+
+```json
+{
+  "dataset_id": "d1",
+  "operations": [],
+  "offset": 0,
+  "limit": 100,
+  "columns": ["customerID", "TotalCharges"],
+  "search": "Romania"
+}
+```
+
+| Field | Rules |
+|-------|-------|
+| `operations` | List of operation objects, else `INVALID_REQUEST`. Disabled steps are skipped. |
+| `offset` | Integer ≥ 0, default 0. Pages over **source** rows so removed rows keep their place. |
+| `limit` | Integer 1–500, default 100. |
+| `columns` | Optional list of **source** column names (the Data-tab visible columns, in order). Result columns are shown when their lineage origin is listed; columns added by steps are always shown, after the listed columns. Omitted = all columns. |
+| `search` | Optional string; filters source rows exactly as `dataset.preview` does, before paging. |
+
 Legacy `{ operation: Operation }` is still accepted and treated as `operations: [operation]`.
 
 Response:
 
 ```json
 {
-  "columns_before": [{ "name": "x", "type": "Int64", "nullable": true }],
-  "columns": [{ "name": "x", "type": "Int64", "nullable": true }],
-  "before": [{ "x": null }, { "x": 2 }, { "x": 2 }],
-  "after": [{ "x": 0 }, { "x": 2 }],
-  "removed_rows": [2],
-  "changed_cells": [{ "row": 0, "column": "x" }],
+  "columns": [
+    { "name": "TotalCharges", "type": "Float64", "nullable": true, "origin": "TotalCharges" },
+    { "name": "first_name", "type": "String", "nullable": true, "origin": null }
+  ],
+  "rows": [
+    { "values": { "TotalCharges": 29.85, "first_name": "Ana" }, "removed": false },
+    { "values": { "TotalCharges": null, "first_name": "Dan" }, "removed": true }
+  ],
+  "changed_cells": [{ "row": 0, "column": "TotalCharges" }],
+  "offset": 0,
+  "limit": 100,
+  "total_count": 7043,
   "summary": {
-    "rows_before": 3, "rows_after": 2, "rows_removed": 1, "values_changed": 1,
-    "columns_added": [], "columns_removed": [], "columns_renamed": []
-  },
-  "validation": { "valid": true }
+    "rows_before": 7043, "rows_after": 7029, "rows_removed": 14, "values_changed": 86,
+    "columns_added": ["first_name"], "columns_removed": [], "columns_renamed": []
+  }
 }
 ```
 
-- `summary` covers the full dataset. `values_changed` counts cells that differ (compared as
-  text, so `"1"` → `1` is unchanged) in rows that survive all steps; removed rows count only
-  toward `rows_removed`.
+- `rows` follow source order for the requested page. A surviving row carries its values after
+  all enabled steps; a removed row carries its source values mapped to result column names and
+  `removed: true`.
+- `columns` is the result schema after projection; `origin` is the lineage source name or `null`
+  for columns added by steps. Columns removed by steps are absent.
+- `changed_cells.row` indexes `rows`; values are compared as text (`"1"` → `1` is unchanged).
+  Missing cells need no marker: the UI marks `null` values itself.
+- `total_count` is the number of source rows after `search`, for worksheet paging.
+- `summary` covers the full dataset and ignores `offset`, `limit`, `columns`, and `search`. The
+  Clean tab does not display it (spec revision 2026-11-03); it stays for tests and later use.
+- With no enabled steps the response is the source page with no changes and zero removed or
+  changed counts in the summary.
 - Invalid steps raise `INVALID_TRANSFORMATION` with message prefix `Step N: ` and
   `details: { "step": N-1 }` (index into the submitted list).
 

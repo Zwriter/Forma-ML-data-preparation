@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { CleanTab } from '../cleaning/CleanTab';
 import { ProfilePanel } from '../profiling/ProfilePanel';
 import { ExportDialog } from '../export/ExportDialog';
 import { useCleaningJob } from '../cleaning/useCleaningJob';
@@ -84,7 +83,6 @@ export function WorkflowActions({
           <ProfilePanel report={report} />
         </section>
       )}
-      {activeTab === 'Clean' && <CleanTab />}
       {activeTab === 'Export' && (
         <ExportDialog
           busy={busy}

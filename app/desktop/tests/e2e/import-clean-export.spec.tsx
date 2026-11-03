@@ -176,8 +176,7 @@ describe('import-clean-export desktop flow', () => {
     const sourceSnapshot = useDatasetStore.getState().sourceDataset;
 
     fireEvent.click(screen.getByRole('link', { name: 'Clean' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Add step' }));
-    fireEvent.click(screen.getByRole('menuitem', { name: 'Remove duplicate rows' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Remove' }));
     fireEvent.click(
       within(screen.getByRole('dialog', { name: 'Remove duplicate rows' })).getByRole('button', {
         name: 'Add step',
@@ -209,7 +208,7 @@ describe('import-clean-export desktop flow', () => {
       },
     });
     await waitFor(() => expect(useDatasetStore.getState().dataset?.dataset_id).toBe('derived-1'));
-    expect(screen.getByText(/No cleaning steps yet/)).toBeTruthy();
+    expect(screen.queryByRole('complementary', { name: 'Cleaning steps' })).toBeNull();
     expect(useDatasetStore.getState().sourceDataset).toEqual(sourceSnapshot);
     expect(useDatasetStore.getState().sourceDataset?.source_path).toBe('source.csv');
 

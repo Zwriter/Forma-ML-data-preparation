@@ -43,13 +43,25 @@ description: "Executable implementation tasks for Clean Tab Operations"
 - [x] T016 [P] [US4] Add shared form controls (column picker, multi-column picker, field errors) in `app/desktop/src/features/cleaning/forms/formControls.tsx`.
 - [x] T017 [US4] Build `FillForm`, `ReplaceForm`, `ConvertForm` in `app/desktop/src/features/cleaning/forms/valueForms.tsx` and `StepFormDialog.tsx`, with tests in `app/desktop/tests/unit/cleaning/valueForms.test.tsx` (numeric-only mean/median, constant value required, replace with missing).
 
-## Phase 5: User Story 2 - Preview (P1)
+## Phase 5: User Story 2 - Preview (P1) — superseded
 
-- [ ] T018 [US2] Build `PreviewPanel.tsx` and `PreviewTable.tsx` (Before/After tabs, missing/changed/removed highlights, summary line, stale and error states) with tests in `app/desktop/tests/unit/cleaning/PreviewPanel.test.tsx`.
+- [x] T018 [US2] ~~Build `PreviewPanel.tsx` and `PreviewTable.tsx` (Before/After tabs, missing/changed/removed highlights, summary line, stale and error states)~~ Superseded by the 2026-11-03 spec revision; removed in T030.
+
+## Phase 5R: User Story 2 - Live Worksheet Preview (P1) — spec revision 2026-11-03
+
+**Independent Test**: In Data, page forward, hide a column, select a cell; switch to Clean, add fill and remove-duplicates steps; the same worksheet keeps page, columns, and selection, shows changed and removed rows marked, and the summary counts the full file.
+
+- [x] T024 [US2] Write failing tests in `app/engine/tests/unit/services/test_cleaning_preview.py` for a paged previewer (offset/limit over source rows, `search` like `dataset.preview`, `columns` projected through lineage with added columns kept, removed rows in place with source values, `changed_cells` per page, `total_count`, full-dataset summary unaffected by paging, no-step passthrough), then rework `CleaningPreviewer` in `app/engine/forma_engine/services/cleaning_preview.py`.
+- [x] T025 [US2] Write failing contract tests in `app/engine/tests/contract/test_clean_tab_ipc.py` for the revised `cleaning.preview` request (`offset` ≥ 0, `limit` 1–500, `columns` list of strings, `search` string, legacy single operation) and response shape, then update `cleaning_handlers.py` and `cleaning_service.py`.
+- [x] T026 [P] [US2] Write store tests, then lift worksheet view state (`search`, `activeCell`, scroll offsets) from `DatasetPreview` into `app/desktop/src/stores/datasetStore.ts` per `OpenFileTab`, keeping `selectedColumns` and paging; Data-tab behavior unchanged.
+- [x] T027 [US2] Give `app/desktop/src/features/explorer/DatasetPreview.tsx` an optional read-only `markers` input (changed cells, removed rows with a text label, added/renamed column headers) built by `app/desktop/src/features/cleaning/previewMarkers.ts`; markers do not rely on colour alone. Tests in `app/desktop/tests/unit/explorer/DatasetPreview.test.tsx` and `tests/unit/cleaning/previewMarkers.test.ts`.
+- [x] T028 [US2] Write tests, then build `app/desktop/src/features/cleaning/useLivePreview.ts`: recompute on enabled-draft, page, column, or search change (debounced ~250 ms, latest request wins), updating/error states in `cleaningStore`, plain `dataset.preview` when no step is enabled; remove `previewStale`.
+- [x] T029 [US2] Build `StepsPanel.tsx` (floating right panel holding the Add step menu and step list; opens on add, collapses to an edge tab with the step count, hidden when the draft is empty) with tests in `tests/unit/cleaning/StepsPanel.test.tsx` and a Playwright check in `tests/ui/clean-tab.pw.ts` (no horizontal page scroll, columns under the panel reachable, collapse/expand by keyboard).
+- [x] T030 [US2] Rebuild `CleanTab.tsx` as worksheet + steps panel with Cancel, Apply N steps, and Stop pinned at its bottom (no footer or summary line; revised 2026-11-03, `DraftActions.tsx`); render the Clean worksheet from `WorkspaceContent.tsx`; delete `PreviewPanel.tsx`, `PreviewTable.tsx`, their tests, and the Preview button; update `CleanTab.test.tsx`.
 
 ## Phase 6: User Story 3 - Manage Steps (P2)
 
-- [ ] T019 [US3] Build `StepMenu.tsx` (Edit, Move up, Move down, Duplicate, Delete; arrow-key navigation, Escape) and the enabled switch, with tests in `app/desktop/tests/unit/cleaning/StepList.test.tsx`; show per-step validation errors on cards.
+- [ ] T019 [US3] Build `StepMenu.tsx` (Edit, Move up, Move down, Duplicate, Delete; arrow-key navigation, Escape) and the enabled switch inside the steps panel, with tests in `app/desktop/tests/unit/cleaning/StepList.test.tsx`; per-step validation errors already show on cards.
 
 ## Phase 7: User Story 5 - Remove, Rename, Split, Merge (P2)
 
@@ -57,11 +69,12 @@ description: "Executable implementation tasks for Clean Tab Operations"
 
 ## Phase 8: Polish & Cross-Cutting
 
-- [ ] T021 Add Clean-tab styles with a stacked layout below 960 px in `app/desktop/src/styles/cleaning.css`, covered by a Playwright test in `app/desktop/tests/ui/clean-tab.pw.ts`.
-- [ ] T022 Replace the JSON-builder tests in `tests/unit/cleaning/TransformationBuilder.test.tsx`, `tests/integration/profile-clean-workflow.test.tsx`, `tests/e2e/import-clean-export.spec.tsx`, and `tests/e2e/accessibility-responsive.spec.tsx` with guided-flow equivalents; add `tests/integration/clean-tab-workflow.test.tsx` (add → preview → apply → draft cleared; failure keeps draft).
+- [ ] T021 Add narrow-window behavior below 960 px (steps panel as a collapsible overlay, no horizontal page scroll) in `app/desktop/src/styles/cleaning.css`, covered by Playwright at 800×600 in `app/desktop/tests/ui/clean-tab.pw.ts`; give the demo runtime a stub `cleaning.preview`/`cleaning.validate` so Playwright can check markers and layout with data.
+- [ ] T022 Add `tests/integration/clean-tab-workflow.test.tsx` (Data view state carries into Clean → add step → worksheet updates with markers → apply → draft cleared and panel hidden; failure keeps draft); the JSON-builder tests were already replaced in T015.
 - [ ] T023 Run quickstart automated checks: pytest, Ruff, Vitest, Playwright (`npm run test:ui`), `tsc --noEmit`, Prettier, `check_source_limits.ps1`; record the constitution review in this file.
 
 ## Dependencies
 
-- Phase 2 blocks all UI phases. T011–T012 block T013–T020. T016 blocks T017 and T020.
-- US1 + US4 + US2 form the MVP; US3 and US5 are incremental.
+- Phase 2 blocks all UI phases. T011–T012 block T013–T030. T016 blocks T017 and T020.
+- Phase 5R: T024 → T025 → T028; T026 and T027 can run in parallel with T024–T025; T028 and T029 block T030. T030 blocks T019 and T021.
+- US1 + US4 + US2 (Phase 5R) form the MVP; US3 and US5 are incremental.

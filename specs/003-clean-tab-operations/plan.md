@@ -7,9 +7,11 @@
 ## Summary
 
 Replace the JSON-based Clean tab with a guided step workflow: an ordered draft of typed cleaning
-steps (add, edit, toggle, reorder, duplicate, delete), a bounded before/after preview with cell
-and row markers plus a full-dataset change summary, and a single Apply that runs as a
-cancellable background job and lands as one entry in the existing 002 change history. The engine
+steps (add, edit, toggle, reorder, duplicate, delete) shown in a floating panel on the right of
+the Data-tab worksheet, which the Clean tab reuses as a live preview with cell and row markers
+and a full-dataset change summary, and a single Apply that runs as a cancellable background job
+and lands as one entry in the existing 002 change history. *(Revised 2026-11-03: the separate
+Before/After preview and Preview button are replaced by the live worksheet.)* The engine
 gains three operations (replace values, split column, merge columns), two fill strategies
 (previous/next value), and a convert-type error policy, plus per-step validation and a
 row-tracking previewer. The existing executor, job manager, history service, and `cleaning.apply`
@@ -32,8 +34,9 @@ keyed by open file
 
 **Project Type**: Local-first desktop app with React frontend and independent Python engine
 
-**Performance Goals**: Preview of up to 10 steps within 3 s on a representative dataset; apply
-shows running state within 1 s; preview payload bounded to 100 rows
+**Performance Goals**: Live worksheet update for up to 10 steps within 3 s on a representative
+dataset; apply shows running state within 1 s; preview payload bounded to one worksheet page
+(≤ 500 rows)
 
 **Constraints**: No user code execution; source file untouched; production files ≤ 250 formatted
 code lines (`app/scripts/check_source_limits.ps1`); only bounded rows cross IPC
@@ -52,7 +55,9 @@ feature folder replacing `TransformationBuilder`
 - **III TDD — PASS**: Every new operation, validation rule, preview marker, summary count, and
   IPC shape gets a failing pytest first; frontend store and components get Vitest coverage.
 - **IV Frontend UX — PASS**: Guided forms, keyboard-operable step menus and switches,
-  `aria-live` preview status, visible running/failed states, stacked layout under 960 px.
+  `aria-live` updating status, visible running/failed states, one shared worksheet whose view
+  state carries between Data and Clean, collapsible steps panel that overlays under 960 px,
+  change markers that do not rely on colour alone.
 - **V Size & duplication — PASS**: `operations.py` (108 lines) and `validators.py` (178) are not
   extended in place; new code goes to new modules. `App.tsx` and `WorkspaceChrome.tsx` (near the
   limit) get only wiring lines; Clean-tab state lives in a dedicated store.
@@ -101,10 +106,12 @@ app/
 │   └── tests/{unit,contract,integration}/
 └── desktop/
     ├── src/
-    │   ├── features/cleaning/             # CleanTab, StepList, StepCard, StepMenu, AddStepMenu,
-    │   │                                  # StepFormDialog, forms/*, PreviewPanel, PreviewTable,
-    │   │                                  # stepCatalog, useCleaningJob
+    │   ├── features/cleaning/             # CleanTab, StepsPanel, StepList, StepCard, StepMenu,
+    │   │                                  # AddStepMenu, StepFormDialog, forms/*, ChangeSummary,
+    │   │                                  # previewMarkers, useLivePreview, stepCatalog, useCleaningJob
+    │   ├── features/explorer/DatasetPreview.tsx  # reused by Clean; optional read-only markers
     │   ├── stores/cleaningStore.ts        # replaces transformationStore
+    │   ├── stores/datasetStore.ts         # + shared worksheet view state per open file
     │   ├── types/cleaning.ts
     │   └── styles/cleaning*.css
     └── tests/{unit/cleaning,integration,e2e}/
@@ -112,7 +119,9 @@ app/
 
 **Structure Decision**: Keep the two-layer structure. Remove the JSON `TransformationBuilder`,
 `TransformationValidation`, `BeforeAfterComparison`, and `transformationStore`, replacing them
-with the guided Clean tab. Clean ribbon commands open step forms through `cleaningStore` so
+with the guided Clean tab. The Clean tab renders the existing `DatasetPreview` worksheet with
+preview markers instead of its own tables; the interim `PreviewPanel`/`PreviewTable` from the
+first Phase 5 are removed. Clean ribbon commands open step forms through `cleaningStore` so
 `App.tsx` gains no new props.
 
 ## Complexity Tracking

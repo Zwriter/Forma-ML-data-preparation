@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { WorkflowActions } from '../../src/features/workspace/WorkflowActions';
+import { CleanTab } from '../../src/features/cleaning/CleanTab';
 import { useDatasetStore } from '../../src/stores/datasetStore';
 import { useCleaningStore } from '../../src/stores/cleaningStore';
 import { useWorkspaceStore } from '../../src/stores/workspaceStore';
@@ -60,9 +61,18 @@ function respond(_command: string, args: { request: { method: string; params: an
   throw new Error(`Unexpected ${method}`);
 }
 
+function CleanWorkflow() {
+  return (
+    <>
+      <WorkflowActions activeTab="Clean" />
+      <CleanTab worksheet={() => null} />
+    </>
+  );
+}
+
+// Clean ribbon commands open step forms through the store.
 function addDuplicateStep() {
-  fireEvent.click(screen.getByRole('button', { name: 'Add step' }));
-  fireEvent.click(screen.getByRole('menuitem', { name: 'Remove duplicate rows' }));
+  act(() => useCleaningStore.getState().openForm('drop_duplicates'));
   fireEvent.click(
     within(screen.getByRole('dialog', { name: 'Remove duplicate rows' })).getByRole('button', {
       name: 'Add step',
@@ -148,7 +158,7 @@ describe('profile and cleaning workflow', () => {
   it('keeps the draft and source dataset when a cleaning job fails', async () => {
     useDatasetStore.getState().setSource(dataset, sourcePreview);
     invoke.mockImplementation(respond);
-    render(<WorkflowActions activeTab="Clean" />);
+    render(<CleanWorkflow />);
     addDuplicateStep();
     await applyDraft();
     const apply = invoke.mock.calls.find((call) => call[1].request.method === 'cleaning.apply');
@@ -180,7 +190,7 @@ describe('profile and cleaning workflow', () => {
   it('clears the draft once the cleaning job completes', async () => {
     useDatasetStore.getState().setSource(dataset, sourcePreview);
     invoke.mockImplementation(respond);
-    render(<WorkflowActions activeTab="Clean" />);
+    render(<CleanWorkflow />);
     addDuplicateStep();
     await applyDraft();
 
@@ -204,7 +214,7 @@ describe('profile and cleaning workflow', () => {
       },
     });
 
-    await waitFor(() => expect(screen.getByText(/No cleaning steps yet/)).toBeTruthy());
+    await waitFor(() => expect(screen.queryByRole('complementary')).toBeNull());
     expect(useCleaningStore.getState().applyJobId).toBeNull();
     expect(useWorkspaceStore.getState().history?.can_undo).toBe(true);
   });

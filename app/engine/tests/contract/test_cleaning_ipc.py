@@ -4,7 +4,7 @@ from forma_engine.ipc.protocol import decode, failure
 from forma_engine.domain.errors import InvalidTransformationError
 
 
-def test_cleaning_preview_returns_bounded_before_after(tmp_path):
+def test_cleaning_preview_returns_a_bounded_page(tmp_path):
     path = tmp_path / "data.csv"
     path.write_text("x\n1\n\n")
     router, jobs = build_router()
@@ -16,7 +16,7 @@ def test_cleaning_preview_returns_bounded_before_after(tmp_path):
             "operation": {"type": "drop_null_rows", "parameters": {}},
         },
     )
-    assert len(result["before"]) <= 100 and len(result["after"]) <= 100
+    assert len(result["rows"]) <= 100
     jobs.shutdown()
 
 

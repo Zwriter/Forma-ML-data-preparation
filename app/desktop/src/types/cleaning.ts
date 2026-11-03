@@ -45,12 +45,19 @@ export type ChangeSummary = {
   columns_renamed: { from: string; to: string }[];
 };
 
+/** One worksheet page of the draft result; see contracts/ipc.md `cleaning.preview`. */
 export type CleaningPreview = {
-  columns_before: Column[];
-  columns: Column[];
-  before: Record<string, unknown>[];
-  after: Record<string, unknown>[];
-  removed_rows: number[];
+  columns: (Column & { origin: string | null })[];
+  rows: { values: Record<string, unknown>; removed: boolean }[];
   changed_cells: { row: number; column: string }[];
+  offset: number;
+  limit: number;
+  total_count: number;
   summary: ChangeSummary;
+};
+
+export type WorksheetMarkers = {
+  changed: Set<string>;
+  removed: Set<number>;
+  columnNotes: Record<string, string>;
 };

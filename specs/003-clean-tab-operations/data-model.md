@@ -27,30 +27,47 @@
 Validation rule shared by all: referenced columns exist in the schema produced by preceding
 enabled steps; new names do not clash with remaining columns.
 
-## StepDraft (frontend store)
+## StepDraft (frontend `cleaningStore`)
 
 - `drafts: Record<fileId, CleaningStep[]>`
 - `form: { type, editingId | null } | null`
-- `preview: CleaningPreview | null`, `previewStale: boolean`
+- `panel: 'open' | 'collapsed'` — the steps panel shows only while the active draft is non-empty
+- `preview: CleaningPreview | null`, `previewStatus: 'idle' | 'updating' | 'error'`,
+  `previewError: string`
 - `validation: StepValidation[]`
 - `applyJobId: string | null`
 
-State transitions: any draft mutation → `previewStale = true` and revalidate. Apply completed →
-draft cleared, preview reset. Apply failed/cancelled → draft kept, `applyJobId = null`.
+State transitions: any draft mutation → revalidate and recompute the live preview (latest
+request wins). Adding a step → `panel = 'open'`. Draft becomes empty → preview cleared, panel
+hidden. Apply completed → draft cleared. Apply failed/cancelled → draft kept, `applyJobId = null`.
+The previous `previewStale` flag is removed: the worksheet never shows an outdated result.
+
+## WorksheetViewState (frontend `datasetStore`, per open file)
+
+Shared by the Data and Clean worksheets, saved in `OpenFileTab` so switching tabs or files
+restores it.
+
+| Field | Source today | Notes |
+|-------|--------------|-------|
+| `selectedColumns` | `datasetStore` | Visible source columns in display order (already shared) |
+| `offset`, `limit` | `preview.offset/limit` | Current page |
+| `search` | `DatasetPreview` local state | Lifted into the store |
+| `activeCell` | `DatasetPreview` local state | `{ row, column }`, lifted; on Clean, the column resolves through lineage |
+| `scrollTop`, `scrollLeft` | DOM only | Lifted so the Clean worksheet opens at the same place |
 
 ## StepValidation
 
 `{ index: int, operation_id?: string, valid: bool, message?: string }` — `index` is the position
 in the submitted list (disabled steps are reported as valid and skipped).
 
-## CleaningPreview
+## CleaningPreview (one worksheet page)
 
 | Field | Type |
 |-------|------|
-| `columns_before`, `columns` | Column[] (schema before / after) |
-| `before`, `after` | records (≤ limit rows each) |
-| `removed_rows` | int[] — indices into `before` |
-| `changed_cells` | `{row, column}[]` — `row` indexes `after`, `column` is the after name |
+| `columns` | `(Column & { origin: string \| null })[]` — result schema after projection |
+| `rows` | `{ values: record, removed: boolean }[]` — source order, removed rows in place |
+| `changed_cells` | `{row, column}[]` — `row` indexes `rows`, `column` is the result name |
+| `offset`, `limit`, `total_count` | Paging over source rows after `search` |
 | `summary` | ChangeSummary |
 
 ## ChangeSummary (full dataset)
@@ -61,4 +78,5 @@ columns_removed: string[], columns_renamed: {from, to}[] }`
 ## Column lineage (engine-internal)
 
 `dict[current_name, original_name | None]`, updated per step: rename re-keys, drop/merge-drop/
-split-drop remove keys, split/merge outputs map to `None`.
+split-drop remove keys, split/merge outputs map to `None`. Also used to project the Data-tab
+visible columns onto the result columns and to place added columns.

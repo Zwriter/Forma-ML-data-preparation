@@ -2,12 +2,12 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { toOperations, useCleaningStore } from '../../../src/stores/cleaningStore';
 
 const preview = {
-  columns_before: [],
   columns: [],
-  before: [],
-  after: [],
-  removed_rows: [],
+  rows: [],
   changed_cells: [],
+  offset: 0,
+  limit: 100,
+  total_count: 0,
   summary: {
     rows_before: 0,
     rows_after: 0,
@@ -29,7 +29,9 @@ describe('cleaning store', () => {
       drafts: {},
       form: null,
       preview: null,
-      previewStale: false,
+      previewStatus: 'idle',
+      previewError: '',
+      panel: 'open',
       validation: [],
       applyJobId: null,
     });
@@ -89,14 +91,27 @@ describe('cleaning store', () => {
     expect(useCleaningStore.getState().form).toBeNull();
   });
 
-  it('marks an existing preview stale on every draft change', () => {
+  it('tracks the live preview status and error', () => {
     const store = useCleaningStore.getState();
-    store.add('file-1', 'drop_duplicates', {});
-    expect(useCleaningStore.getState().previewStale).toBe(false);
+    store.setPreviewStatus('updating');
+    expect(useCleaningStore.getState().previewStatus).toBe('updating');
+    store.setPreviewStatus('error', 'Step 1: Select an existing column.');
+    expect(useCleaningStore.getState()).toMatchObject({
+      previewStatus: 'error',
+      previewError: 'Step 1: Select an existing column.',
+    });
     store.setPreview(preview);
-    expect(useCleaningStore.getState().previewStale).toBe(false);
-    store.toggle('file-1', steps()[0].id);
-    expect(useCleaningStore.getState().previewStale).toBe(true);
+    expect(useCleaningStore.getState()).toMatchObject({
+      preview,
+      previewStatus: 'idle',
+      previewError: '',
+    });
+  });
+
+  it('reopens a collapsed steps panel when a step is added', () => {
+    useCleaningStore.getState().setPanel('collapsed');
+    useCleaningStore.getState().add('file-1', 'drop_duplicates', {});
+    expect(useCleaningStore.getState().panel).toBe('open');
   });
 
   it('clearing a draft resets its preview and validation', () => {
