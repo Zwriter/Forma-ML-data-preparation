@@ -32,9 +32,10 @@ function respond(method: string, params: Record<string, any>) {
 function addStep(title: string) {
   fireEvent.click(screen.getByRole('button', { name: 'Add step' }));
   fireEvent.click(screen.getByRole('menuitem', { name: title }));
-  fireEvent.click(
-    within(screen.getByRole('dialog', { name: title })).getByRole('button', { name: 'Add step' }),
-  );
+  const dialog = within(screen.getByRole('dialog', { name: title }));
+  if (title === 'Fill missing values')
+    fireEvent.change(dialog.getByLabelText('Value'), { target: { value: '0' } });
+  fireEvent.click(dialog.getByRole('button', { name: 'Add step' }));
 }
 
 describe('Clean tab', () => {

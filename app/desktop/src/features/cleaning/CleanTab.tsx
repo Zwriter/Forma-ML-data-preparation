@@ -88,6 +88,8 @@ export function CleanTab() {
       {form && (
         <StepFormDialog
           form={form}
+          // shortcut: offers the current dataset's columns, not those left by earlier steps; validate flags mismatches.
+          columns={dataset.schema}
           parameters={editing?.parameters ?? stepCatalog[form.type].defaults(dataset.schema)}
           onClose={cleaning.closeForm}
           onSave={(parameters) => {

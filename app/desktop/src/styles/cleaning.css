@@ -146,3 +146,42 @@
   display: flex;
   gap: 8px;
 }
+
+.step-form-dialog form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.step-form-dialog select,
+.step-form-dialog input:not([type='checkbox']) {
+  width: 100%;
+}
+
+.column-checklist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  max-height: 10rem;
+  padding: 8px 10px;
+  margin: 0;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.column-checklist legend {
+  padding: 0 4px;
+  font-size: 12px;
+}
+
+.step-form-dialog .check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.field-error {
+  margin: 6px 0 0;
+  color: #9a2f34;
+}

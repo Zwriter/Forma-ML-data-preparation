@@ -40,8 +40,8 @@ description: "Executable implementation tasks for Clean Tab Operations"
 
 ## Phase 4: User Story 4 - Fill, Replace, Convert (P1)
 
-- [ ] T016 [P] [US4] Add shared form controls (column picker, multi-column picker, field errors) in `app/desktop/src/features/cleaning/forms/formControls.tsx`.
-- [ ] T017 [US4] Build `FillForm`, `ReplaceForm`, `ConvertForm` in `app/desktop/src/features/cleaning/forms/valueForms.tsx` and `StepFormDialog.tsx`, with tests in `app/desktop/tests/unit/cleaning/valueForms.test.tsx` (numeric-only mean/median, constant value required, replace with missing).
+- [x] T016 [P] [US4] Add shared form controls (column picker, multi-column picker, field errors) in `app/desktop/src/features/cleaning/forms/formControls.tsx`.
+- [x] T017 [US4] Build `FillForm`, `ReplaceForm`, `ConvertForm` in `app/desktop/src/features/cleaning/forms/valueForms.tsx` and `StepFormDialog.tsx`, with tests in `app/desktop/tests/unit/cleaning/valueForms.test.tsx` (numeric-only mean/median, constant value required, replace with missing).
 
 ## Phase 5: User Story 2 - Preview (P1)
 

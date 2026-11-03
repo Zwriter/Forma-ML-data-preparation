@@ -18,7 +18,11 @@ async function openCleanTab(page: Page) {
 async function addStep(page: Page, title: string) {
   await page.getByRole('button', { name: 'Add step' }).click();
   await page.getByRole('menuitem', { name: title }).click();
-  await page.getByRole('dialog', { name: title }).getByRole('button', { name: 'Add step' }).click();
+  const dialog = page.getByRole('dialog', { name: title });
+  if (title === 'Fill missing values') await dialog.getByLabel('Value', { exact: true }).fill('0');
+  const submit = dialog.getByRole('button', { name: 'Add step' });
+  await expect(submit).toBeInViewport();
+  await submit.click();
 }
 
 for (const viewport of [
@@ -68,7 +72,7 @@ test('Add step menu and step form work from the keyboard', async ({ page }) => {
 
   await page.keyboard.press('Enter');
   const dialog = page.getByRole('dialog', { name: 'Replace values' });
-  await expect(dialog.getByRole('button', { name: 'Add step' })).toBeFocused();
+  await expect(dialog.getByRole('checkbox').first()).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(dialog).toBeHidden();
 
