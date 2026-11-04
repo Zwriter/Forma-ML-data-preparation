@@ -8,12 +8,6 @@ export function StepList({
   steps: CleaningStep[];
   validation: StepValidation[];
 }) {
-  if (!steps.length)
-    return (
-      <p className="clean-empty">
-        No cleaning steps yet. Choose Add step or a Clean ribbon command to start.
-      </p>
-    );
   return (
     <ol className="step-list" aria-label="Cleaning steps">
       {steps.map((step, index) => (
@@ -21,6 +15,7 @@ export function StepList({
           key={step.id}
           step={step}
           position={index + 1}
+          last={index === steps.length - 1}
           error={validation.find((item) => item.operation_id === step.id && !item.valid)?.message}
         />
       ))}

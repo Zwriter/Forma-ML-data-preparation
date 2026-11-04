@@ -112,3 +112,36 @@ test('Add step menu and step form work from the keyboard', async ({ page }) => {
   await expect(page.getByRole('menu')).toBeHidden();
   await expect(trigger).toBeFocused();
 });
+
+test('step switch and step menu work from the keyboard and are not clipped', async ({ page }) => {
+  await page.setViewportSize({ width: 800, height: 600 });
+  await openCleanTab(page);
+  for (const [command, title] of steps.slice(2)) await addStep(page, command, title);
+
+  const toggle = page.getByRole('switch', { name: 'Enable step 1' });
+  await toggle.focus();
+  await page.keyboard.press('Space');
+  await expect(toggle).toHaveAttribute('aria-checked', 'false');
+
+  const last = steps.slice(2).length;
+  const list = page.getByRole('complementary').getByRole('list');
+  const trigger = page.getByRole('button', { name: `Actions for step ${last}` });
+  await trigger.hover();
+  const scrolled = await list.evaluate((element) => element.scrollTop);
+  await trigger.click();
+  // The whole menu must show on top without the list scrolling (mouse users).
+  for (const action of ['Edit', 'Delete']) {
+    const box = (await page.getByRole('menuitem', { name: action }).boundingBox())!;
+    const hit = await page.evaluate(
+      ([x, y]) => document.elementFromPoint(x, y)?.closest('[role="menuitem"]')?.textContent,
+      [box.x + box.width / 2, box.y + box.height / 2],
+    );
+    expect(hit).toBe(action);
+  }
+  expect(await list.evaluate((element) => element.scrollTop)).toBe(scrolled);
+
+  await page.keyboard.press('End');
+  await expect(page.getByRole('menuitem', { name: 'Delete' })).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('complementary').getByRole('listitem')).toHaveCount(last - 1);
+});

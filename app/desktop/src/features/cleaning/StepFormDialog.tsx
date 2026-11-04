@@ -5,6 +5,7 @@ import { FieldError } from './forms/formControls';
 import type { Parameters } from './forms/formControls';
 import { valueForms } from './forms/valueForms';
 import { stepCatalog, summarizeStep } from './stepCatalog';
+import '../../styles/step-form.css';
 
 export function StepFormDialog({
   form,

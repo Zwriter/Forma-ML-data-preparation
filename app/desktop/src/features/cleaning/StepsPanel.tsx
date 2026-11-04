@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 import { useCleaningStore } from '../../stores/cleaningStore';
 import type { CleaningStep, StepType, StepValidation } from '../../types/cleaning';
-import { AddStepMenu } from './AddStepMenu';
+import { MenuButton } from './MenuButton';
+import { stepCatalog } from './stepCatalog';
 import { StepList } from './StepList';
 
 export function StepsPanel({
@@ -39,7 +40,16 @@ export function StepsPanel({
     <aside className="steps-panel" id="steps-panel" aria-label="Cleaning steps">
       <header className="steps-panel-header">
         <h2>Cleaning steps ({steps.length})</h2>
-        <AddStepMenu disabled={disabled} onSelect={onAdd} />
+        <MenuButton
+          label="Add step"
+          menuLabel="Step types"
+          disabled={disabled}
+          items={(Object.keys(stepCatalog) as StepType[]).map((type) => ({
+            label: stepCatalog[type].title,
+            icon: stepCatalog[type].icon,
+            onSelect: () => onAdd(type),
+          }))}
+        />
         <button
           type="button"
           className="quiet-button steps-panel-collapse"

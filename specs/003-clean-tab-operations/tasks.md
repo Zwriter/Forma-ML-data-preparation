@@ -61,7 +61,7 @@ description: "Executable implementation tasks for Clean Tab Operations"
 
 ## Phase 6: User Story 3 - Manage Steps (P2)
 
-- [ ] T019 [US3] Build `StepMenu.tsx` (Edit, Move up, Move down, Duplicate, Delete; arrow-key navigation, Escape) and the enabled switch inside the steps panel, with tests in `app/desktop/tests/unit/cleaning/StepList.test.tsx`; per-step validation errors already show on cards.
+- [x] T019 [US3] Build `StepMenu.tsx` (Edit, Move up, Move down, Duplicate, Delete; arrow-key navigation, Escape) and the enabled switch inside the steps panel, with tests in `app/desktop/tests/unit/cleaning/StepList.test.tsx`; per-step validation errors already show on cards.
 
 ## Phase 7: User Story 5 - Remove, Rename, Split, Merge (P2)
 
