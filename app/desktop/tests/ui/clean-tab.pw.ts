@@ -20,6 +20,7 @@ async function addStep(page: Page, command: string, title: string) {
   await page.getByRole('button', { name: command, exact: true }).click();
   const dialog = page.getByRole('dialog', { name: title });
   if (title === 'Fill missing values') await dialog.getByLabel('Value', { exact: true }).fill('0');
+  if (title === 'Rename columns') await dialog.getByLabel('New name for region').fill('area');
   const submit = dialog.getByRole('button', { name: 'Add step' });
   await expect(submit).toBeInViewport();
   await submit.click();
@@ -144,4 +145,38 @@ test('step switch and step menu work from the keyboard and are not clipped', asy
   await expect(page.getByRole('menuitem', { name: 'Delete' })).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(page.getByRole('complementary').getByRole('listitem')).toHaveCount(last - 1);
+});
+
+test('narrow window shows change markers and the panel collapses to an edge tab', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 800, height: 600 });
+  await openCleanTab(page);
+  await page.getByRole('button', { name: 'Replace', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Replace values' });
+  await dialog.getByLabel('date', { exact: true }).uncheck();
+  await dialog.getByLabel('region', { exact: true }).check();
+  await dialog.getByLabel('Find').fill('North');
+  await dialog.getByLabel('Replace with', { exact: true }).fill('N');
+  await dialog.getByRole('button', { name: 'Add step' }).click();
+
+  // Marked by colour and by screen-reader text, never colour alone.
+  const changed = page.locator('td.cell-changed');
+  await expect(changed.first()).toHaveText('N (changed)');
+  await expect(changed.first()).toBeInViewport();
+  // The open panel must not cover the left of the worksheet where the marked column is.
+  const box = (await changed.first().boundingBox())!;
+  const hit = await page.evaluate(
+    ([x, y]) => document.elementFromPoint(x, y)?.closest('td')?.textContent,
+    [box.x + box.width / 2, box.y + box.height / 2],
+  );
+  expect(hit).toBe('N (changed)');
+
+  await page.getByRole('button', { name: 'Collapse steps panel' }).click();
+  await expect(page.getByRole('button', { name: 'Show 1 cleaning steps' })).toBeInViewport();
+  await expect(changed.first()).toBeVisible();
+  const overflows = await page.evaluate(
+    () => document.documentElement.scrollWidth > window.innerWidth,
+  );
+  expect(overflows).toBe(false);
 });

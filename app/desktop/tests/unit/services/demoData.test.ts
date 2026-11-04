@@ -127,4 +127,37 @@ describe('browser demo CSV', () => {
       'Select the local CSV with Browse files',
     );
   });
+
+  it('stubs cleaning validate and preview so the Clean tab works in demo mode', async () => {
+    const datasetId = await setDemoFile('city,code\nOslo,N/A\nRome,IT', 'codes.csv');
+    const operations = [
+      {
+        type: 'replace_values',
+        parameters: { columns: ['code'], find: 'n/a', replace: null, match: 'whole' },
+        enabled: true,
+        order: 0,
+        operation_id: 'step-1',
+      },
+    ];
+
+    const validation = await requestDemo('cleaning.validate', {
+      dataset_id: datasetId,
+      operations,
+    });
+    const preview = await requestDemo<{
+      rows: { values: Record<string, unknown>; removed: boolean }[];
+      changed_cells: { row: number; column: string }[];
+      columns: { name: string; origin: string | null }[];
+      total_count: number;
+    }>('cleaning.preview', { dataset_id: datasetId, operations, offset: 0, limit: 10 });
+
+    expect(validation).toEqual({
+      valid: true,
+      steps: [{ index: 0, operation_id: 'step-1', valid: true }],
+    });
+    expect(preview.rows.map((row) => row.values.code)).toEqual([null, 'IT']);
+    expect(preview.changed_cells).toEqual([{ row: 0, column: 'code' }]);
+    expect(preview.columns.map((column) => column.origin)).toEqual(['city', 'code']);
+    expect(preview.total_count).toBe(2);
+  });
 });

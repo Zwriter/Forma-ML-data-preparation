@@ -69,9 +69,32 @@ description: "Executable implementation tasks for Clean Tab Operations"
 
 ## Phase 8: Polish & Cross-Cutting
 
-- [ ] T021 Add narrow-window behavior below 960 px (steps panel as a collapsible overlay, no horizontal page scroll) in `app/desktop/src/styles/cleaning.css`, covered by Playwright at 800×600 in `app/desktop/tests/ui/clean-tab.pw.ts`; give the demo runtime a stub `cleaning.preview`/`cleaning.validate` so Playwright can check markers and layout with data.
-- [ ] T022 Add `tests/integration/clean-tab-workflow.test.tsx` (Data view state carries into Clean → add step → worksheet updates with markers → apply → draft cleared and panel hidden; failure keeps draft); the JSON-builder tests were already replaced in T015.
-- [ ] T023 Run quickstart automated checks: pytest, Ruff, Vitest, Playwright (`npm run test:ui`), `tsc --noEmit`, Prettier, `check_source_limits.ps1`; record the constitution review in this file.
+- [x] T021 Add narrow-window behavior below 960 px (steps panel as a collapsible overlay, no horizontal page scroll) in `app/desktop/src/styles/cleaning.css`, covered by Playwright at 800×600 in `app/desktop/tests/ui/clean-tab.pw.ts`; give the demo runtime a stub `cleaning.preview`/`cleaning.validate` so Playwright can check markers and layout with data.
+- [x] T022 Add `tests/integration/clean-tab-workflow.test.tsx` (Data view state carries into Clean → add step → worksheet updates with markers → apply → draft cleared and panel hidden; failure keeps draft); the JSON-builder tests were already replaced in T015.
+- [x] T023 Run quickstart automated checks: pytest, Ruff, Vitest, Playwright (`npm run test:ui`), `tsc --noEmit`, Prettier, `check_source_limits.ps1`; record the constitution review in this file.
+
+### Constitution review (T023, 2026-11-04)
+
+Checks run: pytest (284 passed), Ruff lint and format check (clean), Vitest (153 passed),
+Playwright `npm run test:ui` (6 passed), `tsc --noEmit` (clean), Prettier on changed files
+(clean), `check_source_limits.ps1` (passed).
+
+- **T021 note**: the floating steps panel already overlays the full stage height, collapses to an
+  edge tab, and stays within `calc(100% - 16px)` at every width, so no `cleaning.css` change was
+  needed below 960 px. Playwright at 800×600 now checks markers, that the open panel does not
+  cover the marked column, the edge tab, and no horizontal page scroll (confirmed failing with a
+  60 rem panel). The demo stub in `services/demoCleaning.ts` reports every step valid and applies
+  only whole-cell `replace_values` (recorded `shortcut:`); this supersedes research R8.
+- **T022 note**: `tests/integration/clean-tab-workflow.test.tsx` covers Data view state carried
+  into Clean and worksheet markers; apply → draft cleared/panel hidden and failure → draft kept
+  were already covered in `profile-clean-workflow.test.tsx` and are not duplicated.
+- I/II/III SOLID, OOP, TDD: engine unchanged in Phases 7–8; frontend forms and the demo stub were
+  written test-first. Structure forms share one set of controls (`formControls.tsx`).
+- IV Frontend: forms use labelled controls, inline `role="alert"` errors, Enter to submit, Escape
+  to close; layout checked at 1280×800 and 800×600. Gap: the worksheet search box has only a
+  placeholder for its accessible name (pre-existing, from feature 002).
+- V Size and duplication: all files within 250 lines; script passed.
+- VI/VII Formatting: Ruff and Prettier clean on changed files.
 
 ## Dependencies
 
