@@ -17,12 +17,7 @@
   flex-direction: column;
   gap: 10px;
   width: min(22rem, calc(100% - 16px));
-  padding: 12px;
   overflow: hidden;
-  background: var(--surface, white);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  box-shadow: 0 0.75rem 2rem rgb(18 16 28 / 18%);
 }
 
 .steps-panel-header {
@@ -33,11 +28,9 @@
 
 .steps-panel-header h2 {
   flex: 1 1 auto;
-  margin: 0;
-  font-size: 15px;
 }
 
-.steps-panel-collapse {
+.steps-panel-header .steps-panel-collapse {
   padding: 4px 9px;
   font-size: 16px;
   line-height: 1;
@@ -74,9 +67,6 @@
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
-  gap: 8px;
-  padding-top: 10px;
-  border-top: 1px solid var(--line);
 }
 
 .steps-panel-footer p {

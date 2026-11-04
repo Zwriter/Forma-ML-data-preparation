@@ -114,6 +114,8 @@ export function CleanTab({
       </div>
       {form && (
         <StepFormDialog
+          // A new form (another command or step) starts from its own parameters.
+          key={`${form.type}:${form.editingId}`}
           form={form}
           // shortcut: offers the current dataset's columns, not those left by earlier steps; validate flags mismatches.
           columns={dataset.schema}

@@ -27,7 +27,7 @@ type State = {
   duplicate: (fileId: string, id: string) => void;
   remove: (fileId: string, id: string) => void;
   clear: (fileId: string) => void;
-  openForm: (type: StepType, editingId?: string | null) => void;
+  openForm: (type: StepType, editingId?: string | null, position?: StepForm['position']) => void;
   closeForm: () => void;
   setPreview: (preview: CleaningPreview | null) => void;
   setPreviewStatus: (status: State['previewStatus'], error?: string) => void;
@@ -87,7 +87,7 @@ export const useCleaningStore = create<State>((set) => {
         const { [fileId]: _removed, ...drafts } = state.drafts;
         return { drafts, preview: null, previewStatus: 'idle', previewError: '', validation: [] };
       }),
-    openForm: (type, editingId = null) => set({ form: { type, editingId } }),
+    openForm: (type, editingId = null, position) => set({ form: { type, editingId, position } }),
     closeForm: () => set({ form: null }),
     setPreview: (preview) => set({ preview, previewStatus: 'idle', previewError: '' }),
     setPreviewStatus: (previewStatus, previewError = '') => set({ previewStatus, previewError }),

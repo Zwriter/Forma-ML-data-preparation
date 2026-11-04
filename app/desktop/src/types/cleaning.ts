@@ -26,7 +26,11 @@ export type Operation = {
   operation_id?: string;
 };
 
-export type StepForm = { type: StepType; editingId: string | null };
+export type StepForm = {
+  type: StepType;
+  editingId: string | null;
+  position?: { left: number; top: number };
+};
 
 export type StepValidation = {
   index: number;

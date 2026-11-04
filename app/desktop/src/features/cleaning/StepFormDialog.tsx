@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { DragGrip } from '../../components/DragGrip';
+import { popupStyle } from '../workspace/popupPositions';
 import type { StepForm, StepType } from '../../types/cleaning';
 import type { Column } from '../../types/dataset';
 import { FieldError } from './forms/formControls';
@@ -41,47 +43,48 @@ export function StepFormDialog({
   }
 
   return (
-    <div className="dialog-backdrop" role="presentation">
-      <section
-        className="confirm-dialog card step-form-dialog"
+    // Same popup as the Data tab's operation dialogs: non-modal, draggable, beside the ribbon.
+    <div className="dialog-backdrop data-operation-backdrop" role="presentation">
+      <form
+        ref={body}
+        className="data-operation-dialog step-form-dialog"
+        style={popupStyle(form.position)}
         role="dialog"
-        aria-modal="true"
         aria-labelledby="step-form-title"
+        aria-describedby={error ? 'step-form-error' : undefined}
         onKeyDown={(event) => {
           if (event.key === 'Escape') onClose();
         }}
+        onSubmit={(event) => {
+          event.preventDefault();
+          save();
+        }}
       >
-        <h2 id="step-form-title">{title}</h2>
-        <form
-          ref={body}
-          aria-describedby={error ? 'step-form-error' : undefined}
-          onSubmit={(event) => {
-            event.preventDefault();
-            save();
+        <header>
+          <DragGrip />
+          <h2 id="step-form-title">{title}</h2>
+        </header>
+        <definition.Form
+          parameters={draft}
+          columns={columns}
+          type={type}
+          onTypeChange={(next) => {
+            setType(next);
+            setError('');
           }}
-        >
-          <definition.Form
-            parameters={draft}
-            columns={columns}
-            type={type}
-            onTypeChange={(next) => {
-              setType(next);
-              setError('');
-            }}
-            onChange={(next) => {
-              setDraft(next);
-              setError('');
-            }}
-          />
-          <FieldError id="step-form-error" message={error} />
-          <div className="dialog-actions">
-            <button type="submit">{form.editingId ? 'Save step' : 'Add step'}</button>
-            <button type="button" className="quiet-button" onClick={onClose}>
-              Cancel
-            </button>
-          </div>
-        </form>
-      </section>
+          onChange={(next) => {
+            setDraft(next);
+            setError('');
+          }}
+        />
+        <FieldError id="step-form-error" message={error} />
+        <footer className="dialog-actions">
+          <button type="button" className="quiet-button" onClick={onClose}>
+            Cancel
+          </button>
+          <button type="submit">{form.editingId ? 'Save step' : 'Add step'}</button>
+        </footer>
+      </form>
     </div>
   );
 }

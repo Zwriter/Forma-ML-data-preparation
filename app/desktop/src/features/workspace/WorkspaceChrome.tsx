@@ -5,6 +5,7 @@ import { topTabs } from './navigation';
 import { commandIcons, ribbonCommands } from './ribbonCommands';
 import { ribbonStepTypes } from '../cleaning/stepCatalog';
 import { useCleaningStore } from '../../stores/cleaningStore';
+import { stepCommand } from '../cleaning/stepCommand';
 
 type Props = {
   activeTab: string;
@@ -56,6 +57,7 @@ export function WorkspaceChrome({
 }: Props) {
   const [showDbPanel, setShowDbPanel] = useState(false);
   const [connectionMessage, setConnectionMessage] = useState('');
+  const stepForm = useCleaningStore((state) => state.form);
   const groups = ribbonCommands[activeTab] ?? [];
 
   function toolFor(label: string): Tool {
@@ -140,8 +142,8 @@ export function WorkspaceChrome({
       return {
         label,
         icon: commandIcons[label],
-        onClick: () => useCleaningStore.getState().openForm(stepType),
         disabled: !hasDataset,
+        ...stepCommand(label, stepType, stepForm),
       };
     return {
       label,

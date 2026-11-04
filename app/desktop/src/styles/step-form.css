@@ -1,58 +1,30 @@
-.step-form-dialog form {
+/* The step form is a .data-operation-dialog; these cover only Clean-specific fields. */
+.step-form-dialog > label.check {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 500;
+  cursor: pointer;
 }
 
-.step-form-dialog label {
-  display: block;
-  margin: 10px 0 7px;
+.step-form-dialog legend {
+  padding: 0 4px;
+  color: #4c5874;
   font-size: 12px;
-}
-
-.step-form-dialog select,
-.step-form-dialog input:not([type='checkbox']) {
-  width: 100%;
-  padding: 9px 10px;
-  border: 1px solid #cbd1dd;
-  border-radius: 6px;
+  font-weight: 600;
 }
 
 .column-checklist {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 14px;
   max-height: 10rem;
-  padding: 8px 10px;
-  margin: 0;
   overflow-y: auto;
-  border: 1px solid var(--line);
-  border-radius: 6px;
 }
 
-.column-checklist legend {
-  padding: 0 4px;
-  font-size: 12px;
-}
-
-.step-form-dialog .check {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.field-error {
-  margin: 6px 0 0;
-  color: #9a2f34;
-}
-
-.rename-list {
+.step-form-dialog .rename-list {
   flex-direction: column;
   flex-wrap: nowrap;
 }
 
-.field-hint {
-  margin: 4px 0 0;
-  font-size: 12px;
-  color: var(--muted, #5b6474);
+.step-form-dialog .rename-list label {
+  display: grid;
+  gap: 0.3rem;
 }

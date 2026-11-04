@@ -180,3 +180,47 @@ test('narrow window shows change markers and the panel collapses to an edge tab'
   );
   expect(overflows).toBe(false);
 });
+
+test('Clean step form and steps panel share the Data popup styling', async ({ page }) => {
+  const frame = (selector: string) =>
+    page.locator(selector).evaluate((element) => {
+      const style = getComputedStyle(element);
+      return [style.borderColor, style.borderRadius, style.boxShadow, style.padding].join('|');
+    });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Back to workspace' }).click();
+  await page.getByRole('button', { name: 'Sort', exact: true }).click();
+  const data = await frame('[role="dialog"]');
+  const dataButton = await page
+    .getByRole('button', { name: 'Apply sort' })
+    .evaluate((element) => getComputedStyle(element).backgroundColor);
+
+  await page.getByRole('link', { name: 'Clean' }).click();
+  await page.getByRole('button', { name: 'Remove', exact: true }).click();
+  expect(await frame('[role="dialog"]')).toBe(data);
+  const add = page.getByRole('button', { name: 'Add step' });
+  expect(await add.evaluate((element) => getComputedStyle(element).backgroundColor)).toBe(
+    dataButton,
+  );
+  await add.click();
+  expect(await frame('.steps-panel')).toBe(data);
+});
+
+test('Clean ribbon buttons toggle their step form like the Data ribbon', async ({ page }) => {
+  await openCleanTab(page);
+  const replace = page.getByRole('button', { name: 'Replace', exact: true });
+  await replace.click();
+  await expect(page.getByRole('dialog', { name: 'Replace values' })).toBeVisible();
+  await expect(replace).toHaveAttribute('aria-pressed', 'true');
+
+  await replace.click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(replace).toHaveAttribute('aria-pressed', 'false');
+
+  // Switching commands opens the other form with its own fields.
+  await replace.click();
+  await page.getByRole('button', { name: 'Fill', exact: true }).click();
+  const fill = page.getByRole('dialog', { name: 'Fill missing values' });
+  await expect(fill.getByLabel('Fill with')).toBeVisible();
+  await expect(replace).toHaveAttribute('aria-pressed', 'false');
+});
