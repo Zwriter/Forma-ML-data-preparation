@@ -21,7 +21,7 @@ type State = {
   validation: StepValidation[];
   applyJobId: string | null;
   add: (fileId: string, type: StepType, parameters: Parameters) => void;
-  update: (fileId: string, id: string, parameters: Parameters) => void;
+  update: (fileId: string, id: string, parameters: Parameters, type?: StepType) => void;
   toggle: (fileId: string, id: string) => void;
   move: (fileId: string, id: string, offset: -1 | 1) => void;
   duplicate: (fileId: string, id: string) => void;
@@ -58,9 +58,11 @@ export const useCleaningStore = create<State>((set) => {
       change(fileId, (steps) => [...steps, { id: nextId(), type, parameters, enabled: true }]);
       set({ panel: 'open' });
     },
-    update: (fileId, id, parameters) =>
+    update: (fileId, id, parameters, type) =>
       change(fileId, (steps) =>
-        steps.map((step) => (step.id === id ? { ...step, parameters } : step)),
+        steps.map((step) =>
+          step.id === id ? { ...step, parameters, type: type ?? step.type } : step,
+        ),
       ),
     toggle: (fileId, id) =>
       change(fileId, (steps) =>

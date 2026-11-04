@@ -65,7 +65,7 @@ description: "Executable implementation tasks for Clean Tab Operations"
 
 ## Phase 7: User Story 5 - Remove, Rename, Split, Merge (P2)
 
-- [ ] T020 [US5] Build `RemoveForm`, `RenameForm`, `SplitForm`, `MergeForm` in `app/desktop/src/features/cleaning/forms/structureForms.tsx` with tests in `app/desktop/tests/unit/cleaning/structureForms.test.tsx`.
+- [x] T020 [US5] Build `RemoveForm`, `RenameForm`, `SplitForm`, `MergeForm` in `app/desktop/src/features/cleaning/forms/structureForms.tsx` with tests in `app/desktop/tests/unit/cleaning/structureForms.test.tsx`.
 
 ## Phase 8: Polish & Cross-Cutting
 

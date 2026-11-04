@@ -1,15 +1,7 @@
-import type { ComponentType } from 'react';
 import type { Column } from '../../../types/dataset';
 import type { StepType } from '../../../types/cleaning';
-import { ColumnPicker, MultiColumnPicker, isNumericColumn } from './formControls';
-import type { Parameters, StepFormProps } from './formControls';
-
-export type Submission = { error: string } | { parameters: Parameters };
-
-export type StepFormDefinition = {
-  Form: ComponentType<StepFormProps>;
-  submit: (parameters: Parameters, columns: Column[]) => Submission;
-};
+import { Choice, ColumnPicker, MultiColumnPicker, Toggle, isNumericColumn } from './formControls';
+import type { Parameters, StepFormDefinition, StepFormProps, Submission } from './formControls';
 
 const fillLabels: Record<string, string> = {
   constant: 'Fixed value',
@@ -28,52 +20,6 @@ const targetLabels: Record<string, string> = {
   boolean: 'True/false',
   date: 'Date',
 };
-
-function Choice({
-  label,
-  value,
-  labels,
-  onChange,
-}: {
-  label: string;
-  value: unknown;
-  labels: Record<string, string>;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <label>
-      {label}
-      <select value={String(value)} onChange={(event) => onChange(event.target.value)}>
-        {Object.entries(labels).map(([key, text]) => (
-          <option key={key} value={key}>
-            {text}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-function Toggle({
-  label,
-  checked,
-  onChange,
-}: {
-  label: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-}) {
-  return (
-    <label className="check">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(event) => onChange(event.target.checked)}
-      />
-      {label}
-    </label>
-  );
-}
 
 function FillForm({ parameters: p, columns, onChange }: StepFormProps) {
   const numeric = isNumericColumn(columns, p.column);
@@ -200,11 +146,11 @@ function ConvertForm({ parameters: p, columns, onChange }: StepFormProps) {
   );
 }
 
-export const valueForms: Partial<Record<StepType, StepFormDefinition>> = {
+export const valueForms = {
   fill_null: { Form: FillForm, submit: submitFill },
   replace_values: { Form: ReplaceForm, submit: submitReplace },
   convert_type: {
     Form: ConvertForm,
     submit: (p) => (p.column ? { parameters: p } : { error: 'Select a column.' }),
   },
-};
+} satisfies Partial<Record<StepType, StepFormDefinition>>;

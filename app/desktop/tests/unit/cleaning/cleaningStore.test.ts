@@ -60,6 +60,8 @@ describe('cleaning store', () => {
     store.toggle('file-1', second.id);
     expect(steps()[0].parameters).toEqual({ column: 'y', strategy: 'mode' });
     expect(steps()[1].enabled).toBe(false);
+    store.update('file-1', first.id, { columns: ['x'] }, 'drop_columns');
+    expect(steps()[0]).toMatchObject({ type: 'drop_columns', parameters: { columns: ['x'] } });
 
     store.remove('file-1', first.id);
     expect(steps().map((step) => step.id)).toEqual([second.id]);

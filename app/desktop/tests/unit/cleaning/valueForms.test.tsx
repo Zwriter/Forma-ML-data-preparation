@@ -16,7 +16,7 @@ function open(type: StepType, parameters = stepCatalog[type].defaults(columns)) 
       form={{ type, editingId: null }}
       columns={columns}
       parameters={parameters}
-      onSave={onSave}
+      onSave={(parameters) => onSave(parameters)}
       onClose={vi.fn()}
     />,
   );

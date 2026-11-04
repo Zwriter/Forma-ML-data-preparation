@@ -119,9 +119,9 @@ export function CleanTab({
           columns={dataset.schema}
           parameters={editing?.parameters ?? stepCatalog[form.type].defaults(dataset.schema)}
           onClose={cleaning.closeForm}
-          onSave={(parameters) => {
-            if (editing) cleaning.update(fileId, editing.id, parameters);
-            else cleaning.add(fileId, form.type, parameters);
+          onSave={(parameters, type) => {
+            if (editing) cleaning.update(fileId, editing.id, parameters, type);
+            else cleaning.add(fileId, type, parameters);
             cleaning.closeForm();
           }}
         />
