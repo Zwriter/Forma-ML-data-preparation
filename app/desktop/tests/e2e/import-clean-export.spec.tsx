@@ -84,7 +84,13 @@ describe('import-clean-export desktop flow', () => {
       activeFileId: null,
     });
     useExportStore.setState({ destination: '', overwrite: false });
-    useCleaningStore.setState({ drafts: {}, form: null, validation: [], applyJobId: null });
+    useCleaningStore.setState({
+      drafts: {},
+      form: null,
+      validation: [],
+      applyJobId: null,
+      finishedJobId: null,
+    });
     useWorkspaceStore.setState({
       busy: false,
       error: null,

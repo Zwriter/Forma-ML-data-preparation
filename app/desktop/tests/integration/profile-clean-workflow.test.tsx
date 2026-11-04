@@ -61,6 +61,28 @@ function respond(_command: string, args: { request: { method: string; params: an
   throw new Error(`Unexpected ${method}`);
 }
 
+function completedJob(jobId: string, kind: string, schema: typeof dataset.schema) {
+  return {
+    job_id: jobId,
+    kind,
+    state: 'completed',
+    progress: 1,
+    message: 'Done',
+    result: {
+      dataset: { ...dataset, dataset_id: `${jobId}-dataset`, schema },
+      history: {
+        history_id: 'history-1',
+        dataset_id: `${jobId}-dataset`,
+        current_index: 1,
+        saved_index: 0,
+        is_dirty: true,
+        can_undo: true,
+        can_redo: false,
+      },
+    },
+  };
+}
+
 function CleanWorkflow() {
   return (
     <>
@@ -100,7 +122,13 @@ describe('profile and cleaning workflow', () => {
       openFiles: [],
       activeFileId: null,
     });
-    useCleaningStore.setState({ drafts: {}, form: null, validation: [], applyJobId: null });
+    useCleaningStore.setState({
+      drafts: {},
+      form: null,
+      validation: [],
+      applyJobId: null,
+      finishedJobId: null,
+    });
     useWorkspaceStore.setState({
       busy: false,
       error: null,
@@ -225,5 +253,45 @@ describe('profile and cleaning workflow', () => {
 
     expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Stop' })).toBeNull();
+  });
+
+  it('ignores a cleaning job that finished before its acknowledgement arrived', async () => {
+    useDatasetStore.getState().setSource(dataset, sourcePreview);
+    invoke.mockImplementation(async (command: string, args: any) => {
+      // Quick jobs can finish on the engine thread before the apply response is sent.
+      if (args.request.method === 'cleaning.apply')
+        await emitJob({ ...completedJob('clean-1', 'clean', dataset.schema), job_id: 'clean-1' });
+      return respond(command, args);
+    });
+    render(<CleanWorkflow />);
+    addDuplicateStep();
+    fireEvent.click(screen.getByRole('button', { name: 'Apply 1 step' }));
+    await waitFor(() =>
+      expect(invoke.mock.calls.some((call) => call[1].request.method === 'dataset.preview')).toBe(
+        true,
+      ),
+    );
+    await act(async () => {});
+
+    expect(useCleaningStore.getState().applyJobId).toBeNull();
+    addDuplicateStep();
+    expect(screen.queryByRole('button', { name: 'Stop' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Cancel' })).toHaveProperty('disabled', false);
+  });
+
+  it('keeps a renamed column visible and brings it back on undo', async () => {
+    useDatasetStore.getState().setSource(dataset, sourcePreview);
+    invoke.mockImplementation(respond);
+    render(<CleanWorkflow />);
+    const renamed = [{ name: 'y', type: 'Int64', nullable: true }];
+
+    await emitJob(completedJob('clean-1', 'clean', renamed));
+    await waitFor(() => expect(useDatasetStore.getState().selectedColumns).toEqual(['y']));
+    const previews = () =>
+      invoke.mock.calls.filter((call) => call[1].request.method === 'dataset.preview');
+    expect(previews().at(-1)?.[1].request.params.columns).toEqual(['y']);
+
+    await emitJob(completedJob('undo-1', 'undo', dataset.schema));
+    await waitFor(() => expect(useDatasetStore.getState().selectedColumns).toEqual(['x']));
   });
 });

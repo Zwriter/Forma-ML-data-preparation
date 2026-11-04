@@ -4,7 +4,7 @@ import { popupStyle } from '../workspace/popupPositions';
 import type { StepForm, StepType } from '../../types/cleaning';
 import type { Column } from '../../types/dataset';
 import { FieldError } from './forms/formControls';
-import type { Parameters } from './forms/formControls';
+import type { Parameters, Submission } from './forms/formControls';
 import { structureForms } from './forms/structureForms';
 import { valueForms } from './forms/valueForms';
 import { stepCatalog } from './stepCatalog';
@@ -27,7 +27,7 @@ export function StepFormDialog({
 }) {
   const [type, setType] = useState(form.type);
   const [draft, setDraft] = useState(parameters);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<{ error: string; field?: string } | null>(null);
   const body = useRef<HTMLFormElement>(null);
   const definition = stepForms[type];
   const { title } = stepCatalog[type];
@@ -37,9 +37,17 @@ export function StepFormDialog({
   }, []);
 
   function save() {
-    const result = definition.submit(draft, columns);
-    if ('error' in result) setError(result.error);
-    else onSave(result.parameters, type);
+    const result: Submission = definition.submit(draft, columns);
+    if (!('error' in result)) return onSave(result.parameters, type);
+    setError(result);
+    if (result.field)
+      body.current?.querySelector<HTMLElement>(`[name="${CSS.escape(result.field)}"]`)?.focus();
+  }
+
+  /** Leaving a text field checks it, showing only that field's own error. */
+  function checkField(field: string) {
+    const result: Submission = definition.submit(draft, columns);
+    if ('error' in result && result.field === field) setError(result);
   }
 
   return (
@@ -51,9 +59,13 @@ export function StepFormDialog({
         style={popupStyle(form.position)}
         role="dialog"
         aria-labelledby="step-form-title"
-        aria-describedby={error ? 'step-form-error' : undefined}
+        aria-describedby={error && !error.field ? 'step-form-error' : undefined}
         onKeyDown={(event) => {
           if (event.key === 'Escape') onClose();
+        }}
+        onBlur={(event) => {
+          if (event.target instanceof HTMLInputElement && event.target.name)
+            checkField(event.target.name);
         }}
         onSubmit={(event) => {
           event.preventDefault();
@@ -68,16 +80,17 @@ export function StepFormDialog({
           parameters={draft}
           columns={columns}
           type={type}
+          errorFor={(field) => (error?.field === field ? error.error : '')}
           onTypeChange={(next) => {
             setType(next);
-            setError('');
+            setError(null);
           }}
           onChange={(next) => {
             setDraft(next);
-            setError('');
+            setError(null);
           }}
         />
-        <FieldError id="step-form-error" message={error} />
+        <FieldError id="step-form-error" message={error && !error.field ? error.error : ''} />
         <footer className="dialog-actions">
           <button type="button" className="quiet-button" onClick={onClose}>
             Cancel

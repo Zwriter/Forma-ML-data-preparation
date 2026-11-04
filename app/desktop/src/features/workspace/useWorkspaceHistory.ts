@@ -7,6 +7,11 @@ import { redoDataset, saveDataset, undoDataset } from '../../services/dataOperat
 import { buildSaveCopyDestination } from '../../services/saveDestination';
 
 type Options = { onOverwriteRequired: (destination?: string) => void };
+type OpenDataset = { dataset_id: string; source_path: string; format: 'csv' | 'parquet' };
+
+const MAX_COPY_ATTEMPTS = 50;
+const isSaveRequired = (cause: unknown) =>
+  cause instanceof IpcError && cause.code === 'SAVE_REQUIRED';
 
 export function useWorkspaceHistory({ onOverwriteRequired }: Options) {
   const dataset = useDatasetStore((state) => state.dataset);
@@ -15,39 +20,49 @@ export function useWorkspaceHistory({ onOverwriteRequired }: Options) {
   const setSaveStatus = useWorkspaceStore((state) => state.setSaveStatus);
   const setCommands = useWorkspaceStore((state) => state.setCommands);
   const saveBehavior = useSettingsStore((state) => state.saveBehavior);
-  const pendingDestination = useRef<string | null>(null);
+  // Source path → the copy this session wrote, which later saves may update without asking.
+  const ownCopies = useRef(new Map<string, string>());
+
+  const saveCopy = useCallback(async (current: OpenDataset) => {
+    const own = ownCopies.current.get(current.source_path);
+    if (own) return saveDataset(current.dataset_id, true, own);
+    // A taken name belongs to an earlier save or another file: never replace it, use the next one.
+    for (let attempt = 1; attempt <= MAX_COPY_ATTEMPTS; attempt += 1) {
+      const name = buildSaveCopyDestination(
+        current.source_path,
+        current.format,
+        new Date(),
+        attempt,
+      );
+      try {
+        const started = await saveDataset(current.dataset_id, false, name);
+        ownCopies.current.set(current.source_path, name);
+        return started;
+      } catch (cause) {
+        if (!isSaveRequired(cause)) throw cause;
+      }
+    }
+    throw new Error('Could not find a free file name for the copy.');
+  }, []);
 
   const save = useCallback(
     async (forceOverwrite = false) => {
       if (!dataset) return;
       setError(null);
-      let destination = pendingDestination.current;
       try {
-        if (saveBehavior === 'copy' && !destination) {
-          destination = buildSaveCopyDestination(dataset.source_path, dataset.format);
-        }
-        pendingDestination.current = destination;
-        await saveDataset(dataset.dataset_id, forceOverwrite, destination ?? undefined);
-        pendingDestination.current = null;
+        if (saveBehavior === 'copy') await saveCopy(dataset);
+        else await saveDataset(dataset.dataset_id, forceOverwrite);
         setSaveStatus('saving');
         setBusy(true);
       } catch (cause) {
-        if (cause instanceof IpcError && cause.code === 'SAVE_REQUIRED') {
-          pendingDestination.current = destination;
-          onOverwriteRequired(destination ?? undefined);
-          return;
-        }
-        pendingDestination.current = null;
+        // Only replacing the source file asks first; copies never replace anything.
+        if (isSaveRequired(cause)) return onOverwriteRequired();
         setSaveStatus('failed');
         setError(cause instanceof Error ? cause.message : 'Save could not start.');
       }
     },
-    [dataset, saveBehavior, setBusy, setError, setSaveStatus, onOverwriteRequired],
+    [dataset, saveBehavior, saveCopy, setBusy, setError, setSaveStatus, onOverwriteRequired],
   );
-
-  const cancelPendingSave = useCallback(() => {
-    pendingDestination.current = null;
-  }, []);
 
   const move = useCallback(
     async (direction: 'undo' | 'redo') => {
@@ -93,5 +108,5 @@ export function useWorkspaceHistory({ onOverwriteRequired }: Options) {
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [save, undo, redo]);
 
-  return { save, undo, redo, cancelPendingSave };
+  return { save, undo, redo };
 }

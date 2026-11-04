@@ -192,6 +192,17 @@
   box-shadow: inset 3px 0 0 #2f8a4a;
 }
 
+/* "old → new": the old value and arrow recede, the new value stands out in green. */
+.cell-changed .cell-before,
+.cell-changed .cell-arrow {
+  color: #5f6b7d;
+}
+
+.cell-changed .cell-after {
+  color: #1d6f38;
+  font-weight: 600;
+}
+
 .table-wrap tr.worksheet-removed td:not(.row-number) {
   color: #7a3036;
   text-decoration: line-through;

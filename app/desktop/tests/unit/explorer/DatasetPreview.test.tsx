@@ -212,7 +212,7 @@ describe('schema summary', () => {
         onOpenColumnSelector={vi.fn()}
         onPage={vi.fn()}
         markers={{
-          changed: new Set(['0:value']),
+          changed: new Map([['0:value', null]]),
           removed: new Set([1]),
           columnNotes: { value: 'Renamed from amount' },
         }}
@@ -220,7 +220,9 @@ describe('schema summary', () => {
     );
     const [changed, missing] = screen.getAllByRole('gridcell');
     expect(changed.className).toContain('cell-changed');
-    expect(changed.textContent).toBe('1 (changed)');
+    // Old value, an arrow, then the new value; screen readers hear "changed to".
+    expect(changed.textContent).toBe('missing → changed to 1');
+    expect(changed.querySelector('.cell-after')!.textContent).toBe('1');
     expect(missing.textContent).toContain('missing');
     expect(missing.closest('tr')!.className).toContain('worksheet-removed');
     expect(missing.closest('tr')!.textContent).toContain('Removed');

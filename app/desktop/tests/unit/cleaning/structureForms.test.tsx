@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { StepFormDialog } from '../../../src/features/cleaning/StepFormDialog';
 import { stepCatalog } from '../../../src/features/cleaning/stepCatalog';
 import type { StepType } from '../../../src/types/cleaning';
@@ -26,6 +26,17 @@ function open(type: StepType, parameters = stepCatalog[type].defaults(columns)) 
 
 const save = () => fireEvent.click(screen.getByRole('button', { name: 'Add step' }));
 const alertText = () => screen.getByRole('alert').textContent;
+const options = (select: HTMLElement) =>
+  within(select)
+    .getAllByRole('option')
+    .map((option) => option.textContent);
+/** The message sits under its field, which is marked invalid and points at it. */
+function expectFieldError(field: HTMLElement, message: string) {
+  const alert = screen.getByRole('alert');
+  expect(alert.textContent).toBe(message);
+  expect(field.getAttribute('aria-invalid')).toBe('true');
+  expect(field.getAttribute('aria-describedby')).toBe(alert.id);
+}
 const type = (label: string, value: string) =>
   fireEvent.change(screen.getByLabelText(label), { target: { value } });
 
@@ -66,18 +77,55 @@ describe('structure step forms', () => {
     expect(onSave).toHaveBeenCalledWith({ columns: ['city', 'country'] }, 'drop_columns');
   });
 
-  it('renames columns and rejects duplicate final names', () => {
+  it('renames columns picked from a dropdown, one row each', () => {
     const onSave = open('rename_columns');
+    const row = (n: number) => within(screen.getByRole('group', { name: `Rename ${n}` }));
+    expect((row(1).getByLabelText('Column') as HTMLSelectElement).value).toBe('full_name');
     save();
-    expect(alertText()).toBe('Enter a new name for at least one column.');
+    expectFieldError(row(1).getByLabelText('New name'), 'Enter a new name.');
 
-    type('New name for city', 'country');
+    fireEvent.change(row(1).getByLabelText('New name'), { target: { value: ' Name ' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Add column' }));
+    expect(options(row(2).getByLabelText('Column'))).toEqual(['city', 'country']);
+    fireEvent.change(row(2).getByLabelText('Column'), { target: { value: 'country' } });
+    fireEvent.change(row(2).getByLabelText('New name'), { target: { value: 'Name' } });
     save();
-    expect(alertText()).toBe('Column name "country" is used more than once.');
+    expectFieldError(row(2).getByLabelText('New name'), 'Column name "Name" is already used.');
 
-    type('New name for city', '  town ');
+    fireEvent.change(row(2).getByLabelText('New name'), { target: { value: 'nation' } });
     save();
-    expect(onSave).toHaveBeenCalledWith({ mapping: { city: 'town' } }, 'rename_columns');
+    expect(onSave).toHaveBeenCalledWith(
+      { mapping: { full_name: 'Name', country: 'nation' } },
+      'rename_columns',
+    );
+  });
+
+  it('removes a rename row and keeps rows complete and distinct', () => {
+    const onSave = open('rename_columns', { mapping: { full_name: 'name', city: '' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Remove rename 2' }));
+    expect(screen.queryByRole('group', { name: 'Rename 2' })).toBeNull();
+
+    const name = screen.getByLabelText('New name');
+    fireEvent.change(name, { target: { value: 'full_name' } });
+    save();
+    expectFieldError(name, 'Enter a name different from the current one.');
+    fireEvent.change(name, { target: { value: 'city' } });
+    save();
+    expectFieldError(name, 'Column name "city" is already used.');
+    fireEvent.change(name, { target: { value: 'x'.repeat(129) } });
+    save();
+    expectFieldError(name, 'Use 128 characters or fewer.');
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it('checks a text field when the user leaves it', () => {
+    open('rename_columns');
+    const name = screen.getByLabelText('New name');
+    fireEvent.blur(name);
+    expectFieldError(name, 'Enter a new name.');
+    fireEvent.change(name, { target: { value: 'person' } });
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(name.getAttribute('aria-invalid')).toBeNull();
   });
 
   it('splits a column into named parts', () => {
@@ -96,7 +144,14 @@ describe('structure step forms', () => {
 
     type('New column names (comma-separated)', 'first, first');
     save();
-    expect(alertText()).toBe('Column name "first" is used more than once.');
+    expectFieldError(
+      screen.getByLabelText('New column names (comma-separated)'),
+      'Column name "first" is already used.',
+    );
+
+    type('New column names (comma-separated)', 'first, city');
+    save();
+    expect(alertText()).toBe('Column name "city" is already used.');
 
     type('New column names (comma-separated)', 'first, last');
     fireEvent.click(screen.getByLabelText('Remove the original column'));
@@ -132,6 +187,13 @@ describe('structure step forms', () => {
     type('New column name', ' ');
     save();
     expect(alertText()).toBe('Enter a name for the merged column.');
+
+    type('New column name', 'city');
+    save();
+    expectFieldError(
+      screen.getByLabelText('New column name'),
+      'Column name "city" is already used.',
+    );
 
     type('New column name', 'location');
     fireEvent.click(screen.getByLabelText('Remove the source columns'));

@@ -28,8 +28,8 @@ export function previewDemoCleaning(page: Preview, operations: Operation[]): Cle
           : String(value).toLowerCase() === String(p.find).toLowerCase();
       for (const column of (p.columns as string[]) ?? []) {
         if (!(column in values) || !same(values[column])) continue;
+        changed.push({ row, column, before: values[column] });
         values[column] = p.replace;
-        changed.push({ row, column });
       }
     }
     return { values, removed: false };

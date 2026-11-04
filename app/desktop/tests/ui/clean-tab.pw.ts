@@ -20,7 +20,7 @@ async function addStep(page: Page, command: string, title: string) {
   await page.getByRole('button', { name: command, exact: true }).click();
   const dialog = page.getByRole('dialog', { name: title });
   if (title === 'Fill missing values') await dialog.getByLabel('Value', { exact: true }).fill('0');
-  if (title === 'Rename columns') await dialog.getByLabel('New name for region').fill('area');
+  if (title === 'Rename columns') await dialog.getByLabel('New name').fill('area');
   const submit = dialog.getByRole('button', { name: 'Add step' });
   await expect(submit).toBeInViewport();
   await submit.click();
@@ -162,7 +162,7 @@ test('narrow window shows change markers and the panel collapses to an edge tab'
 
   // Marked by colour and by screen-reader text, never colour alone.
   const changed = page.locator('td.cell-changed');
-  await expect(changed.first()).toHaveText('N (changed)');
+  await expect(changed.first()).toHaveText('North → changed to N');
   await expect(changed.first()).toBeInViewport();
   // The open panel must not cover the left of the worksheet where the marked column is.
   const box = (await changed.first().boundingBox())!;
@@ -170,7 +170,7 @@ test('narrow window shows change markers and the panel collapses to an edge tab'
     ([x, y]) => document.elementFromPoint(x, y)?.closest('td')?.textContent,
     [box.x + box.width / 2, box.y + box.height / 2],
   );
-  expect(hit).toBe('N (changed)');
+  expect(hit).toBe('North → changed to N');
 
   await page.getByRole('button', { name: 'Collapse steps panel' }).click();
   await expect(page.getByRole('button', { name: 'Show 1 cleaning steps' })).toBeInViewport();

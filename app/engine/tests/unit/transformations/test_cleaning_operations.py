@@ -145,6 +145,14 @@ def test_fill_previous_and_next_values(strategy, expected):
     assert result["x"].to_list() == expected
 
 
+def test_fill_mode_breaks_ties_the_same_way_every_time():
+    # Preview and Apply must agree, so a tie picks the smallest value, not any of them.
+    frame = pl.DataFrame({"x": ["b", "a", None, "a", "b"]})
+    for _ in range(20):
+        result = run(frame, "fill_null", column="x", strategy="mode")
+        assert result["x"].to_list() == ["b", "a", "a", "a", "b"]
+
+
 def test_convert_with_null_policy_turns_unconvertible_values_missing():
     frame = pl.DataFrame({"x": ["1", "two", None]})
     result = run(frame, "convert_type", column="x", to="integer", on_error="null")

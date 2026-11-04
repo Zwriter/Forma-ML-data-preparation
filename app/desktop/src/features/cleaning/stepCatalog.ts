@@ -11,6 +11,24 @@ type StepDefinition = {
   summary: (parameters: Parameters) => string[];
 };
 
+/** Wording shared by the step forms and the step cards. */
+export const fillLabels: Record<string, string> = {
+  constant: 'Fixed value',
+  mean: 'Average',
+  median: 'Median',
+  mode: 'Most frequent value',
+  previous: 'Previous value',
+  next: 'Next value',
+};
+
+export const targetLabels: Record<string, string> = {
+  string: 'Text',
+  integer: 'Whole number',
+  float: 'Decimal number',
+  boolean: 'True/false',
+  date: 'Date',
+};
+
 const names = (value: unknown) => (Array.isArray(value) ? value.join(', ') : '');
 const quoted = (value: unknown) => `"${String(value ?? '')}"`;
 
@@ -21,7 +39,7 @@ export const stepCatalog: Record<StepType, StepDefinition> = {
     defaults: (columns) => ({ column: columns[0]?.name ?? '', strategy: 'constant', value: '' }),
     summary: (p) => [
       `Column: ${p.column}`,
-      `Strategy: ${p.strategy}`,
+      `Fill with: ${fillLabels[String(p.strategy)] ?? p.strategy}`,
       ...(p.strategy === 'constant' ? [`Value: ${p.value}`] : []),
     ],
   },
@@ -45,7 +63,7 @@ export const stepCatalog: Record<StepType, StepDefinition> = {
     title: 'Convert type',
     icon: 'datatype',
     defaults: (columns) => ({ column: columns[0]?.name ?? '', to: 'string', on_error: 'fail' }),
-    summary: (p) => [`Column: ${p.column}`, `To: ${p.to}`],
+    summary: (p) => [`Column: ${p.column}`, `Convert to: ${targetLabels[String(p.to)] ?? p.to}`],
   },
   split_column: {
     title: 'Split column',
@@ -101,7 +119,7 @@ export const stepCatalog: Record<StepType, StepDefinition> = {
   rename_columns: {
     title: 'Rename columns',
     icon: 'columns',
-    defaults: () => ({ mapping: {} }),
+    defaults: (columns) => ({ mapping: { [columns[0]?.name ?? '']: '' } }),
     summary: (p) => [
       Object.entries((p.mapping as Record<string, string>) ?? {})
         .map(([from, to]) => `${from} → ${to}`)

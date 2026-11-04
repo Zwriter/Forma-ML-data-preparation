@@ -7,7 +7,7 @@ import type {
   StepType,
   StepValidation,
 } from '../types/cleaning';
-import type { Dataset } from '../types/dataset';
+import type { Column, Dataset } from '../types/dataset';
 
 type Parameters = Record<string, unknown>;
 
@@ -19,7 +19,11 @@ type State = {
   previewError: string;
   panel: 'open' | 'collapsed';
   validation: StepValidation[];
+  /** From validate: `stepColumns[i]` is what step i sees; the last entry follows every step. */
+  stepColumns: Column[][];
   applyJobId: string | null;
+  /** Last apply job that ended; its acknowledgement may arrive after its final event. */
+  finishedJobId: string | null;
   add: (fileId: string, type: StepType, parameters: Parameters) => void;
   update: (fileId: string, id: string, parameters: Parameters, type?: StepType) => void;
   toggle: (fileId: string, id: string) => void;
@@ -32,8 +36,9 @@ type State = {
   setPreview: (preview: CleaningPreview | null) => void;
   setPreviewStatus: (status: State['previewStatus'], error?: string) => void;
   setPanel: (panel: State['panel']) => void;
-  setValidation: (validation: StepValidation[]) => void;
+  setValidation: (validation: StepValidation[], stepColumns?: Column[][]) => void;
   setApplyJobId: (jobId: string | null) => void;
+  finishApply: (jobId: string) => void;
 };
 
 let sequence = 0;
@@ -53,7 +58,9 @@ export const useCleaningStore = create<State>((set) => {
     previewError: '',
     panel: 'open',
     validation: [],
+    stepColumns: [],
     applyJobId: null,
+    finishedJobId: null,
     add: (fileId, type, parameters) => {
       change(fileId, (steps) => [...steps, { id: nextId(), type, parameters, enabled: true }]);
       set({ panel: 'open' });
@@ -85,15 +92,24 @@ export const useCleaningStore = create<State>((set) => {
     clear: (fileId) =>
       set((state) => {
         const { [fileId]: _removed, ...drafts } = state.drafts;
-        return { drafts, preview: null, previewStatus: 'idle', previewError: '', validation: [] };
+        return {
+          drafts,
+          preview: null,
+          previewStatus: 'idle',
+          previewError: '',
+          validation: [],
+          stepColumns: [],
+        };
       }),
     openForm: (type, editingId = null, position) => set({ form: { type, editingId, position } }),
     closeForm: () => set({ form: null }),
     setPreview: (preview) => set({ preview, previewStatus: 'idle', previewError: '' }),
     setPreviewStatus: (previewStatus, previewError = '') => set({ previewStatus, previewError }),
     setPanel: (panel) => set({ panel }),
-    setValidation: (validation) => set({ validation }),
-    setApplyJobId: (applyJobId) => set({ applyJobId }),
+    setValidation: (validation, stepColumns = []) => set({ validation, stepColumns }),
+    setApplyJobId: (jobId) =>
+      set((state) => ({ applyJobId: jobId === state.finishedJobId ? null : jobId })),
+    finishApply: (jobId) => set({ applyJobId: null, finishedJobId: jobId }),
   };
 });
 

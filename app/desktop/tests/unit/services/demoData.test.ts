@@ -156,7 +156,7 @@ describe('browser demo CSV', () => {
       steps: [{ index: 0, operation_id: 'step-1', valid: true }],
     });
     expect(preview.rows.map((row) => row.values.code)).toEqual([null, 'IT']);
-    expect(preview.changed_cells).toEqual([{ row: 0, column: 'code' }]);
+    expect(preview.changed_cells).toEqual([{ row: 0, column: 'code', before: 'N/A' }]);
     expect(preview.columns.map((column) => column.origin)).toEqual(['city', 'code']);
     expect(preview.total_count).toBe(2);
   });

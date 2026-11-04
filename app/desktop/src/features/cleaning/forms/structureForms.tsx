@@ -4,11 +4,14 @@ import {
   Choice,
   ColumnPicker,
   MultiColumnPicker,
+  TextField,
   Toggle,
-  duplicateName,
+  columnNameError,
+  hasColumn,
   isNumericColumn,
 } from './formControls';
 import type { Parameters, StepFormDefinition, StepFormProps, Submission } from './formControls';
+import { RenameForm, submitRename } from './renameForm';
 
 const removeLabels = {
   drop_duplicates: 'Duplicate rows',
@@ -17,26 +20,6 @@ const removeLabels = {
 };
 
 const pickedColumns = (p: Parameters) => (Array.isArray(p.columns) ? (p.columns as string[]) : []);
-const duplicateError = (name: string) => ({
-  error: `Column name "${name}" is used more than once.`,
-});
-
-function TextField({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: unknown;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <label>
-      {label}
-      <input value={String(value ?? '')} onChange={(event) => onChange(event.target.value)} />
-    </label>
-  );
-}
 
 function RemoveForm({ parameters: p, columns, onChange, type, onTypeChange }: StepFormProps) {
   const legends: Record<string, string> = {
@@ -75,36 +58,9 @@ function submitColumnRemoval(p: Parameters, columns: Column[]): Submission {
   return { parameters: { columns: names } };
 }
 
-function RenameForm({ parameters: p, columns, onChange }: StepFormProps) {
-  const mapping = (p.mapping as Record<string, string>) ?? {};
-  return (
-    <fieldset className="column-checklist rename-list">
-      <legend>New names (leave blank to keep a name)</legend>
-      {columns.map((column) => (
-        <TextField
-          key={column.name}
-          label={`New name for ${column.name}`}
-          value={mapping[column.name]}
-          onChange={(name) => onChange({ ...p, mapping: { ...mapping, [column.name]: name } })}
-        />
-      ))}
-    </fieldset>
-  );
-}
-
-function submitRename(p: Parameters, columns: Column[]): Submission {
-  const entries = Object.entries((p.mapping as Record<string, string>) ?? {})
-    .map(([from, to]) => [from, to.trim()])
-    .filter(([from, to]) => to && to !== from);
-  if (!entries.length) return { error: 'Enter a new name for at least one column.' };
-  const mapping = Object.fromEntries(entries);
-  const clash = duplicateName(columns.map((column) => mapping[column.name] ?? column.name));
-  return clash ? duplicateError(clash) : { parameters: { mapping } };
-}
-
 const partNames = (column: unknown) => [`${column}_1`, `${column}_2`];
 
-function SplitForm({ parameters: p, columns, onChange }: StepFormProps) {
+function SplitForm({ parameters: p, columns, onChange, errorFor }: StepFormProps) {
   const into = Array.isArray(p.into) ? (p.into as string[]) : [];
   return (
     <>
@@ -119,12 +75,16 @@ function SplitForm({ parameters: p, columns, onChange }: StepFormProps) {
       />
       <TextField
         label="Separator"
+        name="separator"
         value={p.separator}
+        error={errorFor('separator')}
         onChange={(separator) => onChange({ ...p, separator })}
       />
       <TextField
         label="New column names (comma-separated)"
+        name="into"
         value={into.join(',')}
+        error={errorFor('into')}
         onChange={(text) => onChange({ ...p, into: text.split(',') })}
       />
       <Toggle
@@ -136,17 +96,25 @@ function SplitForm({ parameters: p, columns, onChange }: StepFormProps) {
   );
 }
 
-function submitSplit(p: Parameters): Submission {
-  if (!p.column) return { error: 'Select a column.' };
-  if (!p.separator) return { error: 'Enter a separator.' };
+function submitSplit(p: Parameters, columns: Column[]): Submission {
+  if (!hasColumn(columns, p.column)) return { error: 'Select a column.' };
+  if (!p.separator) return { error: 'Enter a separator.', field: 'separator' };
   const into = (Array.isArray(p.into) ? (p.into as string[]) : []).map((name) => name.trim());
-  if (into.filter(Boolean).length < 2) return { error: 'Enter at least two new column names.' };
-  if (into.some((name) => !name)) return { error: 'Remove the empty column name.' };
-  const clash = duplicateName(into);
-  return clash ? duplicateError(clash) : { parameters: { ...p, into } };
+  const field = 'into';
+  if (into.filter(Boolean).length < 2)
+    return { error: 'Enter at least two new column names.', field };
+  if (into.some((name) => !name)) return { error: 'Remove the empty column name.', field };
+  const kept = columns
+    .map((column) => column.name)
+    .filter((name) => !(p.drop_original && name === p.column));
+  for (const [index, name] of into.entries()) {
+    const error = columnNameError(name, [...kept, ...into.slice(0, index)]);
+    if (error) return { error, field };
+  }
+  return { parameters: { ...p, into } };
 }
 
-function MergeForm({ parameters: p, columns, onChange }: StepFormProps) {
+function MergeForm({ parameters: p, columns, onChange, errorFor }: StepFormProps) {
   const picked = pickedColumns(p);
   return (
     <>
@@ -159,12 +127,15 @@ function MergeForm({ parameters: p, columns, onChange }: StepFormProps) {
       {picked.length > 0 && <p className="field-hint">Order: {picked.join(', ')}</p>}
       <TextField
         label="Separator"
+        name="separator"
         value={p.separator}
         onChange={(separator) => onChange({ ...p, separator })}
       />
       <TextField
         label="New column name"
+        name="into"
         value={p.into}
+        error={errorFor('into')}
         onChange={(into) => onChange({ ...p, into })}
       />
       <Toggle
@@ -176,10 +147,16 @@ function MergeForm({ parameters: p, columns, onChange }: StepFormProps) {
   );
 }
 
-function submitMerge(p: Parameters): Submission {
-  if (pickedColumns(p).length < 2) return { error: 'Select at least two columns to merge.' };
+function submitMerge(p: Parameters, columns: Column[]): Submission {
+  const sources = pickedColumns(p);
+  if (sources.length < 2) return { error: 'Select at least two columns to merge.' };
   const into = String(p.into ?? '').trim();
-  if (!into) return { error: 'Enter a name for the merged column.' };
+  if (!into) return { error: 'Enter a name for the merged column.', field: 'into' };
+  const kept = columns
+    .map((column) => column.name)
+    .filter((name) => !(p.drop_sources && sources.includes(name)));
+  const error = columnNameError(into, kept);
+  if (error) return { error, field: 'into' };
   return { parameters: { ...p, separator: String(p.separator ?? ''), into } };
 }
 

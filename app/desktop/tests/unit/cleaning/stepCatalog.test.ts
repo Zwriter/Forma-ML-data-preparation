@@ -57,19 +57,24 @@ describe('step catalog', () => {
     [
       'fill_null',
       { column: 'TotalCharges', strategy: 'median' },
-      'Column: TotalCharges • Strategy: median',
+      'Column: TotalCharges • Fill with: Median',
     ],
     [
       'fill_null',
       { column: 'x', strategy: 'constant', value: 0 },
-      'Column: x • Strategy: constant • Value: 0',
+      'Column: x • Fill with: Fixed value • Value: 0',
     ],
     [
       'replace_values',
       { columns: ['a', 'b'], find: 'N/A', replace: null },
       'Columns: a, b • Find: "N/A" • Replace with: missing',
     ],
-    ['convert_type', { column: 'x', to: 'integer' }, 'Column: x • To: integer'],
+    [
+      'fill_null',
+      { column: 'plan', strategy: 'mode' },
+      'Column: plan • Fill with: Most frequent value',
+    ],
+    ['convert_type', { column: 'x', to: 'integer' }, 'Column: x • Convert to: Whole number'],
     [
       'split_column',
       { column: 'name', separator: ' ', into: ['first', 'last'] },

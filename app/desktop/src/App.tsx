@@ -58,7 +58,7 @@ export default function App() {
     setOverwriteDestination(destination ?? null);
     setSaveDialogMode('overwrite');
   }, []);
-  const { save, undo, redo, cancelPendingSave } = useWorkspaceHistory({
+  const { save, undo, redo } = useWorkspaceHistory({
     onOverwriteRequired: openOverwriteDialog,
   });
 
@@ -237,7 +237,6 @@ export default function App() {
           onSave={saveFromDialog}
           onDiscard={fileTabs.discardClose}
           onCancel={() => {
-            cancelPendingSave();
             setOverwriteDestination(null);
             fileTabs.cancelClose();
           }}

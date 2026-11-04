@@ -29,6 +29,7 @@ export function CleanTab({
   const steps = useCleaningStore((state) => state.drafts[fileId] ?? noSteps);
   const form = useCleaningStore((state) => state.form);
   const validation = useCleaningStore((state) => state.validation);
+  const stepColumns = useCleaningStore((state) => state.stepColumns);
   const applyJobId = useCleaningStore((state) => state.applyJobId);
   const live = useCleaningStore((state) => state.preview);
   const previewStatus = useCleaningStore((state) => state.previewStatus);
@@ -46,7 +47,7 @@ export function CleanTab({
     if (!steps.length) setValidation([]);
     else
       validate(steps)
-        .then((result) => current && setValidation(result?.steps ?? []))
+        .then((result) => current && setValidation(result?.steps ?? [], result?.columns))
         .catch(() => current && setValidation([]));
     return () => {
       current = false;
@@ -57,6 +58,11 @@ export function CleanTab({
   const enabled = steps.filter((step) => step.enabled);
   const invalid = validation.some((item) => !item.valid);
   const editing = steps.find((step) => step.id === form?.editingId);
+  // A form offers the columns that exist at its step; a new step goes after all of them.
+  const formColumns =
+    stepColumns[editing ? steps.indexOf(editing) : steps.length] ??
+    stepColumns.at(-1) ??
+    dataset.schema;
   const shown = live ? toWorksheet(dataset.dataset_id, live) : null;
 
   async function runApply() {
@@ -117,9 +123,8 @@ export function CleanTab({
           // A new form (another command or step) starts from its own parameters.
           key={`${form.type}:${form.editingId}`}
           form={form}
-          // shortcut: offers the current dataset's columns, not those left by earlier steps; validate flags mismatches.
-          columns={dataset.schema}
-          parameters={editing?.parameters ?? stepCatalog[form.type].defaults(dataset.schema)}
+          columns={formColumns}
+          parameters={editing?.parameters ?? stepCatalog[form.type].defaults(formColumns)}
           onClose={cleaning.closeForm}
           onSave={(parameters, type) => {
             if (editing) cleaning.update(fileId, editing.id, parameters, type);

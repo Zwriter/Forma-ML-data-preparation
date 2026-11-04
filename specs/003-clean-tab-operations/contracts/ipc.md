@@ -15,9 +15,13 @@ Response:
   "steps": [
     { "index": 0, "operation_id": "s1", "valid": true },
     { "index": 1, "operation_id": "s2", "valid": false, "message": "Select an existing column." }
-  ]
+  ],
+  "columns": [[{ "name": "a", "type": "Int64", "nullable": true }], "…one list per step, plus the result"]
 }
 ```
+
+- `columns[i]` is the schema step `i` sees (after earlier enabled, valid steps); the last entry is
+  the schema after every step. Step forms offer these columns (added 2026-11-04).
 
 - `operations` must be a list of objects, else `INVALID_REQUEST`.
 - Unsupported types and bad parameters are reported per step, never raised.
@@ -63,7 +67,7 @@ Response:
     { "values": { "TotalCharges": 29.85, "first_name": "Ana" }, "removed": false },
     { "values": { "TotalCharges": null, "first_name": "Dan" }, "removed": true }
   ],
-  "changed_cells": [{ "row": 0, "column": "TotalCharges" }],
+  "changed_cells": [{ "row": 0, "column": "TotalCharges", "before": null }],
   "offset": 0,
   "limit": 100,
   "total_count": 7043,
@@ -80,6 +84,7 @@ Response:
 - `columns` is the result schema after projection; `origin` is the lineage source name or `null`
   for columns added by steps. Columns removed by steps are absent.
 - `changed_cells.row` indexes `rows`; values are compared as text (`"1"` → `1` is unchanged).
+  `before` is the source value, so the worksheet shows `before → new` (added 2026-11-04).
   Missing cells need no marker: the UI marks `null` values itself.
 - `total_count` is the number of source rows after `search`, for worksheet paging.
 - `summary` covers the full dataset and ignores `offset`, `limit`, `columns`, and `search`. The

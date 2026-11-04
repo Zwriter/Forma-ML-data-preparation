@@ -13,4 +13,10 @@ describe('buildSaveCopyDestination', () => {
       '/data/sales-copy-2026-01-03.parquet',
     );
   });
+
+  it('numbers later attempts when the first name is taken', () => {
+    expect(buildSaveCopyDestination('/data/sales.csv', 'csv', new Date(2026, 0, 3), 3)).toBe(
+      '/data/sales-copy-2026-01-03-3.csv',
+    );
+  });
 });

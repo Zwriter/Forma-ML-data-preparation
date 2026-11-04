@@ -41,7 +41,7 @@ function respond(method: string, params: Record<string, any>) {
     return {
       columns: schema.slice(0, 2).map((column) => ({ ...column, origin: column.name })),
       rows: [{ values: { city: 'Oslo', code: null }, removed: false }],
-      changed_cells: [{ row: 0, column: 'code' }],
+      changed_cells: [{ row: 0, column: 'code', before: 'N/A' }],
       offset: 0,
       limit: 100,
       total_count: 1,
@@ -105,8 +105,8 @@ describe('Clean tab workflow', () => {
     fireEvent.click(dialog.getByLabelText('Replace with a missing value'));
     fireEvent.click(dialog.getByRole('button', { name: 'Add step' }));
 
-    const changed = await screen.findByText('(changed)', { exact: false });
-    expect(changed.closest('td')?.textContent).toBe('missing (changed)');
+    const changed = await screen.findByText('changed to', { exact: false });
+    expect(changed.closest('td')?.textContent).toBe('N/A → changed to missing');
     expect(screen.getByRole('complementary', { name: 'Cleaning steps' })).toBeTruthy();
     const preview = request.mock.calls.find(([method]) => method === 'cleaning.preview');
     expect(preview?.[1]).toMatchObject({

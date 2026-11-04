@@ -124,7 +124,7 @@ class CleaningPreviewer:
                 }
             )
             changed += [
-                {"row": index, "column": name}
+                {"row": index, "column": name, "before": original[origin]}
                 for name, origin in visible
                 if origin and _text(original[origin]) != _text(result[name])
             ]

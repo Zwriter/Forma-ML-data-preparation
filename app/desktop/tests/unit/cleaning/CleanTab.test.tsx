@@ -42,7 +42,7 @@ function respond(method: string, params: Record<string, any>) {
         { values: { TotalCharges: 0 }, removed: false },
         { values: { TotalCharges: 2 }, removed: true },
       ],
-      changed_cells: [{ row: 0, column: 'TotalCharges' }],
+      changed_cells: [{ row: 0, column: 'TotalCharges', before: null }],
       offset: 0,
       limit: 100,
       total_count: 2,
@@ -64,7 +64,7 @@ function respond(method: string, params: Record<string, any>) {
 const worksheet = vi.fn((page: Preview | null, markers?: WorksheetMarkers) => (
   <div data-testid="worksheet">
     {JSON.stringify(page?.records)}
-    {markers ? ` changed:${[...markers.changed]} removed:${[...markers.removed]}` : ''}
+    {markers ? ` changed:${[...markers.changed.keys()]} removed:${[...markers.removed]}` : ''}
   </div>
 ));
 
@@ -102,6 +102,8 @@ describe('Clean tab', () => {
       previewError: '',
       panel: 'open',
       applyJobId: null,
+      finishedJobId: null,
+      stepColumns: [],
     });
     useDatasetStore.setState({ dataset: null, preview: null, activeFileId: null });
     useWorkspaceStore.setState({ busy: false, error: null });
@@ -241,5 +243,26 @@ describe('Clean tab', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Discard steps' }));
     expect(screen.queryByRole('complementary')).toBeNull();
     expect(request).not.toHaveBeenCalledWith('cleaning.apply', expect.anything());
+  });
+
+  it('offers the columns that exist after earlier steps', async () => {
+    const renamed = { ...column, name: 'Total' };
+    request.mockImplementation(async (method: string, params: Record<string, any>) =>
+      method === 'cleaning.validate'
+        ? { ...respond(method, params), columns: [[column], [renamed]] }
+        : respond(method, params),
+    );
+    render(<CleanTab worksheet={worksheet} />);
+    act(() =>
+      useCleaningStore
+        .getState()
+        .add('file-1', 'rename_columns', { mapping: { TotalCharges: 'Total' } }),
+    );
+    await waitFor(() => expect(useCleaningStore.getState().stepColumns).toHaveLength(2));
+
+    act(() => useCleaningStore.getState().openForm('fill_null'));
+    const dialog = within(screen.getByRole('dialog', { name: 'Fill missing values' }));
+    const offered = within(dialog.getByLabelText('Column')).getAllByRole('option');
+    expect(offered.map((option) => option.textContent)).toEqual(['Total']);
   });
 });

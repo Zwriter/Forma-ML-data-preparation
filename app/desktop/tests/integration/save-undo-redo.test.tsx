@@ -218,7 +218,7 @@ describe('workspace Save, Undo, and Redo', () => {
     });
   });
 
-  it('confirms and overwrites an existing copy destination', async () => {
+  it('never replaces an older copy: it takes the next free name without asking', async () => {
     Object.defineProperty(window, '__TAURI_INTERNALS__', { value: {}, configurable: true });
     useDatasetStore.getState().setSource(dataset, preview);
     useSettingsStore.getState().setSaveBehavior('copy');
@@ -229,7 +229,7 @@ describe('workspace Save, Undo, and Redo', () => {
         result: null,
         error: { code: 'SAVE_REQUIRED', message: 'This will replace the destination file.' },
       })
-      .mockResolvedValueOnce({
+      .mockResolvedValue({
         id: 'save-copy-2',
         status: 'success',
         result: { job_id: 'save-copy-job', state: 'pending' },
@@ -238,15 +238,19 @@ describe('workspace Save, Undo, and Redo', () => {
     render(<App />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-    const destination = buildSaveCopyDestination(dataset.source_path, dataset.format);
-    const confirmation = await screen.findByRole('dialog', { name: 'Replace destination file?' });
-    expect(confirmation.textContent).toContain(destination);
-    fireEvent.click(within(confirmation).getByRole('button', { name: 'Replace file' }));
-
     await waitFor(() => expect(invoke).toHaveBeenCalledTimes(2));
+    const first = buildSaveCopyDestination(dataset.source_path, dataset.format);
+    const second = buildSaveCopyDestination(dataset.source_path, dataset.format, new Date(), 2);
+    expect(screen.queryByRole('dialog', { name: 'Replace destination file?' })).toBeNull();
+
+    // Saving again updates the copy this session wrote instead of making another one.
+    act(() => useWorkspaceStore.setState({ busy: false }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => expect(invoke).toHaveBeenCalledTimes(3));
     expect(invoke.mock.calls.map((call) => call[1].request.params)).toEqual([
-      { dataset_id: 'dataset-1', force_overwrite: false, destination },
-      { dataset_id: 'dataset-1', force_overwrite: true, destination },
+      { dataset_id: 'dataset-1', force_overwrite: false, destination: first },
+      { dataset_id: 'dataset-1', force_overwrite: false, destination: second },
+      { dataset_id: 'dataset-1', force_overwrite: true, destination: second },
     ]);
   });
 

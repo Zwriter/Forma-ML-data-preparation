@@ -2,6 +2,7 @@ export function buildSaveCopyDestination(
   sourcePath: string,
   format: 'csv' | 'parquet',
   date = new Date(),
+  attempt = 1,
 ): string {
   const separatorIndex = Math.max(sourcePath.lastIndexOf('/'), sourcePath.lastIndexOf('\\'));
   const directory = sourcePath.slice(0, separatorIndex + 1);
@@ -11,5 +12,6 @@ export function buildSaveCopyDestination(
     .map((part, index) => String(part).padStart(index === 0 ? 4 : 2, '0'))
     .join('-');
 
-  return `${directory}${baseName}-copy-${dateLabel}.${format}`;
+  const number = attempt > 1 ? `-${attempt}` : '';
+  return `${directory}${baseName}-copy-${dateLabel}${number}.${format}`;
 }

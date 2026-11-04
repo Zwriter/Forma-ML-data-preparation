@@ -34,6 +34,7 @@ describe('cleaning store', () => {
       panel: 'open',
       validation: [],
       applyJobId: null,
+      finishedJobId: null,
     });
   });
 

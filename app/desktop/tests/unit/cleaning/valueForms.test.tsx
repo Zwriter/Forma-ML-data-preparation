@@ -138,4 +138,15 @@ describe('value step forms', () => {
     fireEvent.submit(screen.getByLabelText('Column').closest('form')!);
     expect(onSave).toHaveBeenCalledWith({ column: 'city', to: 'string', on_error: 'fail' });
   });
+
+  it('asks for a column again when the saved one no longer exists', () => {
+    const onSave = open('fill_null', { column: 'signup_date', strategy: 'mode' });
+    const select = screen.getByLabelText('Column') as HTMLSelectElement;
+    expect(select.selectedOptions[0].textContent).toBe('Select a column');
+    save();
+    expect(screen.getByRole('alert').textContent).toBe('Select a column.');
+    fireEvent.change(select, { target: { value: 'city' } });
+    save();
+    expect(onSave).toHaveBeenCalledWith({ column: 'city', strategy: 'mode' });
+  });
 });

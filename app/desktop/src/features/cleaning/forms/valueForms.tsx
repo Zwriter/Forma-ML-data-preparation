@@ -1,27 +1,20 @@
 import type { Column } from '../../../types/dataset';
 import type { StepType } from '../../../types/cleaning';
-import { Choice, ColumnPicker, MultiColumnPicker, Toggle, isNumericColumn } from './formControls';
+import {
+  Choice,
+  ColumnPicker,
+  MultiColumnPicker,
+  TextField,
+  Toggle,
+  hasColumn,
+  isNumericColumn,
+} from './formControls';
+import { fillLabels, targetLabels } from '../stepCatalog';
 import type { Parameters, StepFormDefinition, StepFormProps, Submission } from './formControls';
 
-const fillLabels: Record<string, string> = {
-  constant: 'Fixed value',
-  mean: 'Average',
-  median: 'Median',
-  mode: 'Most frequent value',
-  previous: 'Previous value',
-  next: 'Next value',
-};
 const numericOnly = ['mean', 'median'];
 
-const targetLabels: Record<string, string> = {
-  string: 'Text',
-  integer: 'Whole number',
-  float: 'Decimal number',
-  boolean: 'True/false',
-  date: 'Date',
-};
-
-function FillForm({ parameters: p, columns, onChange }: StepFormProps) {
+function FillForm({ parameters: p, columns, onChange, errorFor }: StepFormProps) {
   const numeric = isNumericColumn(columns, p.column);
   const strategies = Object.fromEntries(
     Object.entries(fillLabels).filter(([key]) => numeric || !numericOnly.includes(key)),
@@ -45,32 +38,32 @@ function FillForm({ parameters: p, columns, onChange }: StepFormProps) {
         onChange={(strategy) => onChange({ ...p, strategy })}
       />
       {p.strategy === 'constant' && (
-        <label>
-          Value
-          <input
-            value={String(p.value ?? '')}
-            onChange={(event) => onChange({ ...p, value: event.target.value })}
-          />
-        </label>
+        <TextField
+          label="Value"
+          name="value"
+          value={p.value}
+          error={errorFor('value')}
+          onChange={(value) => onChange({ ...p, value })}
+        />
       )}
     </>
   );
 }
 
 function submitFill(p: Parameters, columns: Column[]): Submission {
-  if (!p.column) return { error: 'Select a column.' };
+  if (!hasColumn(columns, p.column)) return { error: 'Select a column.' };
   const base = { column: p.column, strategy: p.strategy };
   if (p.strategy !== 'constant') return { parameters: base };
   const text = String(p.value ?? '').trim();
-  if (!text) return { error: 'Enter the value to fill missing cells with.' };
+  if (!text) return { error: 'Enter the value to fill missing cells with.', field: 'value' };
   if (!isNumericColumn(columns, p.column)) return { parameters: { ...base, value: p.value } };
   const value = Number(text);
   return Number.isFinite(value)
     ? { parameters: { ...base, value } }
-    : { error: 'Enter a number for this numeric column.' };
+    : { error: 'Enter a number for this numeric column.', field: 'value' };
 }
 
-function ReplaceForm({ parameters: p, columns, onChange }: StepFormProps) {
+function ReplaceForm({ parameters: p, columns, onChange, errorFor }: StepFormProps) {
   const missing = p.replace === null;
   return (
     <>
@@ -80,13 +73,13 @@ function ReplaceForm({ parameters: p, columns, onChange }: StepFormProps) {
         value={p.columns}
         onChange={(names) => onChange({ ...p, columns: names })}
       />
-      <label>
-        Find
-        <input
-          value={String(p.find ?? '')}
-          onChange={(event) => onChange({ ...p, find: event.target.value })}
-        />
-      </label>
+      <TextField
+        label="Find"
+        name="find"
+        value={p.find}
+        error={errorFor('find')}
+        onChange={(find) => onChange({ ...p, find })}
+      />
       <label>
         Replace with
         <input
@@ -117,7 +110,8 @@ function ReplaceForm({ parameters: p, columns, onChange }: StepFormProps) {
 function submitReplace(p: Parameters): Submission {
   if (!Array.isArray(p.columns) || !p.columns.length)
     return { error: 'Select at least one column.' };
-  if (p.match === 'contains' && !p.find) return { error: 'Enter the text to find inside cells.' };
+  if (p.match === 'contains' && !p.find)
+    return { error: 'Enter the text to find inside cells.', field: 'find' };
   return { parameters: p };
 }
 
@@ -151,6 +145,7 @@ export const valueForms = {
   replace_values: { Form: ReplaceForm, submit: submitReplace },
   convert_type: {
     Form: ConvertForm,
-    submit: (p) => (p.column ? { parameters: p } : { error: 'Select a column.' }),
+    submit: (p, columns) =>
+      hasColumn(columns, p.column) ? { parameters: p } : { error: 'Select a column.' },
   },
 } satisfies Partial<Record<StepType, StepFormDefinition>>;

@@ -22,7 +22,9 @@ export function toWorksheet(
       total_count: preview.total_count,
     },
     markers: {
-      changed: new Set(preview.changed_cells.map((cell) => `${cell.row}:${cell.column}`)),
+      changed: new Map(
+        preview.changed_cells.map((cell) => [`${cell.row}:${cell.column}`, cell.before]),
+      ),
       removed: new Set(preview.rows.flatMap((row, index) => (row.removed ? [index] : []))),
       columnNotes,
     },

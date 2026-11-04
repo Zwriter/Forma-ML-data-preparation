@@ -21,13 +21,11 @@ def test_valid_steps_report_each_index():
             step("fill_null", "s2", column="a", strategy="mean"),
         ],
     )
-    assert result == {
-        "valid": True,
-        "steps": [
-            {"index": 0, "operation_id": "s1", "valid": True},
-            {"index": 1, "operation_id": "s2", "valid": True},
-        ],
-    }
+    assert result["valid"] is True
+    assert result["steps"] == [
+        {"index": 0, "operation_id": "s1", "valid": True},
+        {"index": 1, "operation_id": "s2", "valid": True},
+    ]
 
 
 def test_steps_validate_against_columns_from_preceding_steps():
@@ -70,3 +68,27 @@ def test_disabled_steps_are_not_applied_or_checked():
 def test_unsupported_or_malformed_steps_are_reported_not_raised():
     result = StepValidator().validate(FRAME, [{"type": "evil"}, "not-an-object"])
     assert [item["valid"] for item in result["steps"]] == [False, False]
+
+
+def names(columns: list) -> list:
+    return [column["name"] for column in columns]
+
+
+def test_reports_the_columns_each_step_sees_and_the_final_columns():
+    result = StepValidator().validate(
+        FRAME,
+        [
+            step("rename_columns", "s1", mapping={"a": "amount"}),
+            step("drop_columns", "s2", enabled=False, columns=["b"]),
+            step("fill_null", "s3", column="missing", strategy="previous"),
+            step("drop_columns", "s4", columns=["b"]),
+        ],
+    )
+    assert [names(columns) for columns in result["columns"]] == [
+        ["a", "b"],
+        ["amount", "b"],
+        ["amount", "b"],
+        ["amount", "b"],
+        ["amount"],
+    ]
+    assert result["columns"][0][0] == {"name": "a", "type": "Int64", "nullable": True}

@@ -49,7 +49,7 @@ export function useWorkflowJobEvents(
       const job = event.payload;
       if (job.kind === 'clean' && ['completed', 'failed', 'cancelled'].includes(job.state)) {
         const cleaning = useCleaningStore.getState();
-        cleaning.setApplyJobId(null);
+        cleaning.finishApply(job.job_id);
         // The draft key is the open file, which survives the dataset swap below.
         if (job.state === 'completed') cleaning.clear(draftKey(useDatasetStore.getState()));
       }

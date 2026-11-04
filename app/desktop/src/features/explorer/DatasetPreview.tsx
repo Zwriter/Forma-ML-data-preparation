@@ -192,6 +192,7 @@ export function DatasetPreview({
                         <MarkedValue
                           value={record[column.name]}
                           changed={markers.changed.has(`${index}:${column.name}`)}
+                          before={markers.changed.get(`${index}:${column.name}`)}
                           removed={position === 0 && markers.removed.has(index)}
                         />
                       ) : (
@@ -218,24 +219,45 @@ export function DatasetPreview({
   );
 }
 
+function CellValue({ value }: { value: unknown }) {
+  return value === null || value === undefined ? (
+    <em className="cell-missing">missing</em>
+  ) : (
+    <>{String(value)}</>
+  );
+}
+
+/** A changed cell reads "old → new"; the arrow is spoken as "changed to". */
 function MarkedValue({
   value,
   changed,
+  before,
   removed,
 }: {
   value: unknown;
   changed: boolean;
+  before: unknown;
   removed: boolean;
 }) {
   return (
     <>
       {removed && <span className="cell-flag">Removed</span>}
-      {value === null || value === undefined ? (
-        <em className="cell-missing">missing</em>
+      {changed ? (
+        <>
+          <span className="cell-before">
+            <CellValue value={before} />
+          </span>
+          <span className="cell-arrow" aria-hidden="true">
+            {' → '}
+          </span>
+          <span className="sr-only">changed to </span>
+          <span className="cell-after">
+            <CellValue value={value} />
+          </span>
+        </>
       ) : (
-        String(value)
+        <CellValue value={value} />
       )}
-      {changed && <span className="sr-only"> (changed)</span>}
     </>
   );
 }

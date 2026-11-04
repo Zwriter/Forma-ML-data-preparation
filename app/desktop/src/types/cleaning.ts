@@ -53,7 +53,7 @@ export type ChangeSummary = {
 export type CleaningPreview = {
   columns: (Column & { origin: string | null })[];
   rows: { values: Record<string, unknown>; removed: boolean }[];
-  changed_cells: { row: number; column: string }[];
+  changed_cells: { row: number; column: string; before: unknown }[];
   offset: number;
   limit: number;
   total_count: number;
@@ -61,7 +61,8 @@ export type CleaningPreview = {
 };
 
 export type WorksheetMarkers = {
-  changed: Set<string>;
+  /** `row:column` → the value before the steps ran. */
+  changed: Map<string, unknown>;
   removed: Set<number>;
   columnNotes: Record<string, string>;
 };

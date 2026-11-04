@@ -12,7 +12,7 @@ const preview: CleaningPreview = {
     { values: { total: 0, id: 'b', key: 'b-1' }, removed: false },
     { values: { total: null, id: 'b', key: null }, removed: true },
   ],
-  changed_cells: [{ row: 0, column: 'total' }],
+  changed_cells: [{ row: 0, column: 'total', before: null }],
   offset: 20,
   limit: 50,
   total_count: 90,
@@ -42,7 +42,7 @@ describe('preview markers', () => {
       limit: 50,
       total_count: 90,
     });
-    expect([...markers.changed]).toEqual(['0:total']);
+    expect([...markers.changed]).toEqual([['0:total', null]]);
     expect([...markers.removed]).toEqual([1]);
     expect(markers.columnNotes).toEqual({ total: 'Renamed from charges', key: 'New column' });
   });

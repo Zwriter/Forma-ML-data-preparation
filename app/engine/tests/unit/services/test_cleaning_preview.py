@@ -40,7 +40,8 @@ def test_page_keeps_removed_rows_in_place_and_marks_changed_cells():
         {"values": {"id": "b", "charges": None, "flag": "1"}, "removed": True},
         {"values": {"id": "c", "charges": 5.0, "flag": "0"}, "removed": False},
     ]
-    assert result["changed_cells"] == [{"row": 1, "column": "charges"}]
+    # Each changed cell carries its source value so the worksheet can show old -> new.
+    assert result["changed_cells"] == [{"row": 1, "column": "charges", "before": None}]
     assert [(c["name"], c["origin"]) for c in result["columns"]] == [
         ("id", "id"),
         ("charges", "charges"),
@@ -61,7 +62,7 @@ def test_page_keeps_removed_rows_in_place_and_marks_changed_cells():
 def test_pages_over_source_rows_while_summary_covers_the_full_dataset():
     result = preview(FILL_AND_DEDUPE, offset=1, limit=2)
     assert ids(result) == [("b", False), ("b", True)]
-    assert result["changed_cells"] == [{"row": 0, "column": "charges"}]
+    assert result["changed_cells"] == [{"row": 0, "column": "charges", "before": None}]
     assert result["total_count"] == 4
     assert result["summary"]["rows_removed"] == 1
 
@@ -159,7 +160,7 @@ def test_column_changes_are_reported_and_renamed_values_compared():
     assert summary["columns_removed"] == ["flag"]
     assert summary["columns_renamed"] == [{"from": "charges", "to": "total"}]
     assert summary["values_changed"] == 2
-    assert {"row": 1, "column": "total"} in result["changed_cells"]
+    assert {"row": 1, "column": "total", "before": None} in result["changed_cells"]
     assert [c["name"] for c in result["columns"]] == ["id", "total", "key"]
 
 
@@ -185,3 +186,22 @@ def test_page_rows_are_bounded_by_limit():
     result = preview([step("drop_duplicates")], frame=frame, limit=3)
     assert len(result["rows"]) == 3
     assert result["summary"]["rows_before"] == 10
+
+
+def test_changed_cells_carry_the_replaced_value():
+    result = preview(
+        [
+            step(
+                "replace_values",
+                columns=["flag"],
+                find="1",
+                replace="yes",
+                match="whole",
+                case_sensitive=False,
+            )
+        ]
+    )
+    assert result["changed_cells"] == [
+        {"row": 1, "column": "flag", "before": "1"},
+        {"row": 2, "column": "flag", "before": "1"},
+    ]

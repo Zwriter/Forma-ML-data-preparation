@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { SaveBehaviorSetting } from '../../../src/features/settings/SaveBehaviorSetting';
 import { useSettingsStore } from '../../../src/stores/settingsStore';
@@ -9,6 +9,13 @@ afterEach(() => {
 });
 
 describe('save behavior setting', () => {
+  it('saves a copy by default until the user picks replace', async () => {
+    window.localStorage.removeItem('forma.save-behavior');
+    vi.resetModules();
+    const fresh = await import('../../../src/stores/settingsStore');
+    expect(fresh.useSettingsStore.getState().saveBehavior).toBe('copy');
+  });
+
   it('lets the user choose saving a copy and persists the choice', () => {
     const storage = new Map<string, string>();
     Object.defineProperty(window, 'localStorage', {
