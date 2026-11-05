@@ -125,6 +125,9 @@ def test_view_only_change_saves_without_writing_or_confirmation(tmp_path):
     result = jobs.work(lambda: False)
 
     assert result["rewritten"] is False
+    assert result["view"] == [
+        {"column": "name", "direction": "descending", "nulls": "last"}
+    ]
     assert result["destination"] == str(source.resolve())
     assert result["row_count"] == 2
     assert result["history"]["is_dirty"] is False
@@ -152,6 +155,7 @@ def test_view_only_save_to_a_new_copy_still_writes(tmp_path):
     )
 
     assert result["rewritten"] is True
+    assert result["view"][0]["column"] == "name"
     assert pl.read_csv(destination)["name"].to_list() == ["Ada", "Linus"]
 
 

@@ -47,6 +47,7 @@ class SaveService:
             "replaced_existing": False,
             "validated": True,
             "rewritten": False,
+            "view": entry.view,
             "history": self.datasets.history_service.mark_saved(
                 history_dataset_id, dataset.dataset_id
             ),
@@ -87,6 +88,7 @@ class SaveService:
         except Exception as exc:
             raise SaveError("The current dataset could not be safely saved.") from exc
         result["rewritten"] = True
+        result["view"] = entry.view
         result["history"] = self.datasets.history_service.mark_saved(
             history_dataset_id, dataset.dataset_id, str(target)
         )

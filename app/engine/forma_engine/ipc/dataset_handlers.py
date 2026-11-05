@@ -1,8 +1,10 @@
 from forma_engine.domain.errors import (
     CancelledError,
     HistoryBoundaryError,
+    InvalidTransformationError,
     RequestError,
 )
+from forma_engine.services.view_mask import validate_view
 
 
 def page_params(params: dict) -> tuple[int, list[str] | None, str | None]:
@@ -30,9 +32,14 @@ class DatasetHandlers:
         path = params.get("path")
         if not isinstance(path, str) or not path.strip():
             raise RequestError("Provide a local file path.")
+        view = params.get("view", [])
+        try:
+            validate_view(view, [])  # shape only; columns are checked after reading
+        except InvalidTransformationError as error:
+            raise RequestError(f"view: {error.message}") from error
         if "history_limit" in params:
             self.datasets.history_service.set_max_actions(params["history_limit"])
-        return self.datasets.open(path)
+        return self.datasets.open(path, view)
 
     def preview(self, params):
         self._dataset_id(params)

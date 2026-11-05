@@ -13,19 +13,20 @@ export function NotificationPopup() {
   }, [notification, dismiss]);
 
   if (!notification) return null;
+  const info = notification.kind === 'info';
   return (
     <div
       key={notification.id}
       className={`notification-popup ${notification.kind}`}
-      role="alert"
-      aria-live="assertive"
+      role={info ? 'status' : 'alert'}
+      aria-live={info ? 'polite' : 'assertive'}
     >
       <div className="notification-content">
         <span className="notification-icon" aria-hidden="true">
-          !
+          {info ? 'i' : '!'}
         </span>
         <div>
-          <h2>Action failed</h2>
+          <h2>{info ? 'Notice' : 'Action failed'}</h2>
           <p>{notification.message}</p>
         </div>
       </div>

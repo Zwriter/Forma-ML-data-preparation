@@ -32,6 +32,10 @@
   line-height: 1;
 }
 
+.notification-popup.info .notification-icon {
+  color: #2f5fb3;
+}
+
 .notification-content h2 {
   margin: 0 0 4px;
   color: #17213f;

@@ -3,6 +3,7 @@ import time
 import pytest
 
 from forma_engine.bootstrap import build_router
+from forma_engine.domain.errors import RequestError
 
 CITY_DESC = [{"column": "city", "direction": "descending", "nulls": "last"}]
 
@@ -73,3 +74,55 @@ def test_sort_with_empty_keys_clears_the_view(opened):
     assert [row["id"] for row in preview["records"]] == [1, 2, 3]
     assert preview["view"] == []
     assert result["history"]["is_dirty"] is True
+
+
+def test_open_applies_a_remembered_view_as_the_saved_state(tmp_path):
+    path = tmp_path / "people.csv"
+    path.write_text("id,city\n1,b\n2,z\n3,a\n", encoding="utf-8")
+    gone = {"column": "gone", "direction": "ascending", "nulls": "last"}
+    router, jobs = build_router()
+    try:
+        opened = router.dispatch(
+            "dataset.open", {"path": str(path), "view": [gone, *CITY_DESC]}
+        )
+        preview = router.dispatch(
+            "dataset.preview", {"dataset_id": opened["dataset_id"]}
+        )
+        history = router.dispatch(
+            "dataset.history", {"dataset_id": opened["dataset_id"]}
+        )
+    finally:
+        jobs.shutdown()
+
+    assert opened["view"] == CITY_DESC
+    assert opened["dropped_columns"] == ["gone"]
+    assert [row["id"] for row in preview["records"]] == [2, 1, 3]
+    assert history["is_dirty"] is False
+
+
+def test_open_without_a_view_reports_stored_order(tmp_path):
+    path = tmp_path / "people.csv"
+    path.write_text("id\n1\n", encoding="utf-8")
+    router, jobs = build_router()
+    try:
+        opened = router.dispatch("dataset.open", {"path": str(path)})
+    finally:
+        jobs.shutdown()
+
+    assert opened["view"] == []
+    assert opened["dropped_columns"] == []
+
+
+@pytest.mark.parametrize(
+    "view",
+    ["city", [None], [{"column": "city", "direction": "up", "nulls": "last"}]],
+)
+def test_open_rejects_a_malformed_view(tmp_path, view):
+    path = tmp_path / "people.csv"
+    path.write_text("city\nb\n", encoding="utf-8")
+    router, jobs = build_router()
+    try:
+        with pytest.raises(RequestError):
+            router.dispatch("dataset.open", {"path": str(path), "view": view})
+    finally:
+        jobs.shutdown()

@@ -29,7 +29,8 @@ with the same data and the new view; the job result is the usual `{ dataset, his
 ## `dataset.save` (extended result)
 
 Job result adds `rewritten: boolean` — `false` when only the view changed since the last save
-and no file was written.
+and no file was written — and `view: SortKey[]`, the saved entry's view, which the desktop
+remembers for the written path (and the source path on copy saves).
 
 ## `export.csv` / `export.parquet`
 

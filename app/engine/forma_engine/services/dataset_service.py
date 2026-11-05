@@ -5,7 +5,7 @@ from forma_engine.domain.errors import DatasetNotFoundError, RequestError
 from forma_engine.io.readers import scan, schema_for
 from forma_engine.io.schema_service import SchemaService
 from forma_engine.services.history_service import HistoryService
-from forma_engine.services.view_mask import SortKey, apply_view
+from forma_engine.services.view_mask import SortKey, apply_view, validate_view
 
 MAX_PREVIEW = 500
 
@@ -17,16 +17,19 @@ class DatasetService:
     schema_service: SchemaService = field(default_factory=SchemaService)
     history_service: HistoryService = field(default_factory=HistoryService)
 
-    def open(self, path: str) -> dict:
+    def open(self, path: str, view: list[SortKey] | None = None) -> dict:
+        """Open path with a remembered sort view; keys for missing columns drop."""
         frame = scan(path)
         metadata = self.schema_service.inspect(frame, path)
         dataset = Dataset(
             path, path.rsplit(".", 1)[-1].lower(), metadata["schema"], metadata["rows"]
         )
+        names = [column["name"] for column in dataset.schema]
+        kept, dropped = validate_view(view or [], names)
         self.datasets[dataset.dataset_id] = dataset
         self.frames[dataset.dataset_id] = frame
-        self.history_service.open(dataset, frame)
-        return dataset.to_dict()
+        self.history_service.open(dataset, frame, kept)
+        return dataset.to_dict() | {"view": kept, "dropped_columns": dropped}
 
     def get(self, dataset_id: str) -> Dataset:
         dataset = self.datasets.get(dataset_id)

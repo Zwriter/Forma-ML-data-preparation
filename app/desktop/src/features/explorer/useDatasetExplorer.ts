@@ -5,6 +5,13 @@ import { useWorkspaceStore } from '../../stores/workspaceStore';
 import type { Dataset, Preview } from '../../types/dataset';
 import { getHistory, getWorkingPreview } from '../../services/dataOperationClient';
 import { useSettingsStore } from '../../stores/settingsStore';
+import { useViewMaskStore } from '../../stores/viewMaskStore';
+
+type Opened = Dataset & { dropped_columns?: string[] };
+
+const droppedSortNotice = (columns: string[]) =>
+  `The saved sort no longer applies to ${columns.map((name) => `"${name}"`).join(', ')}: ` +
+  `${columns.length > 1 ? 'these columns are' : 'this column is'} not in the file.`;
 
 export function useDatasetExplorer() {
   const [path, setPath] = useState('');
@@ -24,9 +31,10 @@ export function useDatasetExplorer() {
       setBusy(true);
       setError(null);
       try {
-        const opened = await request<Dataset>('dataset.open', {
+        const opened = await request<Opened>('dataset.open', {
           path: sourcePath,
           history_limit: useSettingsStore.getState().historyLimit,
+          view: useViewMaskStore.getState().viewFor(sourcePath),
         });
         const firstPage = await request<Preview>('dataset.preview', {
           dataset_id: opened.dataset_id,
@@ -38,6 +46,8 @@ export function useDatasetExplorer() {
         setDatasetHistory(history);
         setHistory(history);
         setPreview(firstPage);
+        if (opened.dropped_columns?.length)
+          useWorkspaceStore.getState().notify(droppedSortNotice(opened.dropped_columns));
         return true;
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : 'Could not open the dataset.');

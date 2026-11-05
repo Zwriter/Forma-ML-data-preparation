@@ -7,6 +7,8 @@ import { useDatasetStore } from '../../stores/datasetStore';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
 import { useCleaningJob } from '../cleaning/useCleaningJob';
 import { draftKey, useCleaningStore } from '../../stores/cleaningStore';
+import { useViewMaskStore } from '../../stores/viewMaskStore';
+import type { SortKey } from '../../types/dataOperations';
 
 type EventJob = Job & {
   result?: { dataset?: Dataset; history?: HistoryMetadata } & Record<string, unknown>;
@@ -59,6 +61,7 @@ export function useWorkflowJobEvents(
           job.result.history,
           ['group_by', 'pivot', 'unpivot'].includes(job.kind),
         );
+      if (job.kind === 'save' && job.state === 'completed') rememberSavedView(job.result);
       if (job.state === 'completed' && job.result?.history) {
         setDatasetHistory(job.result.history);
         setHistory(job.result.history);
@@ -94,4 +97,13 @@ export function useWorkflowJobEvents(
     setWorkspaceBusy,
     setWorkspaceError,
   ]);
+}
+
+/** Remember the saved sort for the written file and, for a copy, its source. */
+function rememberSavedView(result: EventJob['result']) {
+  const view = result?.view as SortKey[] | undefined;
+  const destination = result?.destination;
+  if (!Array.isArray(view) || typeof destination !== 'string') return;
+  const source = useDatasetStore.getState().dataset?.source_path;
+  useViewMaskStore.getState().remember(source ? [destination, source] : [destination], view);
 }

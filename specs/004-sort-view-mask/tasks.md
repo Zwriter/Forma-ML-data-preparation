@@ -43,11 +43,11 @@
 
 ## Phase 4: User Story 3 - Reopen With the Saved Sort (P2)
 
-- [ ] T011 [P] [US3] Failing tests, then accept `view` in `dataset.open` (validate at the
+- [x] T011 [P] [US3] Failing tests, then accept `view` in `dataset.open` (validate at the
   handler, drop missing columns) and return `view` and `dropped_columns`; contract test.
-- [ ] T012 [US3] Store tests, then add `app/desktop/src/stores/viewMaskStore.ts` (persisted
+- [x] T012 [US3] Store tests, then add `app/desktop/src/stores/viewMaskStore.ts` (persisted
   `forma.sort-views`, read/write per path, storage failures ignored).
-- [ ] T013 [US3] Remember the view on save completion (written path, plus source path for copies)
+- [x] T013 [US3] Remember the view on save completion (written path, plus source path for copies)
   in `useWorkspaceHistory.ts`/`useWorkflowJobEvents.ts`; pass it to `dataset.open` on open;
   show one notice for `dropped_columns`. Integration test in
   `tests/integration/sort-view-workflow.test.tsx`.
