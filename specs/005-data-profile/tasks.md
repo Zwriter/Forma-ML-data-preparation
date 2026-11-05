@@ -23,17 +23,17 @@ first, makes it pass with the smallest change, then refactors. Engine tests use
 
 **Purpose**: Shared test fixtures and the new desktop folders.
 
-- [ ] T001 [P] Add a pytest fixture module `tests/fixtures/profile_frames.py` that builds the
+- [x] T001 [P] Add pytest fixtures in `tests/conftest.py` (auto-discovered; tests are not a package) that build the
   `mixed` frame from quickstart.md in code:
   - integer, decimal, text, boolean, and date columns, with known nulls and 3 duplicate rows
   - a text column `amount` whose values are numbers except `"n/a"` and `"12,5"`
   - a column named `reject_reason`
   - the matching `empty` frame (header only)
   - a writer helper that saves either frame to CSV in `tmp_path`
-- [ ] T002 [P] Create `src/types/profile.ts` with `DetectedType`, `QualityLevel`, `Profile`,
+- [x] T002 [P] Create `src/types/profile.ts` with `DetectedType`, `QualityLevel`, `Profile`,
   `QualityBreakdown`, `ColumnProfile`, `NumericSummary`, `HistogramBin`, and `CategorySummary`,
   exactly as in data-model.md. Note: "`completeness` float | null — `null` when 0 rows".
-- [ ] T003 [P] Create a static demo fixture `src/services/demoProfile.ts` exporting `demoProfile`:
+- [x] T003 [P] Create a static demo fixture `src/services/demoProfile.ts` exporting `demoProfile`:
   - a `Profile` of 21 columns shaped like the mockup (7,043 rows, 3,218 missing cells, 14
     duplicate rows)
   - at least one column of each quality level, one with `invalid_count > 0`, and 11+ columns with

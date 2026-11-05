@@ -1,0 +1,281 @@
+[
+  {
+    "name": "customerID",
+    "type": "text",
+    "unique": 7043,
+    "quality": "good",
+    "examples": ["7590-VHVEG", "5575-GNVDE", "3668-QPYBK"],
+    "uniqueValues": ["7590-VHVEG", "5575-GNVDE", "3668-QPYBK", "7795-CFOCW", "9237-HQITU"]
+  },
+  {
+    "name": "gender",
+    "type": "text",
+    "unique": 2,
+    "quality": "good",
+    "examples": ["Male", "Female"],
+    "categories": [
+      ["Male", 50.5],
+      ["Female", 49.5]
+    ]
+  },
+  {
+    "name": "SeniorCitizen",
+    "type": "integer",
+    "stored": "Int64",
+    "missing": 226,
+    "unique": 2,
+    "quality": "needs_attention",
+    "examples": ["0", "1"],
+    "numeric": {
+      "mean": 0.16,
+      "median": 0,
+      "std": 0.37,
+      "min": 0,
+      "max": 1,
+      "start": 0,
+      "width": 1,
+      "weights": [84, 16]
+    }
+  },
+  {
+    "name": "Partner",
+    "type": "text",
+    "missing": 217,
+    "unique": 2,
+    "quality": "needs_attention",
+    "examples": ["Yes", "No"],
+    "categories": [
+      ["No", 52],
+      ["Yes", 48]
+    ]
+  },
+  {
+    "name": "Dependents",
+    "type": "text",
+    "missing": 174,
+    "unique": 2,
+    "quality": "needs_attention",
+    "examples": ["No", "Yes"],
+    "categories": [
+      ["No", 70],
+      ["Yes", 30]
+    ]
+  },
+  {
+    "name": "tenure",
+    "type": "integer",
+    "stored": "Int64",
+    "unique": 73,
+    "quality": "good",
+    "examples": ["1", "34", "2"],
+    "numeric": {
+      "mean": 32.37,
+      "median": 29,
+      "std": 24.56,
+      "min": 0,
+      "max": 72,
+      "start": 0,
+      "width": 6,
+      "weights": [22, 10, 8, 7, 7, 6, 6, 6, 6, 7, 8, 14]
+    }
+  },
+  {
+    "name": "PhoneService",
+    "type": "text",
+    "unique": 2,
+    "quality": "good",
+    "examples": ["No", "Yes"],
+    "categories": [
+      ["Yes", 90],
+      ["No", 10]
+    ]
+  },
+  {
+    "name": "MultipleLines",
+    "type": "text",
+    "missing": 160,
+    "unique": 3,
+    "quality": "needs_attention",
+    "examples": ["No phone service", "No", "Yes"],
+    "categories": [
+      ["No", 48],
+      ["Yes", 42],
+      ["No phone service", 10]
+    ]
+  },
+  {
+    "name": "InternetService",
+    "type": "text",
+    "unique": 3,
+    "quality": "good",
+    "examples": ["DSL", "Fiber optic", "No"],
+    "categories": [
+      ["Fiber optic", 44],
+      ["DSL", 34],
+      ["No", 22]
+    ]
+  },
+  {
+    "name": "OnlineSecurity",
+    "type": "text",
+    "missing": 157,
+    "unique": 3,
+    "quality": "needs_attention",
+    "examples": ["No", "Yes"],
+    "categories": [
+      ["No", 49],
+      ["Yes", 29],
+      ["No internet service", 22]
+    ]
+  },
+  {
+    "name": "OnlineBackup",
+    "type": "text",
+    "missing": 154,
+    "unique": 3,
+    "quality": "needs_attention",
+    "examples": ["Yes", "No"],
+    "categories": [
+      ["No", 44],
+      ["Yes", 34],
+      ["No internet service", 22]
+    ]
+  },
+  {
+    "name": "DeviceProtection",
+    "type": "text",
+    "missing": 52,
+    "unique": 3,
+    "quality": "good",
+    "examples": ["No", "Yes"],
+    "categories": [
+      ["No", 44],
+      ["Yes", 34],
+      ["No internet service", 22]
+    ]
+  },
+  {
+    "name": "TechSupport",
+    "type": "text",
+    "missing": 50,
+    "unique": 3,
+    "quality": "good",
+    "examples": ["No", "Yes"],
+    "categories": [
+      ["No", 49],
+      ["Yes", 29],
+      ["No internet service", 22]
+    ]
+  },
+  {
+    "name": "StreamingTV",
+    "type": "text",
+    "missing": 44,
+    "unique": 3,
+    "quality": "good",
+    "examples": ["No", "Yes"],
+    "categories": [
+      ["No", 40],
+      ["Yes", 38],
+      ["No internet service", 22]
+    ]
+  },
+  {
+    "name": "StreamingMovies",
+    "type": "text",
+    "unique": 3,
+    "quality": "good",
+    "examples": ["No", "Yes"],
+    "categories": [
+      ["No", 39],
+      ["Yes", 39],
+      ["No internet service", 22]
+    ]
+  },
+  {
+    "name": "Contract",
+    "type": "text",
+    "unique": 3,
+    "quality": "good",
+    "examples": ["Month-to-month", "One year", "Two year"],
+    "categories": [
+      ["Month-to-month", 55],
+      ["Two year", 23.9],
+      ["One year", 21.1]
+    ]
+  },
+  {
+    "name": "PaperlessBilling",
+    "type": "text",
+    "unique": 2,
+    "quality": "good",
+    "examples": ["Yes", "No"],
+    "categories": [
+      ["Yes", 59],
+      ["No", 41]
+    ]
+  },
+  {
+    "name": "PaymentMethod",
+    "type": "text",
+    "unique": 4,
+    "quality": "good",
+    "examples": ["Electronic check", "Mailed check"],
+    "categories": [
+      ["Electronic check", 34],
+      ["Mailed check", 23],
+      ["Bank transfer (automatic)", 22],
+      ["Credit card (automatic)", 21]
+    ]
+  },
+  {
+    "name": "MonthlyCharges",
+    "type": "decimal",
+    "stored": "Float64",
+    "missing": 463,
+    "unique": 1585,
+    "quality": "needs_attention",
+    "examples": ["29.85", "56.95", "53.85"],
+    "numeric": {
+      "mean": 64.76,
+      "median": 70.35,
+      "std": 30.09,
+      "min": 18.25,
+      "max": 118.75,
+      "start": 18,
+      "width": 5,
+      "weights": [14, 6, 2, 3, 4, 4, 5, 5, 6, 7, 8, 9, 10, 9, 8, 7, 6, 4, 3, 2, 1]
+    }
+  },
+  {
+    "name": "TotalCharges",
+    "type": "decimal",
+    "stored": "String",
+    "missing": 1521,
+    "invalid": 11,
+    "unique": 6531,
+    "quality": "poor",
+    "examples": ["29.85", "1889.5", "108.15"],
+    "numeric": {
+      "mean": 2283.3,
+      "median": 1397.48,
+      "std": 2266.77,
+      "min": 18.8,
+      "max": 8684.8,
+      "start": 0,
+      "width": 600,
+      "weights": [30, 12, 9, 8, 7, 6, 6, 5, 5, 4, 3, 3, 2, 1, 1]
+    }
+  },
+  {
+    "name": "Churn",
+    "type": "text",
+    "unique": 2,
+    "quality": "good",
+    "examples": ["No", "Yes"],
+    "categories": [
+      ["No", 73.5],
+      ["Yes", 26.5]
+    ]
+  }
+]
