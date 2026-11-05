@@ -63,8 +63,39 @@
 
 ## Phase 6: Polish
 
-- [ ] T017 Update `specs/002-data-tab-operations` notes that Sort is now a view (link to 004).
-- [ ] T018 Run quickstart checks; record the constitution review here.
+- [x] T017 Update `specs/002-data-tab-operations` notes that Sort is now a view (link to 004).
+- [x] T018 Run quickstart checks; record the constitution review here.
+
+### Constitution review (T018, 2026-11-05)
+
+Checks run: pytest (335 passed), Ruff lint and format check (clean), Vitest (180 passed, exit 0,
+no uncaught errors), Playwright `npm run test:ui` (9 passed), `tsc --noEmit` (clean), Prettier on
+changed source files (clean), `check_source_limits.ps1` (passed). The manual walkthrough in
+`quickstart.md` needs the desktop app with the engine and has not been run.
+
+- **I/II SOLID, OOP**: `services/view_mask.py` is the one implementation of sort validation,
+  ordering, and lineage carry; the transformation validator, `DatasetService`, `CleaningPreviewer`,
+  `CleaningService`, and the `dataset.open` handler all call it. `HistoryService` owns the view per
+  entry and the last saved path; `SaveService` decides whether a write is needed. The engine stays
+  independent of React and Tauri.
+- **III TDD**: every engine change started from a failing test (`test_view_mask.py`,
+  `test_sort_view.py`, history, save, contract, and integration tests). Two older save tests
+  relied on a "no data change" setup that is now skipped by design; they were changed to make a
+  real data change so they keep testing confirmation and failure handling.
+- **IV Frontend**: sort state in headers uses an arrow, a word, and priority (not colour alone),
+  is part of the header's accessible name, and the primary key sets `aria-sort`. The dropped-column
+  notice uses a polite `role="status"` info notification. Headers were checked at 800×600 in
+  Playwright (confirmed failing with the indicator squeezed to 12 px). Demo mode reads its sort
+  from `?demo-sort=` (`services/demoView.ts`) because it has no engine.
+- **Architecture**: the frontend still receives only bounded pages plus the view; sorting runs in
+  the engine. Remembered views live in the desktop's local storage (`forma.sort-views`), as decided.
+- **V Size and duplication**: all files within 250 lines; the worksheet header moved to
+  `explorer/ColumnHeading.tsx` to keep `DatasetPreview.tsx` under the limit.
+- **VI/VII Formatting**: Ruff and Prettier clean on changed source files. Exception:
+  `specs/002-data-tab-operations/spec.md` and `data-model.md` already failed Prettier before the
+  T017 notes were added; they were left unformatted to avoid rewriting a finished spec.
+- **Also fixed during this feature**: "Fill missing values → Most frequent value" counted missing
+  cells as a value and could fill blanks with blanks (`cleaning_operations.py`, with tests).
 
 ## Dependencies
 

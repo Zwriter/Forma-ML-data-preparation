@@ -105,7 +105,8 @@ As a non-technical user, I want guided grouping, pivoting, and unpivoting so tha
 - **FR-007**: The Select column interaction MUST support selecting multiple columns, searching or scanning the available columns, selecting all, clearing all, confirming the selection, and rejecting an empty final selection.
 - **FR-008**: Row filtering MUST support familiar, non-code criteria for equality, inequality, contains, begins with, ends with, greater than, less than, greater than or equal to, less than or equal to, is empty, and is not empty where applicable to the selected value type.
 - **FR-009**: Users MUST be able to combine multiple filter conditions with all-match or any-match logic, edit or clear active filters, and see the resulting row count or empty state.
-- **FR-010**: Sorting MUST support one or more ordered sort keys, ascending and descending direction, consistent missing-value placement, and preservation of all records.
+- **FR-010**: Sorting MUST support one or more ordered sort keys, ascending and descending direction, consistent missing-value placement, and preservation of all records. *(Since
+  [004](../004-sort-view-mask/spec.md), sorting changes only the displayed order, not the file.)*
 - **FR-011**: Group by MUST support one or more grouping columns and count, sum, average, minimum, and maximum calculations where valid, with understandable labels in the result.
 - **FR-012**: Pivot MUST support row-label columns, a category column, a value column, and a selected calculation, and MUST aggregate repeated intersections according to that calculation.
 - **FR-013**: Unpivot MUST support identifier columns and selected value columns and MUST produce understandable attribute and value fields without losing identifier values.
