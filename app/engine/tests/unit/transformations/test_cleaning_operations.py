@@ -153,6 +153,21 @@ def test_fill_mode_breaks_ties_the_same_way_every_time():
         assert result["x"].to_list() == ["b", "a", "a", "a", "b"]
 
 
+@pytest.mark.parametrize(
+    "values, expected",
+    [
+        # Missing cells are the most common "value": the fill must ignore them.
+        (["a", None, None, "b", "b"], ["a", "b", "b", "b", "b"]),
+        ([1.5, None, None, None, 1.5, 2.0], [1.5, 1.5, 1.5, 1.5, 1.5, 2.0]),
+        # Missing cells tie with real values and would sort first.
+        ([3, None, 2], [3, 2, 2]),
+    ],
+)
+def test_fill_mode_ignores_missing_cells(values, expected):
+    result = run(pl.DataFrame({"x": values}), "fill_null", column="x", strategy="mode")
+    assert result["x"].to_list() == expected
+
+
 def test_convert_with_null_policy_turns_unconvertible_values_missing():
     frame = pl.DataFrame({"x": ["1", "two", None]})
     result = run(frame, "convert_type", column="x", to="integer", on_error="null")
