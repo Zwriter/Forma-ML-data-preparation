@@ -60,7 +60,8 @@ def test_preview_accepts_multiple_steps_and_returns_markers(opened):
         "total_count",
         "summary",
     }
-    assert [row["removed"] for row in result["rows"]] == [False, False, True]
+    # Affected rows first: the filled row, then the removed duplicate, then the rest.
+    assert [row["removed"] for row in result["rows"]] == [False, True, False]
     # The removed duplicate was also filled; only surviving rows count as changed.
     assert result["summary"]["values_changed"] == 1
 
@@ -80,7 +81,7 @@ def test_preview_limit_is_bounded(opened):
         {"dataset_id": dataset_id, "operations": [fill()], "limit": 1},
     )
     assert len(result["rows"]) == 1
-    for limit in (0, 501, True, "5"):
+    for limit in (0, 20001, True, "5"):
         with pytest.raises(RequestError):
             router.dispatch(
                 "cleaning.preview",

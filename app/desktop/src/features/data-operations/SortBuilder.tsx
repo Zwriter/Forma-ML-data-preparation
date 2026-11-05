@@ -117,6 +117,7 @@ export function SortBuilder({ columns, onApply, onClose, popupPosition, active =
               <button
                 type="button"
                 aria-label={`Move sort key ${index + 1} up`}
+                title="Move up"
                 disabled={index === 0}
                 onClick={() => move(index, -1)}
               >
@@ -125,6 +126,7 @@ export function SortBuilder({ columns, onApply, onClose, popupPosition, active =
               <button
                 type="button"
                 aria-label={`Move sort key ${index + 1} down`}
+                title="Move down"
                 disabled={index === keys.length - 1}
                 onClick={() => move(index, 1)}
               >

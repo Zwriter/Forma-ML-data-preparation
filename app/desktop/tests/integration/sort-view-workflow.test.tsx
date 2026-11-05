@@ -111,6 +111,37 @@ describe('sort as a view', () => {
   });
 });
 
+describe('quick sort from the header', () => {
+  afterEach(() => {
+    cleanup();
+    invoke.mockReset();
+    useDatasetStore.setState({ dataset: null, preview: null, history: null, openFiles: [] });
+    useWorkspaceStore.setState({ busy: false, error: null, history: null, commands: {} });
+  });
+
+  it('starts a sort job from a column arrow', async () => {
+    useDatasetStore.getState().setSource(dataset('source'), preview('source', STORED));
+    useWorkspaceStore.getState().setHistory(history(0));
+    engineReturns({ job_id: 'sort-job', state: 'pending' });
+    render(<App />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Sort city descending' }));
+
+    await waitFor(() => expect(invoke).toHaveBeenCalledOnce());
+    expect(invoke.mock.calls[0][1].request).toMatchObject({
+      method: 'data.apply',
+      params: {
+        dataset_id: 'source',
+        operation: {
+          type: 'sort_rows',
+          parameters: { keys: [{ column: 'city', direction: 'descending', nulls: 'last' }] },
+        },
+      },
+    });
+    expect(useWorkspaceStore.getState().busy).toBe(true);
+  });
+});
+
 const CITY = [{ column: 'city', direction: 'descending' as const, nulls: 'last' as const }];
 
 describe('remembered sort views', () => {
@@ -133,6 +164,7 @@ describe('remembered sort views', () => {
 
   it('opens a file with its remembered sort and reports sort columns that are gone', async () => {
     useViewMaskStore.getState().remember(['people.csv'], CITY);
+    useSettingsStore.getState().setPageSize(2000);
     engineReturns({ ...dataset('source'), view: [], dropped_columns: ['city'] });
     engineReturns(preview('source', STORED));
     engineReturns(history(0));
@@ -146,6 +178,9 @@ describe('remembered sort views', () => {
       method: 'dataset.open',
       params: { path: 'people.csv', view: CITY },
     });
+    // The first page uses the rows-per-page setting.
+    expect(invoke.mock.calls[1][1].request.params).toMatchObject({ limit: 2000 });
+    useSettingsStore.getState().setPageSize(500);
     const notice = await screen.findByRole('status');
     expect(notice.textContent).toContain('city');
     expect(useWorkspaceStore.getState().error).toBeNull();

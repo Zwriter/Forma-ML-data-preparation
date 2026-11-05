@@ -34,6 +34,7 @@ export function NotificationPopup() {
         className="notification-close"
         type="button"
         aria-label="Dismiss notification"
+        title="Dismiss"
         onClick={dismiss}
       >
         ×

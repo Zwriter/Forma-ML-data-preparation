@@ -7,6 +7,7 @@ import type { Column, Dataset, HistoryMetadata, Preview } from '../../types/data
 import { useWorkspaceStore } from '../../stores/workspaceStore';
 import { toOperations } from '../../stores/cleaningStore';
 import { carryVisibleColumns } from '../workspace/visibleColumns';
+import { DEFAULT_PAGE_SIZE } from '../../services/pageSize';
 
 export function useCleaningJob() {
   const dataset = useDatasetStore((state) => state.dataset);
@@ -48,7 +49,7 @@ export function useCleaningJob() {
       const preview = await request<Preview>('dataset.preview', {
         dataset_id: derived.dataset_id,
         offset: 0,
-        limit: 100,
+        limit: useDatasetStore.getState().preview?.limit ?? DEFAULT_PAGE_SIZE,
         ...(visible.length ? { columns: visible } : {}),
       });
       setDataset(derived);

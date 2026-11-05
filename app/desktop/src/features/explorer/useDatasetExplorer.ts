@@ -6,6 +6,7 @@ import type { Dataset, Preview } from '../../types/dataset';
 import { getHistory, getWorkingPreview } from '../../services/dataOperationClient';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { useViewMaskStore } from '../../stores/viewMaskStore';
+import { clampPageSize, DEFAULT_PAGE_SIZE } from '../../services/pageSize';
 
 type Opened = Dataset & { dropped_columns?: string[] };
 
@@ -39,7 +40,7 @@ export function useDatasetExplorer() {
         const firstPage = await request<Preview>('dataset.preview', {
           dataset_id: opened.dataset_id,
           offset: 0,
-          limit: 100,
+          limit: useSettingsStore.getState().pageSize,
         });
         const history = await getHistory(opened.dataset_id);
         setSource(opened, firstPage);
@@ -59,14 +60,14 @@ export function useDatasetExplorer() {
     [path, setBusy, setError, setSource, setPreview, setHistory, setDatasetHistory],
   );
   const page = useCallback(
-    async (offset: number, limit = preview?.limit ?? 100, search = '') => {
+    async (offset: number, limit = preview?.limit ?? DEFAULT_PAGE_SIZE, search = '') => {
       if (!dataset) return;
       const requestId = ++previewRequestId.current;
       const contextVersion = useDatasetStore.getState().previewContextVersion;
       try {
         const nextPreview = await getWorkingPreview(dataset.dataset_id, {
           offset,
-          limit: Math.min(500, Math.max(10, limit)),
+          limit: clampPageSize(limit),
           columns: selectedColumns,
           search,
         });
@@ -95,7 +96,7 @@ export function useDatasetExplorer() {
       try {
         const projected = await getWorkingPreview(dataset.dataset_id, {
           offset: 0,
-          limit: Math.min(500, Math.max(10, preview?.limit ?? 100)),
+          limit: clampPageSize(preview?.limit ?? DEFAULT_PAGE_SIZE),
           columns,
         });
         useDatasetStore.getState().setSelectedColumns(columns);

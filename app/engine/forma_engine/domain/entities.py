@@ -39,7 +39,7 @@ TRANSFORMATION_TYPES = {
     "pivot",
     "unpivot",
 }
-MAX_PREVIEW = 500
+MAX_PREVIEW = 20000
 
 
 @dataclass
@@ -159,7 +159,7 @@ class DatasetPreview:
             or isinstance(self.limit, bool)
             or not 0 < self.limit <= MAX_PREVIEW
         ):
-            raise ValueError("preview limit must be between 1 and 500")
+            raise ValueError(f"preview limit must be between 1 and {MAX_PREVIEW}")
         if len(self.records) > self.limit:
             raise ValueError("preview records exceed requested limit")
         if self.total_count is not None and self.total_count < 0:

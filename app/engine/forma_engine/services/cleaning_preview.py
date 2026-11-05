@@ -9,6 +9,7 @@ from forma_engine.transformations.executor import execute
 from forma_engine.transformations.lineage import Lineage, initial_lineage, track
 
 ROW_ID = "__forma_row_id__"
+CHANGED = "__forma_changed__"
 
 
 class CleaningPreviewer:
@@ -41,8 +42,11 @@ class CleaningPreviewer:
         source = frame.with_row_index(ROW_ID)
         result, lineage = self._run(source, names, operations)
         visible = self._visible(lineage, columns)
+        changes = self._changes(source, result, lineage)
         matching, _ = search_rows(
-            apply_view(source, view), columns if columns is not None else names, search
+            self._affected_first(apply_view(source, view), changes),
+            columns if columns is not None else names,
+            search,
         )
         page = matching.slice(offset, limit).collect()
         after = result.join(page.lazy().select(ROW_ID), on=ROW_ID, how="semi")
@@ -55,7 +59,7 @@ class CleaningPreviewer:
             "offset": offset,
             "limit": limit,
             "total_count": matching.select(pl.len()).collect().item(),
-            "summary": self._summary(source, result, lineage),
+            "summary": self._summary(source, result, lineage, changes),
             "view": carry_view(view, lineage),
         }
 
@@ -136,25 +140,44 @@ class CleaningPreviewer:
         return rows, changed
 
     @staticmethod
-    def _summary(source: pl.LazyFrame, result: pl.LazyFrame, lineage: Lineage):
+    def _changes(source, result, lineage: Lineage) -> pl.LazyFrame:
+        """Per source row: how many visible cells the steps changed; null if removed."""
+        pairs = [(name, origin) for name, origin in lineage.items() if origin]
+        left = source.select(ROW_ID, *(origin for _, origin in pairs))
+        right = result.select(
+            ROW_ID,
+            *(pl.col(name).alias(f"{name}__after") for name, _ in pairs),
+            pl.lit(True).alias("__kept"),
+        )
+        differences = [
+            pl.col(origin)
+            .cast(pl.String)
+            .ne_missing(pl.col(f"{name}__after").cast(pl.String))
+            .cast(pl.Int64)
+            for name, origin in pairs
+        ]
+        changed = pl.sum_horizontal(differences) if differences else pl.lit(0)
+        joined = left.join(right, on=ROW_ID, how="left")
+        counts = pl.when(pl.col("__kept").is_null()).then(None).otherwise(changed)
+        # Collected once: the page order and the summary both read it.
+        return joined.select(ROW_ID, counts.alias(CHANGED)).collect().lazy()
+
+    @staticmethod
+    def _affected_first(rows: pl.LazyFrame, changes: pl.LazyFrame) -> pl.LazyFrame:
+        """Put changed and removed rows first; each group keeps its current order."""
+        affected = pl.col(CHANGED).is_null() | (pl.col(CHANGED) > 0)
+        flags = changes.select(ROW_ID, affected.alias("__affected"))
+        return (
+            rows.join(flags, on=ROW_ID, how="left", maintain_order="left")
+            .sort("__affected", descending=True, maintain_order=True)
+            .drop("__affected")
+        )
+
+    @staticmethod
+    def _summary(source, result, lineage: Lineage, changes: pl.LazyFrame):
         rows_before = source.select(pl.len()).collect().item()
         rows_after = result.select(pl.len()).collect().item()
-        pairs = [(name, origin) for name, origin in lineage.items() if origin]
-        values_changed = 0
-        if pairs:
-            left = source.select(ROW_ID, *(origin for _, origin in pairs))
-            right = result.select(
-                ROW_ID, *(pl.col(name).alias(f"{name}__after") for name, _ in pairs)
-            )
-            differences = [
-                pl.col(origin)
-                .cast(pl.String)
-                .ne_missing(pl.col(f"{name}__after").cast(pl.String))
-                .sum()
-                for name, origin in pairs
-            ]
-            joined = left.join(right, on=ROW_ID).select(pl.sum_horizontal(differences))
-            values_changed = joined.collect().item() or 0
+        values_changed = changes.select(pl.col(CHANGED).sum()).collect().item() or 0
         origins = set(lineage.values())
         return {
             "rows_before": rows_before,

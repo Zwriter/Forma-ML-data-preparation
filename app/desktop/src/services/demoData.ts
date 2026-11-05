@@ -2,6 +2,7 @@ import type { Operation } from '../types/cleaning';
 import type { Dataset, HistoryMetadata, Preview } from '../types/dataset';
 import { previewDemoCleaning, validateDemoCleaning } from './demoCleaning';
 import { demoView, sortDemoRecords } from './demoView';
+import { DEFAULT_PAGE_SIZE } from './pageSize';
 
 type DemoTable = { dataset: Dataset; records: Record<string, string>[] };
 const tables = new Map<string, DemoTable>();
@@ -159,7 +160,7 @@ export async function requestDemo<T>(method: string, params: Record<string, unkn
 
 function previewPage(current: DemoTable, params: Record<string, unknown>): Preview {
   const offset = Number(params.offset ?? 0);
-  const limit = Number(params.limit ?? 100);
+  const limit = Number(params.limit ?? DEFAULT_PAGE_SIZE);
   const requested = params.columns as string[] | undefined;
   const columns = current.dataset.schema.filter(
     (column) => !requested || requested.includes(column.name),

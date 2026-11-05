@@ -22,6 +22,7 @@ function roomBelow(element: HTMLElement) {
 export function MenuButton({
   label,
   ariaLabel,
+  title,
   menuLabel,
   items,
   disabled = false,
@@ -29,6 +30,8 @@ export function MenuButton({
 }: {
   label: ReactNode;
   ariaLabel?: string;
+  /** Hover hint, for a trigger that shows only an icon. */
+  title?: string;
   menuLabel: string;
   items: MenuItem[];
   disabled?: boolean;
@@ -76,6 +79,7 @@ export function MenuButton({
         ref={trigger}
         type="button"
         aria-label={ariaLabel}
+        title={title}
         aria-haspopup="menu"
         aria-expanded={open}
         disabled={disabled}

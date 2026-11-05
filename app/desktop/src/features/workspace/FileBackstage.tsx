@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Icon } from '../../components/Icon';
 import { SaveBehaviorSetting } from '../settings/SaveBehaviorSetting';
 import { HistoryLimitSetting } from '../settings/HistoryLimitSetting';
+import { PageSizeSetting } from '../settings/PageSizeSetting';
 import type { Dataset } from '../../types/dataset';
 
 type RecentFile = { path: string; name: string; lastOpened: number; favorite: boolean };
@@ -92,7 +93,13 @@ export function FileBackstage({
   return (
     <section className="file-backstage" id="file">
       <nav className="file-navigation" aria-label="File menu">
-        <button className="file-back" type="button" aria-label="Back to workspace" onClick={onBack}>
+        <button
+          className="file-back"
+          type="button"
+          aria-label="Back to workspace"
+          title="Back"
+          onClick={onBack}
+        >
           <Icon name="back" />
         </button>
         <button
@@ -213,6 +220,7 @@ export function FileBackstage({
             </label>
             <SaveBehaviorSetting />
             <HistoryLimitSetting />
+            <PageSizeSetting />
             <button
               type="button"
               className="about-settings-link"

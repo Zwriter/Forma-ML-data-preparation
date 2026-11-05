@@ -22,7 +22,7 @@ def test_job_terminal_states_cannot_transition():
         job.transition(JobState.FAILED)
 
 
-@pytest.mark.parametrize("offset,limit", [(-1, 10), (0, 0), (0, 501)])
+@pytest.mark.parametrize("offset,limit", [(-1, 10), (0, 0), (0, 20001)])
 def test_preview_enforces_bounds(offset, limit):
     with pytest.raises(ValueError):
         DatasetPreview("d1", [], [], offset, limit)

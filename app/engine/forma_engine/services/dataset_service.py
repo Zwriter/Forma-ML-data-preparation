@@ -1,13 +1,11 @@
 from dataclasses import dataclass, field
 import polars as pl
-from forma_engine.domain.entities import Dataset
+from forma_engine.domain.entities import MAX_PREVIEW, Dataset
 from forma_engine.domain.errors import DatasetNotFoundError, RequestError
 from forma_engine.io.readers import scan, schema_for
 from forma_engine.io.schema_service import SchemaService
 from forma_engine.services.history_service import HistoryService
 from forma_engine.services.view_mask import SortKey, apply_view, validate_view
-
-MAX_PREVIEW = 500
 
 
 @dataclass

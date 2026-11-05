@@ -127,7 +127,7 @@ def test_clean_apply_carries_the_view_through_renames_and_removals(opened):
     assert view == [key("town")]
 
 
-def test_clean_steps_run_in_stored_order_and_preview_pages_in_view_order(opened):
+def test_clean_steps_run_in_stored_order_and_preview_lists_changes_first(opened):
     datasets, operations, source_id = opened
     sorted_id = operations.apply(source_id, sort([key("city")]), never)["dataset"][
         "dataset_id"
@@ -138,8 +138,10 @@ def test_clean_steps_run_in_stored_order_and_preview_pages_in_view_order(opened)
     preview = cleaning.preview(sorted_id, [fill])
 
     rows = [(row["values"]["id"], row["values"]["n"]) for row in preview["rows"]]
-    assert rows == [(2, 5), (4, 7), (1, None), (3, 5)]
-    assert preview["changed_cells"] == [{"row": 3, "column": "n", "before": None}]
+    # Row 3 takes the value of row 2 above it in the file, not the row shown above.
+    # Changed rows come first; the rest keep the view order.
+    assert rows == [(3, 5), (2, 5), (4, 7), (1, None)]
+    assert preview["changed_cells"] == [{"row": 0, "column": "n", "before": None}]
     assert preview["view"] == [key("city")]
 
 

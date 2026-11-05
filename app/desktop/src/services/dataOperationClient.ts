@@ -1,6 +1,7 @@
 import { request } from './ipcClient';
 import type { Dataset, HistoryMetadata, Preview } from '../types/dataset';
 import type { DataOperation, JobAcknowledgement, SaveResult } from '../types/dataOperations';
+import { DEFAULT_PAGE_SIZE } from './pageSize';
 
 export const getHistory = (datasetId: string) =>
   request<HistoryMetadata>('dataset.history', { dataset_id: datasetId });
@@ -28,7 +29,7 @@ export const getWorkingPreview = (
   request<Preview>('dataset.preview', {
     dataset_id: datasetId,
     offset: options.offset ?? 0,
-    limit: options.limit ?? 100,
+    limit: options.limit ?? DEFAULT_PAGE_SIZE,
     ...(options.columns ? { columns: options.columns } : {}),
     ...(options.search ? { search: options.search } : {}),
   });
