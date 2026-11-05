@@ -5,6 +5,23 @@ from forma_engine.domain.errors import (
 )
 
 
+def page_params(params: dict) -> tuple[int, list[str] | None, str | None]:
+    """Validate the worksheet page shared by dataset and cleaning previews."""
+    offset = params.get("offset", 0)
+    if not isinstance(offset, int) or isinstance(offset, bool) or offset < 0:
+        raise RequestError("offset must be a non-negative integer")
+    columns = params.get("columns")
+    if columns is not None and (
+        not isinstance(columns, list)
+        or any(not isinstance(item, str) for item in columns)
+    ):
+        raise RequestError("columns must be a list of column names.")
+    search = params.get("search")
+    if search is not None and not isinstance(search, str):
+        raise RequestError("search must be a string.")
+    return offset, columns, search
+
+
 class DatasetHandlers:
     def __init__(self, datasets, jobs=None, saves=None):
         self.datasets, self.jobs, self.saves = datasets, jobs, saves
@@ -19,21 +36,9 @@ class DatasetHandlers:
 
     def preview(self, params):
         self._dataset_id(params)
-        columns = params.get("columns")
-        if columns is not None and (
-            not isinstance(columns, list)
-            or any(not isinstance(item, str) for item in columns)
-        ):
-            raise RequestError("columns must be a list of column names.")
-        search = params.get("search")
-        if search is not None and not isinstance(search, str):
-            raise RequestError("search must be a string.")
+        offset, columns, search = page_params(params)
         return self.datasets.preview(
-            params["dataset_id"],
-            params.get("offset", 0),
-            params.get("limit", 100),
-            columns,
-            search,
+            params["dataset_id"], offset, params.get("limit", 100), columns, search
         )
 
     def history(self, params):

@@ -16,6 +16,8 @@ dist/
 
 # JavaScript and Rust
 node_modules/
+test-results/
+playwright-report/
 build/
 *.log
 .env*
@@ -26,5 +28,5 @@ Thumbs.db
 #windos cofing
 desktop.ini
 
-#claude
+# Claude Code
 .claude/

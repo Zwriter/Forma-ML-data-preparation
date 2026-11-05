@@ -3,6 +3,9 @@ import { Icon } from '../../components/Icon';
 import type { IconName } from '../../components/Icon';
 import { topTabs } from './navigation';
 import { commandIcons, ribbonCommands } from './ribbonCommands';
+import { ribbonStepTypes } from '../cleaning/stepCatalog';
+import { useCleaningStore } from '../../stores/cleaningStore';
+import { stepCommand } from '../cleaning/stepCommand';
 
 type Props = {
   activeTab: string;
@@ -54,6 +57,7 @@ export function WorkspaceChrome({
 }: Props) {
   const [showDbPanel, setShowDbPanel] = useState(false);
   const [connectionMessage, setConnectionMessage] = useState('');
+  const stepForm = useCleaningStore((state) => state.form);
   const groups = ribbonCommands[activeTab] ?? [];
 
   function toolFor(label: string): Tool {
@@ -132,6 +136,14 @@ export function WorkspaceChrome({
           setShowDbPanel(true);
           setConnectionMessage('Connection testing is not available yet.');
         },
+      };
+    const stepType = activeTab === 'Clean' ? ribbonStepTypes[label] : undefined;
+    if (stepType)
+      return {
+        label,
+        icon: commandIcons[label],
+        disabled: !hasDataset,
+        ...stepCommand(label, stepType, stepForm),
       };
     return {
       label,

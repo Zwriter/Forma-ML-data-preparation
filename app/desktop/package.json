@@ -7,7 +7,8 @@
     "dev": "vite --mode demo",
     "build": "tsc --noEmit && vite build",
     "test": "vitest run",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"tests/**/*.{ts,tsx}\" \"src-tauri/**/*.json\" vite.config.ts package.json",
+    "test:ui": "playwright test",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\" \"tests/**/*.{ts,tsx}\" \"src-tauri/**/*.json\" vite.config.ts playwright.config.ts package.json",
     "tauri": "tauri"
   },
   "dependencies": {
@@ -18,6 +19,7 @@
     "zustand": "^5.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
     "@tauri-apps/cli": "^2.0.0",
     "@testing-library/jest-dom": "^6.5.0",
     "@testing-library/react": "^16.0.0",

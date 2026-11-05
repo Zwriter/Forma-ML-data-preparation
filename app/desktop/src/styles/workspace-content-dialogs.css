@@ -7,13 +7,18 @@
   flex-direction: column;
   gap: 0.75rem;
   overflow: auto;
+  pointer-events: auto;
+}
+
+/* Shared frame for Data popups and the Clean steps panel. */
+.data-operation-dialog,
+.steps-panel {
   padding: 18px;
   border: 1px solid #d9deea;
   border-radius: 9px;
   background: #fff;
   color: var(--ink);
   box-shadow: 0 14px 34px #1c2d4b2b;
-  pointer-events: auto;
 }
 
 .data-operation-dialog header,
@@ -38,7 +43,8 @@
   cursor: grabbing;
 }
 
-.data-operation-dialog h2 {
+.data-operation-dialog h2,
+.steps-panel h2 {
   margin: 0;
   font-size: 15px;
   letter-spacing: -0.02em;
@@ -116,7 +122,8 @@
 .filter-rule input:not([type='checkbox']),
 .sort-key select,
 .data-operation-dialog select,
-.data-operation-dialog > label input,
+.data-operation-dialog > label input:not([type='checkbox']),
+.data-operation-dialog fieldset input:not([type='checkbox']),
 .reshape-aggregation input {
   min-height: 38px;
   min-width: 0;
@@ -151,14 +158,16 @@
   align-items: center;
 }
 
-.data-operation-dialog .dialog-actions {
+.data-operation-dialog .dialog-actions,
+.steps-panel-footer {
   gap: 8px;
   margin-top: 0;
   padding-top: 13px;
   border-top: 1px solid #edf0f5;
 }
 
-.data-operation-dialog .dialog-actions button {
+.data-operation-dialog .dialog-actions button,
+.steps-panel .draft-actions button {
   min-height: 36px;
   padding: 0 12px;
   border: 1px solid var(--purple);
@@ -170,17 +179,20 @@
   white-space: nowrap;
 }
 
-.data-operation-dialog .dialog-actions .quiet-button {
+.data-operation-dialog .dialog-actions .quiet-button,
+.steps-panel .draft-actions .quiet-button {
   border-color: #d4d9e4;
   background: #fff;
   color: #43506e;
 }
 
-.data-operation-dialog .dialog-actions .quiet-button:hover {
+.data-operation-dialog .dialog-actions .quiet-button:hover,
+.steps-panel .draft-actions .quiet-button:hover {
   background: #f7f8fb;
 }
 
-.data-operation-dialog button {
+.data-operation-dialog button,
+.steps-panel-header button {
   min-height: 34px;
   padding: 0 12px;
   border: 1px solid #d4d9e4;
@@ -191,7 +203,8 @@
   font-weight: 600;
 }
 
-.data-operation-dialog button:hover {
+.data-operation-dialog button:hover,
+.steps-panel-header button:hover {
   background: #f7f8fb;
 }
 

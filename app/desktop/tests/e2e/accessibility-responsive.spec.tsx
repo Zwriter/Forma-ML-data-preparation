@@ -1,12 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import App from '../../src/App';
 import { WorkflowActions } from '../../src/features/workspace/WorkflowActions';
+import { CleanTab } from '../../src/features/cleaning/CleanTab';
 import { WorkspaceChrome } from '../../src/features/workspace/WorkspaceChrome';
 import { SaveConfirmDialog } from '../../src/features/workspace/SaveConfirmDialog';
 import { useDatasetStore } from '../../src/stores/datasetStore';
 import { useExportStore } from '../../src/stores/exportStore';
-import { useTransformationStore } from '../../src/stores/transformationStore';
+import { useCleaningStore } from '../../src/stores/cleaningStore';
 import { useWorkspaceStore } from '../../src/stores/workspaceStore';
 
 const invoke = vi.hoisted(() => vi.fn());
@@ -32,8 +33,17 @@ function response(method: string) {
       ? { job_id: 'profile-1', state: 'pending' }
       : method === 'cleaning.apply'
         ? { job_id: 'clean-1', state: 'pending' }
-        : { job_id: 'export-1', state: 'pending' };
+        : method === 'cleaning.validate'
+          ? { valid: true, steps: [] }
+          : { job_id: 'export-1', state: 'pending' };
   return { id: 'request-1', status: 'success', result, error: null };
+}
+
+function addStep(title: string) {
+  act(() => useCleaningStore.getState().openForm('drop_duplicates'));
+  fireEvent.click(
+    within(screen.getByRole('dialog', { name: title })).getByRole('button', { name: 'Add step' }),
+  );
 }
 
 afterEach(() => {
@@ -52,7 +62,13 @@ afterEach(() => {
     activeFileId: null,
   });
   useExportStore.setState({ destination: '', overwrite: false });
-  useTransformationStore.setState({ operations: [] });
+  useCleaningStore.setState({
+    drafts: {},
+    form: null,
+    validation: [],
+    applyJobId: null,
+    finishedJobId: null,
+  });
   useWorkspaceStore.setState({
     busy: false,
     error: null,
@@ -177,14 +193,19 @@ describe('desktop accessibility and responsive shell', () => {
     invoke.mockImplementation(async (_command: string, args: { request: { method: string } }) =>
       response(args.request.method),
     );
-    render(<WorkflowActions activeTab="Clean" />);
-    fireEvent.click(screen.getByText('Add operation'));
+    render(
+      <>
+        <WorkflowActions activeTab="Clean" />
+        <CleanTab worksheet={() => null} />
+      </>,
+    );
+    addStep('Remove duplicate rows');
     const started = performance.now();
 
-    fireEvent.click(screen.getByText('Apply operations'));
-    await waitFor(() => expect(invoke).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole('button', { name: 'Apply 1 step' }));
+    expect(await screen.findByRole('button', { name: 'Stop' })).toBeTruthy();
+    expect(screen.getByText('Applying cleaning steps').getAttribute('role')).toBe('status');
     expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
-    expect(screen.queryByRole('status')).toBeNull();
 
     expect(performance.now() - started).toBeLessThan(1000);
   });

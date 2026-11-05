@@ -1,0 +1,48 @@
+/* The step form is a .data-operation-dialog; these cover only Clean-specific fields. */
+.step-form-dialog > label.check {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.step-form-dialog legend {
+  padding: 0 4px;
+  color: #4c5874;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.column-checklist {
+  max-height: 10rem;
+  overflow-y: auto;
+}
+
+.step-form-dialog .rename-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 0.55rem;
+}
+
+.step-form-dialog .rename-row label {
+  display: grid;
+  gap: 0.3rem;
+  font-weight: 600;
+  cursor: default;
+}
+
+.step-form-dialog .rename-row [role='alert'] {
+  grid-column: 1 / -1;
+}
+
+/* Stays beside the fields when an error line appears under them. */
+.step-form-dialog .rename-remove {
+  grid-row: 1;
+  grid-column: 3;
+  min-width: 38px;
+  min-height: 38px;
+  padding: 0;
+  font-size: 16px;
+}

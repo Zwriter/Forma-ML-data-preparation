@@ -83,4 +83,38 @@ describe('open dataset tabs', () => {
     expect(useDatasetStore.getState().dataset?.dataset_id).toBe('first');
     expect(useDatasetStore.getState().openFiles).toHaveLength(1);
   });
+
+  it('keeps the worksheet view state of each file when switching files', () => {
+    const first = file('first');
+    const second = file('second');
+    const store = useDatasetStore.getState();
+    store.setSource(first.dataset, first.preview);
+    useDatasetStore.getState().setView({
+      search: 'ana',
+      activeCell: { row: 4, column: 'value' },
+      scroll: { top: 120, left: 30 },
+    });
+    useDatasetStore.getState().setSource(second.dataset, second.preview);
+    expect(useDatasetStore.getState()).toMatchObject({
+      search: '',
+      activeCell: null,
+      scroll: { top: 0, left: 0 },
+    });
+
+    useDatasetStore.getState().selectFile('first');
+    expect(useDatasetStore.getState()).toMatchObject({
+      search: 'ana',
+      activeCell: { row: 4, column: 'value' },
+      scroll: { top: 120, left: 30 },
+    });
+  });
+
+  it('clears the search when the dataset version changes', () => {
+    const first = file('first');
+    useDatasetStore.getState().setSource(first.dataset, first.preview);
+    useDatasetStore.getState().setView({ search: 'ana', activeCell: { row: 1, column: 'value' } });
+    useDatasetStore.getState().setDataset({ ...first.dataset, dataset_id: 'first-v2' });
+    expect(useDatasetStore.getState().search).toBe('');
+    expect(useDatasetStore.getState().activeCell).toEqual({ row: 1, column: 'value' });
+  });
 });

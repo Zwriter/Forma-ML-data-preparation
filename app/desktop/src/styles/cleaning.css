@@ -1,0 +1,228 @@
+/* The Clean tab reuses the Data worksheet; the steps panel floats over its right side. */
+.clean-stage {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.steps-panel {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  bottom: 8px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(22rem, calc(100% - 16px));
+  overflow: hidden;
+}
+
+.steps-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.steps-panel-header h2 {
+  flex: 1 1 auto;
+}
+
+.steps-panel-header .steps-panel-collapse {
+  padding: 4px 9px;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.steps-panel-tab {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  z-index: 5;
+  padding: 12px 6px;
+  color: #fff;
+  background: var(--purple);
+  border: 0;
+  border-radius: 8px 0 0 8px;
+  writing-mode: vertical-rl;
+  translate: 0 -50%;
+}
+
+.step-list {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+/* Cancel and Apply stay visible while the step list scrolls. */
+.steps-panel-footer {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+}
+
+.steps-panel-footer p {
+  margin: 0;
+}
+
+.clean-status:empty {
+  display: none;
+}
+
+.draft-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.step-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.step-card .icon {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin-top: 3px;
+}
+
+.step-card .step-text {
+  flex: 1 1 auto;
+}
+
+.step-switch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 1.25rem;
+  padding: 0;
+  background: #c9cfdb;
+  border: 0;
+  border-radius: 999px;
+}
+
+.step-switch::after {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(1.25rem - 4px);
+  height: calc(1.25rem - 4px);
+  content: '';
+  background: #fff;
+  border-radius: 50%;
+  transition: translate 0.15s;
+}
+
+.step-switch[aria-checked='true'] {
+  background: var(--purple);
+}
+
+.step-switch[aria-checked='true']::after {
+  translate: 1rem 0;
+}
+
+.step-switch:focus-visible,
+.step-menu > button:focus-visible {
+  outline: 2px solid var(--purple);
+  outline-offset: 2px;
+}
+
+.step-menu > button {
+  padding: 0 6px;
+  color: inherit;
+  font-size: 18px;
+  line-height: 1;
+  background: transparent;
+  border: 0;
+}
+
+.step-card.step-disabled {
+  opacity: 0.6;
+}
+
+.step-card.step-invalid {
+  border-color: #e0a3a6;
+}
+
+.step-number {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+}
+
+.step-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.step-state {
+  font-size: 12px;
+  font-style: italic;
+}
+
+.step-error {
+  color: #9a2f34;
+}
+
+/* Change markers in the shared worksheet: each pairs colour with text. */
+.table-wrap td.cell-changed {
+  background: #e9f6ec;
+  box-shadow: inset 3px 0 0 #2f8a4a;
+}
+
+/* "old → new": the old value and arrow recede, the new value stands out in green. */
+.cell-changed .cell-before,
+.cell-changed .cell-arrow {
+  color: #5f6b7d;
+}
+
+.cell-changed .cell-after {
+  color: #1d6f38;
+  font-weight: 600;
+}
+
+.table-wrap tr.worksheet-removed td:not(.row-number) {
+  color: #7a3036;
+  text-decoration: line-through;
+  background: #fff0f0;
+}
+
+.cell-flag {
+  display: inline-block;
+  margin-right: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.cell-missing {
+  color: #8a6d1f;
+}
+
+.column-note {
+  display: block;
+  color: var(--purple);
+  font-size: 10px;
+}

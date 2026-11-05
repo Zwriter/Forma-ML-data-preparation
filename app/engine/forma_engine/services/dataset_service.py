@@ -80,24 +80,11 @@ class DatasetService:
             if any(c not in names for c in columns):
                 raise RequestError("Requested preview contains an unknown column")
         total_count = entry.dataset.rows
-        term = search.strip().lower() if search is not None else ""
-        if term:
-            search_columns = columns if columns is not None else names
-            header_matches = any(term in name.lower() for name in search_columns)
-            if not header_matches:
-                if not search_columns:
-                    frame = frame.limit(0)
-                else:
-                    matches = [
-                        pl.col(name)
-                        .cast(pl.String)
-                        .str.to_lowercase()
-                        .str.contains(term, literal=True)
-                        .fill_null(False)
-                        for name in search_columns
-                    ]
-                    frame = frame.filter(pl.any_horizontal(matches))
-                total_count = int(frame.select(pl.len()).collect().item())
+        frame, filtered = search_rows(
+            frame, columns if columns is not None else names, search
+        )
+        if filtered:
+            total_count = int(frame.select(pl.len()).collect().item())
         if columns is not None:
             frame = frame.select(columns)
         data = frame.slice(offset, min(limit, MAX_PREVIEW)).collect()
@@ -109,3 +96,26 @@ class DatasetService:
             "limit": min(limit, MAX_PREVIEW),
             "total_count": total_count,
         }
+
+
+def search_rows(
+    frame: pl.LazyFrame, columns: list[str], search: str | None
+) -> tuple[pl.LazyFrame, bool]:
+    """Filter rows like the worksheet search; also report whether rows were filtered.
+
+    A term that matches a column header keeps every row (existing worksheet behavior).
+    """
+    term = search.strip().lower() if search is not None else ""
+    if not term or any(term in name.lower() for name in columns):
+        return frame, False
+    if not columns:
+        return frame.limit(0), True
+    matches = [
+        pl.col(name)
+        .cast(pl.String)
+        .str.to_lowercase()
+        .str.contains(term, literal=True)
+        .fill_null(False)
+        for name in columns
+    ]
+    return frame.filter(pl.any_horizontal(matches)), True

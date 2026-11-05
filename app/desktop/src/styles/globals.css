@@ -110,21 +110,3 @@ textarea:focus-visible {
   background: #f5f6fa;
   border-radius: 7px;
 }
-
-.compare {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-ol li {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 6px 0;
-}
-
-ol li button {
-  padding: 6px 10px;
-}

@@ -146,8 +146,7 @@
 }
 
 .workflow-card > button,
-.workflow-card .row > button,
-ol li button {
+.workflow-card .row > button {
   padding: 8px 11px;
   color: #fff;
   background: var(--purple);
@@ -162,10 +161,6 @@ ol li button {
 
 .workflow-card .report {
   margin-top: 12px;
-}
-
-.source-comparison {
-  margin-top: 14px;
 }
 
 .data-primary > [role='status'] {

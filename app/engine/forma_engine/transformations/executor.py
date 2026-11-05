@@ -2,6 +2,7 @@ import polars as pl
 from forma_engine.domain.errors import InvalidTransformationError, CancelledError
 from forma_engine.transformations.validators import validate
 from forma_engine.transformations.operations import apply
+from forma_engine.transformations.cleaning_validators import check_preconditions
 
 
 def execute(
@@ -37,24 +38,7 @@ def execute(
             continue
         schema = current.collect_schema()
         validate(operation, schema.names(), schema)
-        if operation.get("type") == "fill_null" and operation.get("parameters", {}).get(
-            "strategy"
-        ) in {"mean", "median"}:
-            column = operation["parameters"]["column"]
-            if not current.collect_schema()[column].is_numeric():
-                raise InvalidTransformationError(
-                    "Mean and median fill require a numeric column."
-                )
-        if (
-            operation.get("type") == "fill_null"
-            and operation.get("parameters", {}).get("strategy") == "mode"
-        ):
-            column = operation["parameters"]["column"]
-            values = current.select(pl.col(column).drop_nulls().len()).collect().item()
-            if not values:
-                raise InvalidTransformationError(
-                    "Mode fill requires at least one non-missing value."
-                )
+        check_preconditions(current, operation)
         try:
             current = apply(current, operation)
         except InvalidTransformationError:

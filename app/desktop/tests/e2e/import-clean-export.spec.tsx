@@ -3,7 +3,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testi
 import App from '../../src/App';
 import { useDatasetStore } from '../../src/stores/datasetStore';
 import { useExportStore } from '../../src/stores/exportStore';
-import { useTransformationStore } from '../../src/stores/transformationStore';
+import { useCleaningStore } from '../../src/stores/cleaningStore';
 import { useWorkspaceStore } from '../../src/stores/workspaceStore';
 
 const bridge = vi.hoisted(() => ({
@@ -84,7 +84,13 @@ describe('import-clean-export desktop flow', () => {
       activeFileId: null,
     });
     useExportStore.setState({ destination: '', overwrite: false });
-    useTransformationStore.setState({ operations: [] });
+    useCleaningStore.setState({
+      drafts: {},
+      form: null,
+      validation: [],
+      applyJobId: null,
+      finishedJobId: null,
+    });
     useWorkspaceStore.setState({
       busy: false,
       error: null,
@@ -132,16 +138,20 @@ describe('import-clean-export desktop flow', () => {
             total_count: rows.length,
           });
         }
-        if (method === 'cleaning.preview' && params.operation.type === 'convert_type') {
-          return {
-            id: 'invalid-conversion',
-            status: 'error',
-            result: null,
-            error: { code: 'INVALID_TRANSFORMATION', message: 'Invalid value in column x.' },
-          };
-        }
-        if (method === 'cleaning.preview')
-          return success({ before: previews['source-1'], after: previews['derived-1'] });
+        if (method === 'cleaning.validate')
+          return success({
+            valid: true,
+            steps: params.operations.map((operation: any, index: number) =>
+              operation.type === 'convert_type'
+                ? {
+                    index,
+                    operation_id: operation.operation_id,
+                    valid: false,
+                    message: 'Invalid value in column x.',
+                  }
+                : { index, valid: true },
+            ),
+          });
         if (method === 'cleaning.apply') return success({ job_id: 'clean-1', state: 'pending' });
         if (
           method === 'export.csv' &&
@@ -172,15 +182,13 @@ describe('import-clean-export desktop flow', () => {
     const sourceSnapshot = useDatasetStore.getState().sourceDataset;
 
     fireEvent.click(screen.getByRole('link', { name: 'Clean' }));
-    fireEvent.click(screen.getByText('Add operation'));
-    fireEvent.click(screen.getByText('Preview first enabled'));
-    await screen.findByText('Transformation preview');
-    const comparison = screen.getByRole('heading', {
-      name: 'Transformation preview',
-    }).parentElement;
-    expect(within(comparison as HTMLElement).getAllByText(/"x": 1/)).toHaveLength(2);
-
-    fireEvent.click(screen.getByText('Apply operations'));
+    fireEvent.click(screen.getByRole('button', { name: 'Remove' }));
+    fireEvent.click(
+      within(screen.getByRole('dialog', { name: 'Remove duplicate rows' })).getByRole('button', {
+        name: 'Add step',
+      }),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Apply 1 step' }));
     await waitFor(() =>
       expect(
         bridge.invoke.mock.calls.some((call) => call[1].request.method === 'cleaning.apply'),
@@ -206,6 +214,7 @@ describe('import-clean-export desktop flow', () => {
       },
     });
     await waitFor(() => expect(useDatasetStore.getState().dataset?.dataset_id).toBe('derived-1'));
+    expect(screen.queryByRole('complementary', { name: 'Cleaning steps' })).toBeNull();
     expect(useDatasetStore.getState().sourceDataset).toEqual(sourceSnapshot);
     expect(useDatasetStore.getState().sourceDataset?.source_path).toBe('source.csv');
 
@@ -295,14 +304,16 @@ describe('import-clean-export desktop flow', () => {
     expect(useDatasetStore.getState().preview?.records).toEqual([{ x: 1 }]);
 
     fireEvent.click(screen.getByRole('link', { name: 'Clean' }));
-    fireEvent.click(screen.getByLabelText('Remove operation 1'));
-    fireEvent.change(screen.getByLabelText('Operation'), { target: { value: 'convert_type' } });
-    fireEvent.change(screen.getByLabelText('Parameters (JSON)'), {
-      target: { value: '{"column":"x","to":"integer"}' },
-    });
-    fireEvent.click(screen.getByText('Add operation'));
-    fireEvent.click(screen.getByText('Preview first enabled'));
+    fireEvent.click(screen.getByRole('button', { name: 'Convert' }));
+    fireEvent.click(
+      within(screen.getByRole('dialog', { name: 'Convert type' })).getByRole('button', {
+        name: 'Add step',
+      }),
+    );
     expect(await screen.findByText('Invalid value in column x.')).toBeTruthy();
+    expect(
+      (screen.getByRole('button', { name: 'Apply 1 step' }) as HTMLButtonElement).disabled,
+    ).toBe(true);
     expect(useDatasetStore.getState().dataset?.dataset_id).toBe('parquet-output-1');
 
     fireEvent.click(screen.getByRole('link', { name: 'Export' }));

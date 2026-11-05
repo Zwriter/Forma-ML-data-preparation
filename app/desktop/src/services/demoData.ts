@@ -1,4 +1,6 @@
+import type { Operation } from '../types/cleaning';
 import type { Dataset, HistoryMetadata, Preview } from '../types/dataset';
+import { previewDemoCleaning, validateDemoCleaning } from './demoCleaning';
 
 type DemoTable = { dataset: Dataset; records: Record<string, string>[] };
 const tables = new Map<string, DemoTable>();
@@ -144,28 +146,36 @@ export async function requestDemo<T>(method: string, params: Record<string, unkn
   }
   const current = await getTable(params.dataset_id);
   if (method === 'dataset.history') return emptyHistory(current.dataset.dataset_id) as T;
-  if (method === 'dataset.preview') {
-    const offset = Number(params.offset ?? 0);
-    const limit = Number(params.limit ?? 100);
-    const requested = params.columns as string[] | undefined;
-    const columns = current.dataset.schema.filter(
-      (column) => !requested || requested.includes(column.name),
-    );
-    const records = current.records
-      .slice(offset, offset + limit)
-      .map((record) =>
-        Object.fromEntries(columns.map((column) => [column.name, record[column.name]])),
-      );
-    return {
-      dataset_id: current.dataset.dataset_id,
-      columns,
-      records,
-      offset,
-      limit,
-      total_count: current.records.length,
-    } as T;
+  if (method === 'dataset.preview') return previewPage(current, params) as T;
+  if (method === 'cleaning.validate') {
+    return validateDemoCleaning(params.operations as Operation[]) as T;
+  }
+  if (method === 'cleaning.preview') {
+    return previewDemoCleaning(previewPage(current, params), params.operations as Operation[]) as T;
   }
   throw new Error(`The ${method} action is unavailable in browser demo mode.`);
+}
+
+function previewPage(current: DemoTable, params: Record<string, unknown>): Preview {
+  const offset = Number(params.offset ?? 0);
+  const limit = Number(params.limit ?? 100);
+  const requested = params.columns as string[] | undefined;
+  const columns = current.dataset.schema.filter(
+    (column) => !requested || requested.includes(column.name),
+  );
+  const records = current.records
+    .slice(offset, offset + limit)
+    .map((record) =>
+      Object.fromEntries(columns.map((column) => [column.name, record[column.name]])),
+    );
+  return {
+    dataset_id: current.dataset.dataset_id,
+    columns,
+    records,
+    offset,
+    limit,
+    total_count: current.records.length,
+  };
 }
 
 function emptyHistory(datasetId: string): HistoryMetadata {

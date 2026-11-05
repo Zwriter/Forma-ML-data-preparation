@@ -1,6 +1,7 @@
 import { useCallback, useRef } from 'react';
 import { useDatasetStore } from '../../stores/datasetStore';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
+import { useCleaningStore } from '../../stores/cleaningStore';
 
 type DialogMode = 'close' | 'overwrite' | null;
 
@@ -30,6 +31,7 @@ export function useOpenFileTabs(
   const remove = useCallback(
     (id: string) => {
       closeFile(id);
+      useCleaningStore.getState().clear(id);
       syncHistory();
     },
     [closeFile, syncHistory],

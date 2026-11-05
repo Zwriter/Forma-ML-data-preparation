@@ -1,6 +1,15 @@
 import { create } from 'zustand';
 import type { Dataset, HistoryMetadata, Preview } from '../types/dataset';
-export type OpenFileTab = {
+/** Worksheet view state shared by the Data and Clean tabs, kept per open file. */
+export type WorksheetView = {
+  search: string;
+  activeCell: { row: number; column: string } | null;
+  scroll: { top: number; left: number };
+};
+
+const emptyView: WorksheetView = { search: '', activeCell: null, scroll: { top: 0, left: 0 } };
+
+export type OpenFileTab = WorksheetView & {
   id: string;
   dataset: Dataset;
   preview: Preview;
@@ -10,7 +19,7 @@ export type OpenFileTab = {
   selectedColumns: string[];
 };
 
-type State = {
+type State = WorksheetView & {
   dataset: Dataset | null;
   preview: Preview | null;
   sourceDataset: Dataset | null;
@@ -27,6 +36,7 @@ type State = {
   closeFile: (id: string) => void;
   setHistory: (history: HistoryMetadata | null) => void;
   setSelectedColumns: (columns: string[]) => void;
+  setView: (view: Partial<WorksheetView>) => void;
   applyResult: (dataset: Dataset, history: HistoryMetadata, preview?: Preview) => void;
 };
 
@@ -40,6 +50,9 @@ function snapshot(state: State): OpenFileTab | null {
     sourcePreview: state.sourcePreview,
     history: state.history,
     selectedColumns: state.selectedColumns,
+    search: state.search,
+    activeCell: state.activeCell,
+    scroll: state.scroll,
   };
 }
 
@@ -59,16 +72,20 @@ export const useDatasetStore = create<State>((set) => ({
   sourcePreview: null,
   history: null,
   selectedColumns: [],
+  ...emptyView,
   openFiles: [],
   activeFileId: null,
   previewContextVersion: 0,
+  // A new dataset version is loaded without a search, so the box is cleared to match.
   setDataset: (dataset) =>
     set((state) => {
       const current = snapshot(state);
-      if (!current) return { dataset, previewContextVersion: state.previewContextVersion + 1 };
-      const tab = { ...current, dataset };
+      if (!current)
+        return { dataset, search: '', previewContextVersion: state.previewContextVersion + 1 };
+      const tab = { ...current, dataset, search: '' };
       return {
         dataset,
+        search: '',
         openFiles: replaceTab(state, tab),
         previewContextVersion: state.previewContextVersion + 1,
       };
@@ -91,6 +108,7 @@ export const useDatasetStore = create<State>((set) => ({
         sourcePreview: preview,
         history: null,
         selectedColumns,
+        ...emptyView,
       };
       return {
         ...workspaceFromTab(tab),
@@ -131,6 +149,7 @@ export const useDatasetStore = create<State>((set) => ({
             sourcePreview: null,
             history: null,
             selectedColumns: [],
+            ...emptyView,
             activeFileId: null,
             openFiles,
             previewContextVersion: state.previewContextVersion + 1,
@@ -154,6 +173,11 @@ export const useDatasetStore = create<State>((set) => ({
         openFiles: replaceTab(state, tab),
         previewContextVersion: state.previewContextVersion + 1,
       };
+    }),
+  setView: (view) =>
+    set((state) => {
+      const current = snapshot(state);
+      return current ? { ...view, openFiles: replaceTab(state, { ...current, ...view }) } : view;
     }),
   applyResult: (dataset, history, preview) =>
     set((state) => {

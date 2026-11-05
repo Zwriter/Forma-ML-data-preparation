@@ -9,9 +9,10 @@ const HISTORY_LIMIT_KEY = 'forma.history-limit';
 
 function readSaveBehavior(): SaveBehavior {
   try {
-    return window.localStorage.getItem(SAVE_BEHAVIOR_KEY) === 'copy' ? 'copy' : 'replace';
+    // Saving a copy is the default so the source file is never replaced unless chosen.
+    return window.localStorage.getItem(SAVE_BEHAVIOR_KEY) === 'replace' ? 'replace' : 'copy';
   } catch {
-    return 'replace';
+    return 'copy';
   }
 }
 

@@ -1,0 +1,40 @@
+.menu-button {
+  position: relative;
+}
+
+.menu-options {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  min-width: 15rem;
+  padding: 4px;
+  background: var(--surface, white);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 0.5rem 1.5rem rgb(18 16 28 / 16%);
+}
+
+.menu-options.menu-upward {
+  top: auto;
+  bottom: calc(100% + 4px);
+}
+
+.menu-options [role='menuitem'] {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+}
+
+.menu-options [role='menuitem']:hover,
+.menu-options [role='menuitem']:focus-visible {
+  background: var(--line);
+}
