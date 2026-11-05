@@ -8,7 +8,9 @@ from forma_engine.io.readers import schema_for, row_count
 from forma_engine.services.cleaning_preview import CleaningPreviewer
 from forma_engine.services.dataset_service import DatasetService
 from forma_engine.services.step_validator import StepValidator
+from forma_engine.services.view_mask import carry_view
 from forma_engine.transformations.executor import execute
+from forma_engine.transformations.lineage import lineage_for
 
 
 class CleaningService:
@@ -20,9 +22,10 @@ class CleaningService:
         self, dataset_id, operations, limit=100, offset=0, columns=None, search=None
     ):
         source = self.datasets.frame(dataset_id)
+        view = self.datasets.view(dataset_id)
         try:
             return CleaningPreviewer(self.validator).preview(
-                source, operations, offset, limit, columns, search
+                source, operations, offset, limit, columns, search, view
             )
         except (InvalidTransformationError, RequestError):
             raise
@@ -53,8 +56,13 @@ class CleaningService:
         )
         if cancelled():
             raise CancelledError("Cleaning was cancelled.")
+        lineage = lineage_for(source.collect_schema().names(), operations)
         history = self.datasets.register_derived(
-            dataset_id, dataset, result, {"type": "cleaning", "operations": operations}
+            dataset_id,
+            dataset,
+            result,
+            {"type": "cleaning", "operations": operations},
+            carry_view(self.datasets.view(dataset_id), lineage),
         )
         return {"dataset": dataset.to_dict(), "history": history, "_committed": True}
 

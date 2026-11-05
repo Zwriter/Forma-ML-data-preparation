@@ -19,19 +19,19 @@
 
 ## Phase 2: User Story 1 - Sort the View Without Reordering the Data (P1)
 
-- [ ] T003 [US1] Failing tests, then make `sort_rows` in `data_operation_service.py` commit an
+- [x] T003 [US1] Failing tests, then make `sort_rows` in `data_operation_service.py` commit an
   entry with the same frame and the new keys (empty keys clear); allow empty `keys` in the sort
   validator; remove the sort transform from `operations.apply`.
-- [ ] T004 [US1] Failing tests, then apply the current view in `DatasetService.preview` before
+- [x] T004 [US1] Failing tests, then apply the current view in `DatasetService.preview` before
   search, projection, and slicing; return `view` in the response.
-- [ ] T005 [US1] Failing tests in `test_cleaning_preview.py`, then page sorted source rows in
+- [x] T005 [US1] Failing tests in `test_cleaning_preview.py`, then page sorted source rows in
   `CleaningPreviewer` (row-id mapping unchanged) and return `view`; fill previous/next uses
   stored order.
-- [ ] T006 [US1] Failing tests, then carry the view through filter (unchanged keys), Clean apply
+- [x] T006 [US1] Failing tests, then carry the view through filter (unchanged keys), Clean apply
   (`carry_view` with lineage), and clear it for group by, pivot, unpivot.
-- [ ] T007 [US1] Contract tests in `tests/contract/` for `dataset.preview` and `cleaning.preview`
+- [x] T007 [US1] Contract tests in `tests/contract/` for `dataset.preview` and `cleaning.preview`
   `view`, and `data.apply` `sort_rows` with empty keys.
-- [ ] T008 [US1] Integration test in `tests/integration/test_sort_view_workflow.py`: sort → fill
+- [x] T008 [US1] Integration test in `tests/integration/test_sort_view_workflow.py`: sort → fill
   previous → apply → save copy writes stored order; export writes stored order.
 
 ## Phase 3: User Story 2 - Undo, Redo, and Save the Sort (P1)

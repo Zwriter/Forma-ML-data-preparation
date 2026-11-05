@@ -4,6 +4,7 @@ from forma_engine.domain.errors import InvalidTransformationError, RequestError
 from forma_engine.io.readers import schema_for
 from forma_engine.services.dataset_service import search_rows
 from forma_engine.services.step_validator import StepValidator
+from forma_engine.services.view_mask import SortKey, apply_view, carry_view
 from forma_engine.transformations.executor import execute
 from forma_engine.transformations.lineage import Lineage, initial_lineage, track
 
@@ -29,7 +30,10 @@ class CleaningPreviewer:
         limit: int = 100,
         columns: list[str] | None = None,
         search: str | None = None,
+        view: list[SortKey] | None = None,
     ) -> dict:
+        """Steps run in stored order; the page lists source rows in view order."""
+        view = view or []
         self._raise_first_invalid(frame, operations)
         names = frame.collect_schema().names()
         if columns is not None and any(name not in names for name in columns):
@@ -38,7 +42,7 @@ class CleaningPreviewer:
         result, lineage = self._run(source, names, operations)
         visible = self._visible(lineage, columns)
         matching, _ = search_rows(
-            source, columns if columns is not None else names, search
+            apply_view(source, view), columns if columns is not None else names, search
         )
         page = matching.slice(offset, limit).collect()
         after = result.join(page.lazy().select(ROW_ID), on=ROW_ID, how="semi")
@@ -52,6 +56,7 @@ class CleaningPreviewer:
             "limit": limit,
             "total_count": matching.select(pl.len()).collect().item(),
             "summary": self._summary(source, result, lineage),
+            "view": carry_view(view, lineage),
         }
 
     def _raise_first_invalid(self, frame, operations):

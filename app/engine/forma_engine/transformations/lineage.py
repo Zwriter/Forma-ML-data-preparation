@@ -7,6 +7,15 @@ def initial_lineage(columns: list[str]) -> Lineage:
     return {name: name for name in columns}
 
 
+def lineage_for(columns: list[str], operations: list[dict]) -> Lineage:
+    """Return the lineage after every enabled step."""
+    lineage = initial_lineage(columns)
+    for operation in operations:
+        if operation.get("enabled", True):
+            lineage = track(lineage, operation)
+    return lineage
+
+
 def track(lineage: Lineage, operation: dict) -> Lineage:
     """Return the lineage after operation; new columns map to None."""
     kind, p = operation.get("type"), operation.get("parameters", {})

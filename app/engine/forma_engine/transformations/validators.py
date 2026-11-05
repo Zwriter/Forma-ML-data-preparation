@@ -130,10 +130,7 @@ def validate(operation: dict, columns: list[str], schema=None) -> None:
                         "case_sensitive must be a boolean."
                     )
     if kind == "sort_rows":
-        keys = params.get("keys")
-        if not isinstance(keys, list) or not keys:
-            raise InvalidTransformationError("Add at least one sort column.")
-        if validate_view(keys, columns)[1]:
+        if validate_view(params.get("keys"), columns)[1]:
             raise InvalidTransformationError(
                 "Choose an existing column for each sort key."
             )
