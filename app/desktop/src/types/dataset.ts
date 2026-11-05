@@ -28,6 +28,8 @@ export type HistoryMetadata = {
   is_dirty: boolean;
   can_undo: boolean;
   can_redo: boolean;
+  /** Changes with the data; a sort keeps it (profiles compare against it). */
+  data_version: string;
 };
 
 export type DatasetResult = { dataset: Dataset; history: HistoryMetadata };

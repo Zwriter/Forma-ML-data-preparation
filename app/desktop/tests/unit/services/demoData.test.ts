@@ -160,4 +160,19 @@ describe('browser demo CSV', () => {
     expect(preview.columns.map((column) => column.origin)).toEqual(['city', 'code']);
     expect(preview.total_count).toBe(2);
   });
+
+  it('answers profile requests with a finished fixture profile and a data version', async () => {
+    const datasetId = await setDemoFile('city\nOslo', 'profile.csv');
+
+    const ack = await requestDemo<{ state: string; result: { data_version: string } }>(
+      'dataset.profile',
+      { dataset_id: datasetId },
+    );
+    const history = await requestDemo<{ data_version: string }>('dataset.history', {
+      dataset_id: datasetId,
+    });
+
+    expect(ack.state).toBe('completed');
+    expect(ack.result.data_version).toBe(history.data_version);
+  });
 });

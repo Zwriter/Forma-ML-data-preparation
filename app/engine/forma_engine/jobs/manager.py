@@ -4,6 +4,22 @@ from forma_engine.domain.entities import Job, JobState
 from forma_engine.domain.errors import JobNotFoundError, CancelledError, FormaError
 
 
+class CancelToken:
+    """Passed to workers: call it to check for cancel, `report` to show progress."""
+
+    def __init__(self, manager, job):
+        self.manager, self.job = manager, job
+
+    def __call__(self) -> bool:
+        return self.job.cancel_requested
+
+    def report(self, fraction: float, message: str) -> None:
+        with self.manager.lock:
+            self.job.progress = min(1.0, max(0.0, float(fraction)))
+            self.job.message = message
+            self.manager._emit(self.job)
+
+
 class JobManager:
     def __init__(self, publisher):
         self.publisher = publisher
@@ -34,7 +50,7 @@ class JobManager:
                     return
                 job.transition(JobState.RUNNING, "Working")
             self._emit(job)
-            result = work(lambda: job.cancel_requested)
+            result = work(CancelToken(self, job))
             with self.lock:
                 committed = isinstance(result, dict) and result.pop("_committed", False)
                 if job.cancel_requested and not committed:

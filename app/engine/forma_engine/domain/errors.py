@@ -55,3 +55,7 @@ class SaveError(FormaError):
 
 class CancelledError(FormaError):
     code = "CANCELLED"
+
+
+class ProfileStaleError(FormaError):
+    code = "PROFILE_STALE"

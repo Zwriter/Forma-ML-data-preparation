@@ -10,7 +10,4 @@ class ProfileHandlers:
         if not isinstance(dataset_id, str) or not dataset_id:
             raise RequestError("Provide a dataset_id.")
         self.datasets.get(dataset_id)
-        frequencies = params.get("frequencies", True)
-        if not isinstance(frequencies, bool):
-            raise RequestError("frequencies must be a boolean.")
-        return self.service.submit(dataset_id, frequencies)
+        return self.service.submit(dataset_id)

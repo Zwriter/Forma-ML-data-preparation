@@ -41,3 +41,10 @@ def test_export_result_requires_validation_and_supported_format():
 def test_job_supports_nullable_indeterminate_progress():
     job = Job("profile", progress=None)
     assert job.progress is None
+
+
+def test_profile_stale_error_has_its_own_code():
+    from forma_engine.domain.errors import ProfileStaleError
+
+    error = ProfileStaleError("The profile is out of date. Refresh it and try again.")
+    assert error.code == "PROFILE_STALE"

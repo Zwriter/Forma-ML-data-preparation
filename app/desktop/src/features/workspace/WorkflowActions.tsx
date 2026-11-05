@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { ProfilePanel } from '../profiling/ProfilePanel';
+import { ProfileDashboard } from '../profiling/ProfileDashboard';
 import { ExportDialog } from '../export/ExportDialog';
 import { useCleaningJob } from '../cleaning/useCleaningJob';
-import { useProfileJob } from '../profiling/useProfileJob';
 import { useExportJob } from '../export/useExportJob';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
 import { useDatasetStore } from '../../stores/datasetStore';
@@ -27,26 +26,14 @@ export function WorkflowActions({
   popupPosition?: PopupPosition;
 }) {
   const { dataset } = useCleaningJob();
-  const profile = useProfileJob();
   const exportDataset = useExportJob();
   const setWorkspaceError = useWorkspaceStore((state) => state.setError);
-  const [report, setReport] = useState<Record<string, unknown> | null>(null);
   const [busy, setBusy] = useState(false);
   const startDataOperation = useDataOperation();
   const activeSort = useDatasetStore((state) => state.preview?.view);
-  useWorkflowJobEvents(onSaveComplete, setReport);
+  useWorkflowJobEvents(onSaveComplete);
 
   if (!dataset) return null;
-  async function runProfile() {
-    setBusy(true);
-    try {
-      await profile();
-    } catch (error) {
-      setWorkspaceError(error instanceof Error ? error.message : 'Profile failed.');
-    } finally {
-      setBusy(false);
-    }
-  }
   async function runExport(destination: string, format: 'csv' | 'parquet', overwrite: boolean) {
     setBusy(true);
     try {
@@ -64,15 +51,7 @@ export function WorkflowActions({
   }
   return (
     <>
-      {activeTab === 'Profile' && (
-        <section className="card workflow-card" id="profile">
-          <h2>Data profile</h2>
-          <button disabled={busy} onClick={() => void runProfile()}>
-            Profile dataset
-          </button>
-          <ProfilePanel report={report} />
-        </section>
-      )}
+      {activeTab === 'Profile' && <ProfileDashboard />}
       {activeTab === 'Export' && (
         <ExportDialog
           busy={busy}

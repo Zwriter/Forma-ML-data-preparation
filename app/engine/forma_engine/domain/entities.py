@@ -48,6 +48,7 @@ class WorkingStateEntry:
     frame: Any
     operation: dict[str, Any] | None = None
     view: list[dict[str, str]] = field(default_factory=list)
+    data_version: str = field(default_factory=lambda: str(uuid4()))
 
     @property
     def dataset_id(self) -> str:
@@ -75,6 +76,7 @@ class ChangeHistory:
             "is_dirty": self.current_index != self.saved_index,
             "can_undo": self.current_index > 0,
             "can_redo": self.current_index < len(self.states) - 1,
+            "data_version": self.current.data_version,
         }
 
 

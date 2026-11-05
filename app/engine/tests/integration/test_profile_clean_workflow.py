@@ -21,7 +21,7 @@ def test_profile_clean_and_retain_source(tmp_path):
         "dataset.profile", {"dataset_id": opened["dataset_id"]}
     )
     report = wait_for(jobs, profile_ack["job_id"], {"completed"})["result"]
-    assert report["missing_counts"]["x"] == 1
+    assert report["columns"][0]["missing_count"] == 1
     clean_ack = router.dispatch(
         "cleaning.apply",
         {

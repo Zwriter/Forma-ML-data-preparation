@@ -162,3 +162,22 @@ def test_sort_rejects_unknown_columns(opened):
 
     with pytest.raises(InvalidTransformationError):
         operations.apply(source_id, sort([key("missing")]), never)
+
+
+def test_data_version_survives_a_sort_but_not_a_clean_step(opened):
+    datasets, operations, source_id = opened
+    opened_version = datasets.data_version(source_id)
+    history_id = datasets.history_id(source_id)
+
+    sorted_id = operations.apply(source_id, sort([key("city")]), never)["dataset"][
+        "dataset_id"
+    ]
+    assert datasets.data_version(sorted_id) == opened_version
+
+    fill = {"type": "fill_null", "parameters": {"column": "n", "strategy": "previous"}}
+    cleaned = CleaningService(datasets).apply(sorted_id, [fill], never)
+    cleaned_id = cleaned["dataset"]["dataset_id"]
+
+    assert datasets.data_version(cleaned_id) != opened_version
+    assert cleaned["history"]["data_version"] == datasets.data_version(cleaned_id)
+    assert datasets.history_id(cleaned_id) == history_id

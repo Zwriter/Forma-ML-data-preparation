@@ -1,0 +1,71 @@
+.profile-dashboard {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.profile-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.profile-header h2 {
+  margin: 0;
+}
+
+.profile-subtitle {
+  margin: 4px 0 0;
+  color: var(--muted);
+}
+
+.profile-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+}
+
+.profile-progress progress {
+  width: 160px;
+  accent-color: var(--purple);
+}
+
+.profile-error {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+}
+
+.profile-empty {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.profile-summary,
+.profile-panels {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.profile-panel,
+.profile-columns {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.profile-panel:focus-visible,
+.profile-columns:focus-visible {
+  outline: 2px solid var(--purple);
+  outline-offset: 2px;
+}

@@ -8,6 +8,7 @@ import { useWorkspaceStore } from '../../stores/workspaceStore';
 import { useCleaningJob } from '../cleaning/useCleaningJob';
 import { draftKey, useCleaningStore } from '../../stores/cleaningStore';
 import { useViewMaskStore } from '../../stores/viewMaskStore';
+import { applyProfileEvent } from '../profiling/useProfileJob';
 import type { SortKey } from '../../types/dataOperations';
 
 type EventJob = Job & {
@@ -29,10 +30,7 @@ const actionNames: Record<string, string> = {
   unpivot: 'Unpivot',
 };
 
-export function useWorkflowJobEvents(
-  onSaveComplete?: (success: boolean) => void,
-  onProfileResult?: (result: Record<string, unknown>) => void,
-) {
+export function useWorkflowJobEvents(onSaveComplete?: (success: boolean) => void) {
   const setHistory = useWorkspaceStore((state) => state.setHistory);
   const setDatasetHistory = useDatasetStore((state) => state.setHistory);
   const setSaveStatus = useWorkspaceStore((state) => state.setSaveStatus);
@@ -78,7 +76,7 @@ export function useWorkflowJobEvents(
         if (job.kind === 'save')
           onSaveComplete?.(job.state === 'completed' && job.result?.history?.is_dirty === false);
       }
-      if (job.kind === 'profile' && job.result) onProfileResult?.(job.result);
+      applyProfileEvent(job);
     })
       .then((unlisten) => {
         stop = unlisten;
@@ -89,7 +87,6 @@ export function useWorkflowJobEvents(
     return () => stop?.();
   }, [
     acceptResult,
-    onProfileResult,
     onSaveComplete,
     setDatasetHistory,
     setHistory,

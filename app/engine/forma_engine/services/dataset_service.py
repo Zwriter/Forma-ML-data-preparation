@@ -43,6 +43,14 @@ class DatasetService:
         self.get(dataset_id)
         return self.history_service.current(dataset_id).view
 
+    def data_version(self, dataset_id: str) -> str:
+        self.get(dataset_id)
+        return self.history_service.current(dataset_id).data_version
+
+    def history_id(self, dataset_id: str) -> str:
+        self.get(dataset_id)
+        return self.history_service.history_for(dataset_id).history_id
+
     def register_derived(
         self,
         source_id: str,
