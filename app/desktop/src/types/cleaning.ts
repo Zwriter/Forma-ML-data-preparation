@@ -1,4 +1,5 @@
 import type { Column } from './dataset';
+import type { SortKey } from './dataOperations';
 
 export type StepType =
   | 'fill_null'
@@ -58,6 +59,8 @@ export type CleaningPreview = {
   limit: number;
   total_count: number;
   summary: ChangeSummary;
+  /** The sort after the draft's renames; rows arrive in this order. */
+  view?: SortKey[];
 };
 
 export type WorksheetMarkers = {

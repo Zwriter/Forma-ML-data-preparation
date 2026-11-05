@@ -126,6 +126,17 @@
   font-weight: 700;
 }
 
+/* The active sort: arrow and words, so it never relies on colour alone. */
+.column-heading .column-sort {
+  color: #2f5fb3;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.column-heading .column-sort span {
+  color: inherit;
+}
+
 .table-empty {
   min-height: 120px;
   padding: 30px 18px;

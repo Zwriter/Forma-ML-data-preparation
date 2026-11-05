@@ -3,6 +3,7 @@ import type { Dataset, Preview } from '../../types/dataset';
 import type { WorksheetMarkers } from '../../types/cleaning';
 import { useDatasetStore } from '../../stores/datasetStore';
 import { Icon } from '../../components/Icon';
+import { ColumnHeading } from './ColumnHeading';
 import { SchemaSummary } from './SchemaSummary';
 import { TablePager } from './TablePager';
 
@@ -139,33 +140,15 @@ export function DatasetPreview({
               <tr>
                 <th className="row-number-heading" aria-label="Row number" />
                 {preview?.columns.map((column) => (
-                  <th
+                  <ColumnHeading
                     key={column.name}
-                    className={selectedColumn === column.name ? 'selected' : ''}
-                  >
-                    <button
-                      type="button"
-                      className="column-heading"
-                      aria-label={`Show details for ${column.name}`}
-                      aria-pressed={selectedColumn === column.name}
-                      onClick={() => onSelectColumn(column.name)}
-                      onContextMenu={(event) => {
-                        event.preventDefault();
-                        onOpenColumnDetails(column.name);
-                      }}
-                    >
-                      <strong>{column.name}</strong>
-                      <small>
-                        <span aria-hidden="true">
-                          {column.type.toLowerCase().match(/int|float|double|decimal/) ? '#' : 'A'}
-                        </span>{' '}
-                        {column.type}
-                      </small>
-                      {markers?.columnNotes[column.name] && (
-                        <small className="column-note">{markers.columnNotes[column.name]}</small>
-                      )}
-                    </button>
-                  </th>
+                    column={column}
+                    selected={selectedColumn === column.name}
+                    note={markers?.columnNotes[column.name]}
+                    view={preview.view}
+                    onSelect={onSelectColumn}
+                    onOpenDetails={onOpenColumnDetails}
+                  />
                 ))}
               </tr>
             </thead>

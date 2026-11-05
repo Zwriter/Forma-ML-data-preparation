@@ -54,11 +54,11 @@
 
 ## Phase 5: User Story 4 - See and Clear the Active Sort (P2)
 
-- [ ] T014 [US4] Tests, then show direction and priority in sorted column headers in
+- [x] T014 [US4] Tests, then show direction and priority in sorted column headers in
   `DatasetPreview.tsx` (text + icon, not colour alone).
-- [ ] T015 [US4] Tests, then start `SortBuilder.tsx` from the active keys and add Clear sort
+- [x] T015 [US4] Tests, then start `SortBuilder.tsx` from the active keys and add Clear sort
   (applies `sort_rows` with `[]`).
-- [ ] T016 [US4] Playwright in `tests/ui/sort-view.pw.ts`: header indicators visible and readable
+- [x] T016 [US4] Playwright in `tests/ui/sort-view.pw.ts`: header indicators visible and readable
   at 800×600; give the demo runtime a stub view for `dataset.preview`.
 
 ## Phase 6: Polish

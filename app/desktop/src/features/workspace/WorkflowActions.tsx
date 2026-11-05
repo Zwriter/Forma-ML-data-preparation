@@ -5,6 +5,7 @@ import { useCleaningJob } from '../cleaning/useCleaningJob';
 import { useProfileJob } from '../profiling/useProfileJob';
 import { useExportJob } from '../export/useExportJob';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
+import { useDatasetStore } from '../../stores/datasetStore';
 import { DataOperationDialog } from './DataOperationDialog';
 import { applyDataOperation } from '../../services/dataOperationClient';
 import type { DataOperation } from '../../types/dataOperations';
@@ -32,6 +33,7 @@ export function WorkflowActions({
   const [report, setReport] = useState<Record<string, unknown> | null>(null);
   const [busy, setBusy] = useState(false);
   const setStoreBusy = useWorkspaceStore((state) => state.setBusy);
+  const activeSort = useDatasetStore((state) => state.preview?.view);
   useWorkflowJobEvents(onSaveComplete, setReport);
 
   if (!dataset) return null;
@@ -96,6 +98,7 @@ export function WorkflowActions({
           kind={operationDialog ?? null}
           popupPosition={popupPosition}
           columns={dataset.schema}
+          activeSort={activeSort}
           busy={busy}
           onApply={(operation) => void runDataOperation(operation)}
           onClose={() => onCloseOperationDialog?.()}

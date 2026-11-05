@@ -20,6 +20,7 @@ export function toWorksheet(
       offset: preview.offset,
       limit: preview.limit,
       total_count: preview.total_count,
+      view: preview.view,
     },
     markers: {
       changed: new Map(

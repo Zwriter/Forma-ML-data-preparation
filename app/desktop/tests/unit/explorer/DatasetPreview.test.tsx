@@ -229,3 +229,60 @@ describe('schema summary', () => {
     expect(screen.getByText('Renamed from amount')).toBeTruthy();
   });
 });
+
+describe('sort indicators', () => {
+  const columns = [
+    { name: 'city', type: 'String', nullable: true },
+    { name: 'value', type: 'Int64', nullable: true },
+    { name: 'other', type: 'Int64', nullable: true },
+  ];
+  const sorted: Preview = {
+    ...preview([{ city: 'b', value: 1, other: 2 }]),
+    columns,
+    view: [
+      { column: 'city', direction: 'descending', nulls: 'last' },
+      { column: 'value', direction: 'ascending', nulls: 'first' },
+    ],
+  };
+
+  function renderSorted(page: Preview) {
+    render(
+      <DatasetPreview
+        dataset={{ ...dataset, schema: columns, columns: 3 }}
+        preview={page}
+        selectedColumn={null}
+        selectedColumns={columns.map((item) => item.name)}
+        onOpenColumnSelector={() => undefined}
+        onSelectColumn={() => undefined}
+        onOpenColumnDetails={() => undefined}
+        onPage={() => undefined}
+      />,
+    );
+  }
+
+  it('shows direction and priority in text on sorted column headers', () => {
+    renderSorted(sorted);
+
+    const city = screen.getByRole('button', { name: /Show details for city/ });
+    const value = screen.getByRole('button', { name: /Show details for value/ });
+    expect(city.getAttribute('aria-label')).toBe(
+      'Show details for city, sorted descending, priority 1',
+    );
+    expect(value.getAttribute('aria-label')).toBe(
+      'Show details for value, sorted ascending, priority 2',
+    );
+    expect(city.querySelector('.column-sort')?.textContent).toContain('Descending 1');
+    expect(value.querySelector('.column-sort')?.textContent).toContain('Ascending 2');
+    expect(screen.getByRole('button', { name: 'Show details for other' })).toBeTruthy();
+    expect(city.closest('th')?.getAttribute('aria-sort')).toBe('descending');
+    expect(value.closest('th')?.getAttribute('aria-sort')).toBeNull();
+  });
+
+  it('leaves out the priority when only one column is sorted', () => {
+    renderSorted({ ...sorted, view: [sorted.view![0]] });
+
+    const city = screen.getByRole('button', { name: /Show details for city/ });
+    expect(city.getAttribute('aria-label')).toBe('Show details for city, sorted descending');
+    expect(city.querySelector('.column-sort')?.textContent?.trim()).toMatch(/Descending$/);
+  });
+});

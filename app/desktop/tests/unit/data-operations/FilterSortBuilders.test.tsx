@@ -64,6 +64,37 @@ describe('FilterBuilder', () => {
 });
 
 describe('SortBuilder', () => {
+  const active = [
+    { column: 'amount', direction: 'descending' as const, nulls: 'first' as const },
+    { column: 'gone', direction: 'ascending' as const, nulls: 'last' as const },
+  ];
+
+  it('starts from the active sort, skipping columns that no longer exist', () => {
+    render(<SortBuilder columns={columns} active={active} onApply={vi.fn()} onClose={vi.fn()} />);
+
+    expect((screen.getByLabelText('Sort column 1') as HTMLSelectElement).value).toBe('amount');
+    expect((screen.getByLabelText('Sort direction 1') as HTMLSelectElement).value).toBe(
+      'descending',
+    );
+    expect((screen.getByLabelText('Missing values 1') as HTMLSelectElement).value).toBe('first');
+    expect(screen.queryByLabelText('Sort column 2')).toBeNull();
+  });
+
+  it('clears the active sort', () => {
+    const onApply = vi.fn();
+    render(<SortBuilder columns={columns} active={active} onApply={onApply} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Clear sort' }));
+
+    expect(onApply).toHaveBeenCalledWith({ type: 'sort_rows', parameters: { keys: [] } });
+  });
+
+  it('offers Clear sort only when a sort is active', () => {
+    render(<SortBuilder columns={columns} onApply={vi.fn()} onClose={vi.fn()} />);
+
+    expect(screen.queryByRole('button', { name: 'Clear sort' })).toBeNull();
+  });
+
   it('submits ordered keys, directions, and missing placement', () => {
     const onApply = vi.fn();
     render(<SortBuilder columns={columns} onApply={onApply} onClose={vi.fn()} />);

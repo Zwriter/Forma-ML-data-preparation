@@ -10,12 +10,17 @@ type Props = {
   onApply: (operation: DataOperation) => void;
   onClose: () => void;
   popupPosition?: PopupPosition;
+  /** The sort in effect; the builder starts from it and can clear it. */
+  active?: SortKey[];
 };
 
-export function SortBuilder({ columns, onApply, onClose, popupPosition }: Props) {
-  const [keys, setKeys] = useState<SortKey[]>([
-    { column: columns[0]?.name ?? '', direction: 'ascending', nulls: 'last' },
-  ]);
+export function SortBuilder({ columns, onApply, onClose, popupPosition, active = [] }: Props) {
+  const [keys, setKeys] = useState<SortKey[]>(() => {
+    const current = active.filter((key) => columns.some((column) => column.name === key.column));
+    return current.length
+      ? current
+      : [{ column: columns[0]?.name ?? '', direction: 'ascending', nulls: 'last' }];
+  });
   const [error, setError] = useState('');
 
   function update(index: number, patch: Partial<SortKey>) {
@@ -158,6 +163,15 @@ export function SortBuilder({ columns, onApply, onClose, popupPosition }: Props)
         </button>
         {error && <p role="alert">{error}</p>}
         <footer className="dialog-actions">
+          {active.length > 0 && (
+            <button
+              type="button"
+              className="quiet-button"
+              onClick={() => onApply({ type: 'sort_rows', parameters: { keys: [] } })}
+            >
+              Clear sort
+            </button>
+          )}
           <button type="button" className="quiet-button" onClick={onClose}>
             Cancel
           </button>

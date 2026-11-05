@@ -1,3 +1,4 @@
+import type { SortKey } from './dataOperations';
 export type Column = { name: string; type: string; nullable: boolean };
 export type Dataset = {
   dataset_id: string;
@@ -15,6 +16,8 @@ export type Preview = {
   offset: number;
   limit: number;
   total_count: number | null;
+  /** The active sort view: rows arrive in this order. */
+  view?: SortKey[];
 };
 
 export type HistoryMetadata = {
