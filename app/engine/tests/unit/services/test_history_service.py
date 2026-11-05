@@ -137,3 +137,78 @@ def test_move_rejects_history_boundaries(direction):
     history.open(source, object())
     with pytest.raises(RequestError):
         history.move(source.dataset_id, direction)
+
+
+SORT_CITY = [{"column": "city", "direction": "descending", "nulls": "last"}]
+
+
+def test_open_records_the_initial_view_as_the_saved_state():
+    history = HistoryService()
+    source = make_dataset("source.csv")
+
+    metadata = history.open(source, object(), SORT_CITY)
+
+    assert history.current(source.dataset_id).view == SORT_CITY
+    assert metadata["is_dirty"] is False
+
+
+def test_open_without_a_view_uses_stored_order():
+    history = HistoryService()
+    source = make_dataset("source.csv")
+    history.open(source, object())
+
+    assert history.current(source.dataset_id).view == []
+
+
+def test_commit_with_a_view_is_an_undoable_unsaved_change():
+    history = HistoryService()
+    source, frame = make_dataset("source.csv"), object()
+    history.open(source, frame)
+    sorted_entry = make_dataset("sorted")
+
+    metadata = history.commit(
+        source.dataset_id, sorted_entry, frame, {"type": "sort_rows"}, SORT_CITY
+    )
+
+    assert metadata["is_dirty"] is True
+    assert history.current(sorted_entry.dataset_id).frame is frame
+    assert history.current(sorted_entry.dataset_id).view == SORT_CITY
+    assert history.move(sorted_entry.dataset_id, "undo").view == []
+    assert history.metadata(source.dataset_id)["is_dirty"] is False
+    assert history.move(source.dataset_id, "redo").view == SORT_CITY
+
+
+def test_commit_without_a_view_keeps_the_current_view():
+    history = HistoryService()
+    source = make_dataset("source.csv")
+    history.open(source, object(), SORT_CITY)
+    filtered = make_dataset("filtered")
+
+    history.commit(source.dataset_id, filtered, object(), {"type": "filter_rows"})
+
+    assert history.current(filtered.dataset_id).view == SORT_CITY
+
+
+def test_commit_can_clear_the_view():
+    history = HistoryService()
+    source = make_dataset("source.csv")
+    history.open(source, object(), SORT_CITY)
+    grouped = make_dataset("grouped")
+
+    history.commit(source.dataset_id, grouped, object(), {"type": "group_by"}, [])
+
+    assert history.current(grouped.dataset_id).view == []
+
+
+def test_saving_a_view_entry_marks_it_clean():
+    history = HistoryService()
+    source, frame = make_dataset("source.csv"), object()
+    history.open(source, frame)
+    sorted_entry = make_dataset("sorted")
+    history.commit(
+        source.dataset_id, sorted_entry, frame, {"type": "sort_rows"}, SORT_CITY
+    )
+
+    assert history.mark_saved(sorted_entry.dataset_id)["is_dirty"] is False
+    assert history.move(sorted_entry.dataset_id, "undo").view == []
+    assert history.metadata(source.dataset_id)["is_dirty"] is True

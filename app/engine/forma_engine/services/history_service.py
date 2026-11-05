@@ -16,8 +16,9 @@ class HistoryService:
     dataset_histories: dict[str, str] = field(default_factory=dict)
     max_actions: int = DEFAULT_HISTORY_ACTIONS
 
-    def open(self, dataset: Dataset, frame: Any) -> dict:
-        history = ChangeHistory(states=[WorkingStateEntry(dataset, frame)])
+    def open(self, dataset: Dataset, frame: Any, view: list | None = None) -> dict:
+        entry = WorkingStateEntry(dataset, frame, view=list(view or []))
+        history = ChangeHistory(states=[entry])
         self.histories[history.history_id] = history
         self.dataset_histories[dataset.dataset_id] = history.history_id
         return history.to_dict()
@@ -36,13 +37,20 @@ class HistoryService:
         return self.history_for(dataset_id).current
 
     def commit(
-        self, dataset_id: str, dataset: Dataset, frame: Any, operation: dict
+        self,
+        dataset_id: str,
+        dataset: Dataset,
+        frame: Any,
+        operation: dict,
+        view: list | None = None,
     ) -> dict:
+        """Add an entry; view None keeps the current view, [] clears it."""
         history = self.history_for(dataset_id)
+        view = list(history.current.view if view is None else view)
         del history.states[history.current_index + 1 :]
         if history.saved_index > history.current_index:
             history.saved_index = -1
-        entry = WorkingStateEntry(dataset, frame, operation)
+        entry = WorkingStateEntry(dataset, frame, operation, view)
         history.states.append(entry)
         history.current_index += 1
         self._trim(history)

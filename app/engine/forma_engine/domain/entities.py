@@ -47,6 +47,7 @@ class WorkingStateEntry:
     dataset: "Dataset"
     frame: Any
     operation: dict[str, Any] | None = None
+    view: list[dict[str, str]] = field(default_factory=list)
 
     @property
     def dataset_id(self) -> str:

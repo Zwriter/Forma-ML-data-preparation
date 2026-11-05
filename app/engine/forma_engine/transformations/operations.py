@@ -1,5 +1,6 @@
 import polars as pl
 from forma_engine.domain.errors import InvalidTransformationError
+from forma_engine.services.view_mask import apply_view
 from forma_engine.transformations.filter_parser import compile_rules, parse_filter
 from forma_engine.transformations.cleaning_operations import OPERATIONS
 
@@ -24,13 +25,7 @@ def apply(frame: pl.LazyFrame, operation: dict) -> pl.LazyFrame:
             parse_filter(p["expression"], frame.collect_schema().names())
         )
     if kind == "sort_rows":
-        keys = p["keys"]
-        return frame.sort(
-            by=[key["column"] for key in keys],
-            descending=[key["direction"] == "descending" for key in keys],
-            nulls_last=[key["nulls"] == "last" for key in keys],
-            maintain_order=True,
-        )
+        return apply_view(frame, p["keys"])
     if kind == "group_by":
         groups = p["group_columns"]
         aggregations = []

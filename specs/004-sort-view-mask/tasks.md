@@ -7,12 +7,12 @@
 
 ## Phase 1: Foundational (engine)
 
-- [ ] T001 [P] Write failing tests in `app/engine/tests/unit/services/test_view_mask.py` for
+- [x] T001 [P] Write failing tests in `app/engine/tests/unit/services/test_view_mask.py` for
   `validate_view` (unknown columns dropped and reported, bad direction/nulls rejected, duplicate
   columns rejected), `apply_view` (multi-key, nulls first/last, ties keep stored order, `[]`
   is a no-op), and `carry_view` (lineage rename follows, removal drops); then implement
   `app/engine/forma_engine/services/view_mask.py`.
-- [ ] T002 Write failing tests in `app/engine/tests/unit/services/test_history_service.py` for
+- [x] T002 Write failing tests in `app/engine/tests/unit/services/test_history_service.py` for
   `WorkingStateEntry.view`: `open` with an initial view, `commit` with a view, undo/redo restore
   the previous view, saved index and dirty flag behave as for data changes; then extend
   `domain/entities.py` and `services/history_service.py`.

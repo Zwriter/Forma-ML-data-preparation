@@ -1,4 +1,5 @@
 from forma_engine.domain.errors import InvalidTransformationError
+from forma_engine.services.view_mask import validate_view
 from forma_engine.transformations.filter_parser import parse_filter
 from forma_engine.transformations.reshape_validators import validate_reshape
 from forma_engine.transformations.cleaning_validators import RULES, validate_cleaning
@@ -132,31 +133,9 @@ def validate(operation: dict, columns: list[str], schema=None) -> None:
         keys = params.get("keys")
         if not isinstance(keys, list) or not keys:
             raise InvalidTransformationError("Add at least one sort column.")
-        seen = set()
-        for key in keys:
-            if (
-                not isinstance(key, dict)
-                or not isinstance(key.get("column"), str)
-                or key.get("column") not in columns
-            ):
-                raise InvalidTransformationError(
-                    "Choose an existing column for each sort key."
-                )
-            if key["column"] in seen:
-                raise InvalidTransformationError(
-                    "Each sort column can appear only once."
-                )
-            seen.add(key["column"])
-            if not isinstance(key.get("direction"), str) or key.get(
-                "direction"
-            ) not in {"ascending", "descending"}:
-                raise InvalidTransformationError(
-                    "Choose ascending or descending order."
-                )
-            if not isinstance(key.get("nulls"), str) or key.get("nulls") not in {
-                "first",
-                "last",
-            }:
-                raise InvalidTransformationError("Choose where missing values appear.")
+        if validate_view(keys, columns)[1]:
+            raise InvalidTransformationError(
+                "Choose an existing column for each sort key."
+            )
     if kind in {"group_by", "pivot", "unpivot"}:
         validate_reshape(kind, params, columns, schema)
