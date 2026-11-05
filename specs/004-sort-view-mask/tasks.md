@@ -36,9 +36,9 @@
 
 ## Phase 3: User Story 2 - Undo, Redo, and Save the Sort (P1)
 
-- [ ] T009 [US2] Failing tests, then skip the data write in `SaveService` when the current frame
+- [x] T009 [US2] Failing tests, then skip the data write in `SaveService` when the current frame
   is the saved frame; mark saved and return `rewritten: false`.
-- [ ] T010 [US2] Vitest: a sort result updates the worksheet order and undo/redo restore it
+- [x] T010 [US2] Vitest: a sort result updates the worksheet order and undo/redo restore it
   (existing job flow); fix any frontend assumption that sort changes data.
 
 ## Phase 4: User Story 3 - Reopen With the Saved Sort (P2)

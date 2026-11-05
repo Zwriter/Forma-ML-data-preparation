@@ -60,6 +60,7 @@ class ChangeHistory:
     states: list[WorkingStateEntry] = field(default_factory=list)
     current_index: int = 0
     saved_index: int = 0
+    saved_path: str | None = None
 
     @property
     def current(self) -> WorkingStateEntry:

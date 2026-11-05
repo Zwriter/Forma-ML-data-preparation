@@ -3,6 +3,7 @@ import pytest
 
 from forma_engine.domain.entities import Dataset
 from forma_engine.domain.errors import SaveError, SaveRequiredError
+from forma_engine.services.data_operation_service import DataOperationService
 from forma_engine.services.dataset_service import DatasetService
 from forma_engine.services.save_service import SaveService
 
@@ -52,10 +53,13 @@ def test_save_copy_writes_destination_and_preserves_source(tmp_path):
 
 def test_save_requires_explicit_overwrite_confirmation(tmp_path):
     datasets, opened, _ = open_source(tmp_path)
+    derived = Dataset(opened["source_path"], "csv", opened["schema"], 2)
+    changed = datasets.frame(opened["dataset_id"]).select(pl.all())
+    datasets.register_derived(opened["dataset_id"], derived, changed, {"type": "test"})
     with pytest.raises(SaveRequiredError):
         SaveService(datasets).submit(
             type("Jobs", (), {"submit": lambda *_: pytest.fail("job queued")})(),
-            opened["dataset_id"],
+            derived.dataset_id,
             False,
         )
 
@@ -81,7 +85,7 @@ def test_failed_save_preserves_saved_history_cursor(tmp_path, monkeypatch):
     datasets.register_derived(
         opened["dataset_id"],
         derived,
-        datasets.frame(opened["dataset_id"]),
+        datasets.frame(opened["dataset_id"]).select(pl.all()),
         {"type": "test"},
     )
 
@@ -96,3 +100,73 @@ def test_failed_save_preserves_saved_history_cursor(tmp_path, monkeypatch):
     assert history["saved_index"] == 0
     assert history["is_dirty"] is True
     assert source.read_bytes() == original_bytes
+
+
+def sort_by_name(datasets, dataset_id):
+    keys = [{"column": "name", "direction": "descending", "nulls": "last"}]
+    operation = {"type": "sort_rows", "parameters": {"keys": keys}}
+    result = DataOperationService(datasets).apply(dataset_id, operation, lambda: False)
+    return result["dataset"]["dataset_id"]
+
+
+class RecordingJobs:
+    def submit(self, kind, work):
+        self.work = work
+        return {"job_id": "save", "state": "pending"}
+
+
+def test_view_only_change_saves_without_writing_or_confirmation(tmp_path):
+    datasets, opened, source = open_source(tmp_path)
+    original = source.read_bytes()
+    sorted_id = sort_by_name(datasets, opened["dataset_id"])
+    jobs = RecordingJobs()
+
+    SaveService(datasets).submit(jobs, sorted_id, False)
+    result = jobs.work(lambda: False)
+
+    assert result["rewritten"] is False
+    assert result["destination"] == str(source.resolve())
+    assert result["row_count"] == 2
+    assert result["history"]["is_dirty"] is False
+    assert source.read_bytes() == original
+
+
+def test_data_change_reports_rewritten(tmp_path):
+    datasets, opened, source = open_source(tmp_path)
+    current = pl.DataFrame({"name": ["Grace"], "value": [3]}).lazy()
+    derived = Dataset(opened["source_path"], "csv", opened["schema"], 1)
+    datasets.register_derived(opened["dataset_id"], derived, current, {"type": "test"})
+
+    result = SaveService(datasets).save(derived.dataset_id, True, lambda: False)
+
+    assert result["rewritten"] is True
+
+
+def test_view_only_save_to_a_new_copy_still_writes(tmp_path):
+    datasets, opened, _ = open_source(tmp_path)
+    sorted_id = sort_by_name(datasets, opened["dataset_id"])
+    destination = tmp_path / "copy.csv"
+
+    result = SaveService(datasets).save(
+        sorted_id, False, lambda: False, str(destination)
+    )
+
+    assert result["rewritten"] is True
+    assert pl.read_csv(destination)["name"].to_list() == ["Ada", "Linus"]
+
+
+def test_source_is_written_when_only_a_copy_holds_the_data(tmp_path):
+    datasets, opened, source = open_source(tmp_path)
+    current = pl.DataFrame({"name": ["Grace"], "value": [3]}).lazy()
+    derived = Dataset(opened["source_path"], "csv", opened["schema"], 1)
+    datasets.register_derived(opened["dataset_id"], derived, current, {"type": "test"})
+    saves = SaveService(datasets)
+    saves.save(derived.dataset_id, False, lambda: False, str(tmp_path / "copy.csv"))
+    sorted_id = sort_by_name(datasets, derived.dataset_id)
+
+    with pytest.raises(SaveRequiredError):
+        saves.submit(RecordingJobs(), sorted_id, False)
+    result = saves.save(sorted_id, True, lambda: False)
+
+    assert result["rewritten"] is True
+    assert pl.read_csv(source)["name"].to_list() == ["Grace"]

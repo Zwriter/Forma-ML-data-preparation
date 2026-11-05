@@ -18,7 +18,7 @@ class HistoryService:
 
     def open(self, dataset: Dataset, frame: Any, view: list | None = None) -> dict:
         entry = WorkingStateEntry(dataset, frame, view=list(view or []))
-        history = ChangeHistory(states=[entry])
+        history = ChangeHistory(states=[entry], saved_path=dataset.source_path)
         self.histories[history.history_id] = history
         self.dataset_histories[dataset.dataset_id] = history.history_id
         return history.to_dict()
@@ -96,8 +96,22 @@ class HistoryService:
         history.current_index = target
         return history.current
 
-    def mark_saved(self, dataset_id: str, saved_dataset_id: str | None = None) -> dict:
+    def saved_state(self, dataset_id: str) -> tuple[WorkingStateEntry | None, str]:
+        """Return the entry last saved (None if trimmed) and where it was written."""
         history = self.history_for(dataset_id)
+        if history.saved_index < 0:
+            return None, history.saved_path
+        return history.states[history.saved_index], history.saved_path
+
+    def mark_saved(
+        self,
+        dataset_id: str,
+        saved_dataset_id: str | None = None,
+        path: str | None = None,
+    ) -> dict:
+        history = self.history_for(dataset_id)
+        if path is not None:
+            history.saved_path = path
         state_id = saved_dataset_id or history.current.dataset_id
         history.saved_index = next(
             (
