@@ -40,8 +40,9 @@ export function StepFormDialog({
     const result: Submission = definition.submit(draft, columns);
     if (!('error' in result)) return onSave(result.parameters, type);
     setError(result);
-    if (result.field)
-      body.current?.querySelector<HTMLElement>(`[name="${CSS.escape(result.field)}"]`)?.focus();
+    // The form's own lookup by name: no selector escaping, works in every runtime.
+    const field = result.field && body.current?.elements.namedItem(result.field);
+    if (field instanceof HTMLElement) field.focus();
   }
 
   /** Leaving a text field checks it, showing only that field's own error. */

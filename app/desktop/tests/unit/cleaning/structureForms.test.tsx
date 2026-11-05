@@ -83,6 +83,7 @@ describe('structure step forms', () => {
     expect((row(1).getByLabelText('Column') as HTMLSelectElement).value).toBe('full_name');
     save();
     expectFieldError(row(1).getByLabelText('New name'), 'Enter a new name.');
+    expect(document.activeElement).toBe(row(1).getByLabelText('New name'));
 
     fireEvent.change(row(1).getByLabelText('New name'), { target: { value: ' Name ' } });
     fireEvent.click(screen.getByRole('button', { name: 'Add column' }));
