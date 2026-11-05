@@ -3,6 +3,7 @@ import {
   formatCount,
   formatCountWithPercent,
   formatPercent,
+  formatPercentWithCount,
   formatUpdated,
 } from '../../../src/features/profiling/profileFormat';
 
@@ -21,6 +22,7 @@ describe('profileFormat', () => {
   it('combines a count with its share of a total', () => {
     expect(formatCountWithPercent(1521, 7043)).toBe('1,521 (21.6%)');
     expect(formatCountWithPercent(0, 0)).toBe('0 (—)');
+    expect(formatPercentWithCount(3218, 147903)).toBe('2.2% (3,218)');
   });
 
   it('says Today or Yesterday before the time', () => {

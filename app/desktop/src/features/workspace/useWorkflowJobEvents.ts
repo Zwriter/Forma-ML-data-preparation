@@ -65,7 +65,8 @@ export function useWorkflowJobEvents(onSaveComplete?: (success: boolean) => void
         setHistory(job.result.history);
         if (job.kind === 'save') setSaveStatus(job.result.history.is_dirty ? 'dirty' : 'saved');
       }
-      if (job.state === 'failed') {
+      // Profile failures are shown in the Profile tab itself, with Try again.
+      if (job.state === 'failed' && job.kind !== 'profile') {
         if (job.kind === 'save') setSaveStatus('failed');
         const detail = job.error?.message ?? 'The last valid state remains active.';
         setWorkspaceError(`${actionNames[job.kind] ?? job.kind} failed: ${detail}`);

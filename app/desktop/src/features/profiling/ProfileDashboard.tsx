@@ -1,7 +1,12 @@
+import { useEffect } from 'react';
 import { useDatasetStore } from '../../stores/datasetStore';
 import { useProfileStore } from '../../stores/profileStore';
+import { ProfileHeader } from './ProfileHeader';
+import { QualityPanel } from './QualityPanel';
+import { SummaryCards } from './SummaryCards';
 import { useProfileJob } from './useProfileJob';
 import '../../styles/profile.css';
+import '../../styles/profile-responsive.css';
 
 /** The Profile tab: layout regions from specs/005-data-profile/contracts/ui.md. */
 export function ProfileDashboard() {
@@ -11,25 +16,24 @@ export function ProfileDashboard() {
   const running = entry?.status === 'running';
   const profile = entry?.profile;
 
+  // Profile automatically only on the first visit; after a cancel or failure the user decides.
+  const neverRun = historyId !== undefined && entry === undefined;
+  // Re-read the store: StrictMode runs effects twice and `run` registers the entry at once.
+  // `run` is recreated each render; depending on it would re-trigger the effect.
+  useEffect(() => {
+    if (historyId && neverRun && !useProfileStore.getState().entries[historyId]) void run();
+  }, [neverRun]);
+
   return (
     <section className="card workflow-card profile-dashboard" id="profile">
-      <header className="profile-header" role="region" aria-label="Data profile">
-        <div>
-          <h2>Data profile</h2>
-          <p className="profile-subtitle">
-            Understand the structure, quality and distribution of your data.
-          </p>
-        </div>
-        {running && (
-          <div className="profile-progress">
-            <progress aria-label="Profiling progress" max={1} value={entry.progress ?? 0} />
-            <span>{entry.message || 'Profiling…'}</span>
-            <button type="button" onClick={() => void cancel()}>
-              Cancel
-            </button>
-          </div>
-        )}
-      </header>
+      <ProfileHeader
+        computedAt={profile?.computed_at ?? null}
+        running={running}
+        progress={entry?.progress ?? null}
+        message={entry?.message ?? null}
+        onRefresh={() => void run()}
+        onCancel={() => void cancel()}
+      />
       {entry?.status === 'failed' && (
         <p className="profile-error" role="alert">
           {entry.error?.message ?? 'Profiling failed.'}{' '}
@@ -38,7 +42,7 @@ export function ProfileDashboard() {
           </button>
         </p>
       )}
-      {!profile && !running && entry?.status !== 'failed' && (
+      {!profile && entry?.status === 'idle' && (
         <div className="profile-empty">
           <p>No profile yet for this dataset.</p>
           <button type="button" onClick={() => void run()}>
@@ -48,9 +52,9 @@ export function ProfileDashboard() {
       )}
       {profile && (
         <>
-          <section className="profile-summary" aria-label="Dataset summary" />
+          <SummaryCards profile={profile} />
           <div className="profile-panels">
-            <section className="profile-panel" aria-label="Data quality" tabIndex={-1} />
+            <QualityPanel quality={profile.quality} />
             <section
               className="profile-panel"
               aria-label="Missing values by column"

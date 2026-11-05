@@ -15,6 +15,9 @@ export const formatPercent = (share: number | null) =>
 export const formatCountWithPercent = (count: number, total: number) =>
   `${formatCount(count)} (${formatPercent(total ? count / total : null)})`;
 
+export const formatPercentWithCount = (count: number, total: number) =>
+  `${formatPercent(total ? count / total : null)} (${formatCount(count)})`;
+
 /** "Today 10:24 AM", "Yesterday 10:05 PM", or "Oct 30, 9:00 AM". */
 export function formatUpdated(iso: string, now = new Date()): string {
   const updated = new Date(iso);

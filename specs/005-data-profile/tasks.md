@@ -179,12 +179,12 @@ and Cancel.
 **Independent Test**: Open a dataset, go to Profile, and see the header, cards, and ring with
 values that match the dataset. Cancel during a run restores the previous state.
 
-- [ ] T021 [P] [US1] Write a failing integration test in
+- [x] T021 [P] [US1] Write a failing integration test in
   `tests/integration/test_profile_dashboard_workflow.py` (engine): open the `mixed` CSV, profile
   it, and assert row, column, missing, duplicate, and valid/missing/invalid counts against
   reference values. Cancel a profile of a large generated frame and assert `CANCELLED` and no
   stored result.
-- [ ] T022 [P] [US1] Write failing tests in `tests/unit/profiling/ProfileHeader.test.tsx`, then
+- [x] T022 [P] [US1] Write failing tests in `tests/unit/profiling/ProfileHeader.test.tsx`, then
   create `src/features/profiling/ProfileHeader.tsx`:
   - h2 "Data profile" with its subtitle, and a `time` element with "Last updated …"
   - `button` "Refresh profile", disabled while running
@@ -192,20 +192,22 @@ values that match the dataset. Cancel during a run restores the previous state.
     in US6)
   - while running: a `progressbar` "Profiling progress" with its value and the phase message, and
     a `button` "Cancel"
-- [ ] T023 [P] [US1] Write failing tests in `tests/unit/profiling/SummaryCards.test.tsx`, then
+- [x] T023 [P] [US1] Write failing tests in `tests/unit/profiling/SummaryCards.test.tsx`, then
   create `src/features/profiling/SummaryCards.tsx`:
   - a `list` "Dataset summary" with Rows, Columns, Missing cells, and Duplicate rows
   - icons from `components/Icon.tsx`, adding any missing icon names there
   - warning/alert accent when Missing or Duplicate is > 0, neutral at 0, with a text cue as well
     as colour
   - the duplicates card has `tabIndex=-1`
-- [ ] T024 [P] [US1] Write failing tests in `tests/unit/profiling/chartScale.test.ts`, then create
+- [ ] T024 [P] [US1] (Moved to US3 with T039: the ring uses dashed circle strokes and needs no
+  scale maths; only the bar charts need ticks.) Write failing tests in
+  `tests/unit/profiling/chartScale.test.ts`, then create
   `src/features/profiling/charts/chartScale.ts`: `niceTicks(max, count)`,
   `linearScale(domain, range)`, and `arcPath(start, end, radius, thickness)` (pure functions).
-- [ ] T025 [P] [US1] Write failing tests in `tests/unit/profiling/ChartTooltip.test.tsx`, then
+- [x] T025 [P] [US1] Write failing tests in `tests/unit/profiling/ChartTooltip.test.tsx`, then
   create `src/features/profiling/charts/ChartTooltip.tsx`, a shared tooltip shown on hover and on
   focus of a chart element, with label, count, and percentage.
-- [ ] T026 [US1] Write failing tests in `tests/unit/profiling/QualityPanel.test.tsx`, then create
+- [x] T026 [US1] Write failing tests in `tests/unit/profiling/QualityPanel.test.tsx`, then create
   `src/features/profiling/charts/RingChart.tsx` and `src/features/profiling/QualityPanel.tsx`:
   - a `region` "Data quality" containing a ring `img` with a text `aria-label` summary
   - centre text "{completeness}% Complete", or "—" when null
@@ -213,17 +215,17 @@ values that match the dataset. Cancel during a run restores the previous state.
   - each segment is focusable and shows the tooltip
   - the panel has `tabIndex=-1`
   - depends on T024 and T025
-- [ ] T027 [US1] Write failing tests in `tests/integration/profile-dashboard.test.tsx`
+- [x] T027 [US1] Write failing tests in `tests/integration/profile-dashboard.test.tsx`
   (mocked IPC), then wire the auto-run in `ProfileDashboard.tsx`/`useProfileJob.ts`:
   - opening the Profile tab with no profile for the current `history_id` + `data_version` sends
     `dataset.profile` exactly once
   - progress and Cancel are shown, and the rest of the workspace stays usable
   - Cancel keeps the previous profile or shows the "Profile dataset" empty state
   - a failure shows an actionable message with "Try again"
-- [ ] T028 [US1] Add `src/styles/profile-responsive.css` with the breakpoints from
+- [x] T028 [US1] Add `src/styles/profile-responsive.css` with the breakpoints from
   contracts/ui.md for the summary cards and panel grid: "≥ 1200 px 4 per row; 760–1199 px 2 per
   row; < 760 px 1 per row".
-- [ ] T029 [US1] Write a failing Playwright test in `tests/ui/profile-dashboard.pw.ts` (demo
+- [x] T029 [US1] Write a failing Playwright test in `tests/ui/profile-dashboard.pw.ts` (demo
   build): at 1440, 1024, and 700 px, cards and panels show 4/2/1 per row with no horizontal page
   scroll. Break the breakpoint CSS once and confirm the test fails.
 

@@ -193,7 +193,7 @@ describe('desktop accessibility and responsive shell', () => {
     render(<WorkflowActions activeTab="Profile" />);
     const started = performance.now();
 
-    fireEvent.click(screen.getByText('Profile dataset'));
+    // Opening the tab profiles automatically.
     await waitFor(() => expect(invoke).toHaveBeenCalled());
     expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
     expect(screen.queryByRole('status')).toBeNull();

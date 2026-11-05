@@ -1,0 +1,18 @@
+/* Breakpoints follow the dashboard's own width (contracts/ui.md), not the window's. */
+.profile-dashboard {
+  container-type: inline-size;
+}
+
+@container (max-width: 1199px) {
+  .profile-summary,
+  .profile-panels {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container (max-width: 759px) {
+  .profile-summary,
+  .profile-panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

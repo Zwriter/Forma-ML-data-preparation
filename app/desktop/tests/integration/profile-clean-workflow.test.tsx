@@ -164,8 +164,8 @@ describe('profile and cleaning workflow', () => {
     );
     render(<WorkflowActions activeTab="Profile" />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Profile dataset' }));
-    expect(screen.getByRole('progressbar', { name: 'Profiling progress' })).toBeTruthy();
+    // Opening the tab profiles automatically.
+    expect(await screen.findByRole('progressbar', { name: 'Profiling progress' })).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Profile dataset' })).toBeNull();
     finishProfile?.(
       ipcResult({

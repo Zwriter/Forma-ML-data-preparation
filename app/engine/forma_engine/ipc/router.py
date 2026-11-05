@@ -26,6 +26,7 @@ class Router:
             jobs,
             exports,
         )
+        self.profile_service = profile_service
         dataset = DatasetHandlers(datasets, jobs, saves)
         profile = ProfileHandlers(datasets, profile_service)
         clean = CleaningHandlers(datasets, cleaning)
