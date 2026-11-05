@@ -7,6 +7,7 @@ import { CleanTab } from '../cleaning/CleanTab';
 import type { WorksheetMarkers } from '../../types/cleaning';
 import type { Dataset, Preview } from '../../types/dataset';
 import type { PopupPosition } from './popupPositions';
+import { useDataOperation } from './useDataOperation';
 
 type Props = {
   activeTab: string;
@@ -43,6 +44,7 @@ export function WorkspaceContent({
 }: Props) {
   const [selectedColumn, setSelectedColumn] = useState<string | null>(null);
   const [showColumnDetails, setShowColumnDetails] = useState(false);
+  const startDataOperation = useDataOperation();
   const column = dataset?.schema.find((item) => item.name === selectedColumn);
   const fileName = dataset?.source_path.split(/[\\/]/).pop() ?? '';
   const title = fileName.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ') || 'Dataset';
@@ -78,6 +80,7 @@ export function WorkspaceContent({
             setShowColumnDetails(true);
           }}
           onPage={onPage}
+          onSort={(keys) => void startDataOperation({ type: 'sort_rows', parameters: { keys } })}
         />
         {showColumnSelector && (
           <ColumnSelector

@@ -54,6 +54,7 @@ export function StepsPanel({
           type="button"
           className="quiet-button steps-panel-collapse"
           aria-label="Collapse steps panel"
+          title="Collapse"
           aria-expanded={true}
           aria-controls="steps-panel"
           onClick={() => setPanel('collapsed')}

@@ -5,8 +5,9 @@ import { useCleaningJob } from '../cleaning/useCleaningJob';
 import { useProfileJob } from '../profiling/useProfileJob';
 import { useExportJob } from '../export/useExportJob';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
+import { useDatasetStore } from '../../stores/datasetStore';
 import { DataOperationDialog } from './DataOperationDialog';
-import { applyDataOperation } from '../../services/dataOperationClient';
+import { useDataOperation } from './useDataOperation';
 import type { DataOperation } from '../../types/dataOperations';
 import type { PopupPosition } from './popupPositions';
 
@@ -31,7 +32,8 @@ export function WorkflowActions({
   const setWorkspaceError = useWorkspaceStore((state) => state.setError);
   const [report, setReport] = useState<Record<string, unknown> | null>(null);
   const [busy, setBusy] = useState(false);
-  const setStoreBusy = useWorkspaceStore((state) => state.setBusy);
+  const startDataOperation = useDataOperation();
+  const activeSort = useDatasetStore((state) => state.preview?.view);
   useWorkflowJobEvents(onSaveComplete, setReport);
 
   if (!dataset) return null;
@@ -56,21 +58,9 @@ export function WorkflowActions({
     }
   }
   async function runDataOperation(operation: DataOperation) {
-    if (!dataset) return;
-    const rawLabel = operation.type.replaceAll('_', ' ');
-    const label = rawLabel.charAt(0).toUpperCase() + rawLabel.slice(1);
     setBusy(true);
-    setStoreBusy(true);
-    try {
-      await applyDataOperation(dataset.dataset_id, operation);
-      onCloseOperationDialog?.();
-    } catch (cause) {
-      setStoreBusy(false);
-      const detail = cause instanceof Error ? cause.message : 'Could not start this operation.';
-      setWorkspaceError(`${label} failed: ${detail}`);
-    } finally {
-      setBusy(false);
-    }
+    if (await startDataOperation(operation)) onCloseOperationDialog?.();
+    setBusy(false);
   }
   return (
     <>
@@ -96,6 +86,7 @@ export function WorkflowActions({
           kind={operationDialog ?? null}
           popupPosition={popupPosition}
           columns={dataset.schema}
+          activeSort={activeSort}
           busy={busy}
           onApply={(operation) => void runDataOperation(operation)}
           onClose={() => onCloseOperationDialog?.()}

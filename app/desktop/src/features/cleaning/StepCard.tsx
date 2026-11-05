@@ -55,12 +55,14 @@ export function StepCard({
         className="step-switch"
         aria-checked={step.enabled}
         aria-label={`Enable step ${position}`}
+        title={step.enabled ? 'Turn this step off' : 'Turn this step on'}
         onClick={() => cleaning.toggle(fileId, step.id)}
       />
       <MenuButton
         className="step-menu"
         label="⋯"
         ariaLabel={`Actions for step ${position}`}
+        title="Step actions"
         menuLabel={`Step ${position} actions`}
         items={actions}
       />

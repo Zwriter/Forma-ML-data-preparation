@@ -128,7 +128,18 @@ test('step switch and step menu work from the keyboard and are not clipped', asy
   const list = page.getByRole('complementary').getByRole('list');
   const trigger = page.getByRole('button', { name: `Actions for step ${last}` });
   await trigger.hover();
-  const scrolled = await list.evaluate((element) => element.scrollTop);
+  // Turning a step off refreshes the preview in the background, which can resize the list.
+  // Read the scroll position only once that has settled.
+  await expect(page.getByText('Updating preview…')).toHaveCount(0);
+  let scrolled = -1;
+  await expect
+    .poll(async () => {
+      const now = await list.evaluate((element) => element.scrollTop);
+      const settled = now === scrolled;
+      scrolled = now;
+      return settled;
+    })
+    .toBe(true);
   await trigger.click();
   // The whole menu must show on top without the list scrolling (mouse users).
   for (const action of ['Edit', 'Delete']) {

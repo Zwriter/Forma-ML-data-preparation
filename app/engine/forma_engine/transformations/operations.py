@@ -23,14 +23,6 @@ def apply(frame: pl.LazyFrame, operation: dict) -> pl.LazyFrame:
         return frame.filter(
             parse_filter(p["expression"], frame.collect_schema().names())
         )
-    if kind == "sort_rows":
-        keys = p["keys"]
-        return frame.sort(
-            by=[key["column"] for key in keys],
-            descending=[key["direction"] == "descending" for key in keys],
-            nulls_last=[key["nulls"] == "last" for key in keys],
-            maintain_order=True,
-        )
     if kind == "group_by":
         groups = p["group_columns"]
         aggregations = []

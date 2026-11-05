@@ -72,9 +72,13 @@ A typed, non-code rule set applied to the full working dataset.
 
 An ordered multi-key sort.
 
+> **Changed by [004 Sort as a Persistent View Mask](../004-sort-view-mask/spec.md):** sort no
+> longer reorders the data. It is a view kept beside the data, so saves and exports write
+> stored order, an empty `keys` list clears the sort, and the view is remembered per file.
+
 | Field | Type | Rules |
 | --- | --- | --- |
-| `keys` | Ordered list | Must contain at least one key and no duplicate columns |
+| `keys` | Ordered list | No duplicate columns; empty clears the sort (004) |
 | `column` | Column name | Must exist in the current schema |
 | `direction` | Enum | `ascending` or `descending` |
 | `nulls` | Enum | Explicit, consistent placement such as `first` or `last` |

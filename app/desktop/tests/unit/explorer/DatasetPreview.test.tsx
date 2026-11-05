@@ -229,3 +229,160 @@ describe('schema summary', () => {
     expect(screen.getByText('Renamed from amount')).toBeTruthy();
   });
 });
+
+describe('sort indicators', () => {
+  const columns = [
+    { name: 'city', type: 'String', nullable: true },
+    { name: 'value', type: 'Int64', nullable: true },
+    { name: 'other', type: 'Int64', nullable: true },
+  ];
+  const sorted: Preview = {
+    ...preview([{ city: 'b', value: 1, other: 2 }]),
+    columns,
+    view: [
+      { column: 'city', direction: 'descending', nulls: 'last' },
+      { column: 'value', direction: 'ascending', nulls: 'first' },
+    ],
+  };
+
+  function renderSorted(page: Preview) {
+    render(
+      <DatasetPreview
+        dataset={{ ...dataset, schema: columns, columns: 3 }}
+        preview={page}
+        selectedColumn={null}
+        selectedColumns={columns.map((item) => item.name)}
+        onOpenColumnSelector={() => undefined}
+        onSelectColumn={() => undefined}
+        onOpenColumnDetails={() => undefined}
+        onPage={() => undefined}
+      />,
+    );
+  }
+
+  it('shows direction and priority in text on sorted column headers', () => {
+    renderSorted(sorted);
+
+    const city = screen.getByRole('button', { name: /Show details for city/ });
+    const value = screen.getByRole('button', { name: /Show details for value/ });
+    expect(city.getAttribute('aria-label')).toBe(
+      'Show details for city, sorted descending, priority 1',
+    );
+    expect(value.getAttribute('aria-label')).toBe(
+      'Show details for value, sorted ascending, priority 2',
+    );
+    expect(city.querySelector('.column-sort')?.textContent).toContain('Descending 1');
+    expect(value.querySelector('.column-sort')?.textContent).toContain('Ascending 2');
+    expect(screen.getByRole('button', { name: 'Show details for other' })).toBeTruthy();
+    expect(city.closest('th')?.getAttribute('aria-sort')).toBe('descending');
+    expect(value.closest('th')?.getAttribute('aria-sort')).toBeNull();
+  });
+
+  it('leaves out the priority when only one column is sorted', () => {
+    renderSorted({ ...sorted, view: [sorted.view![0]] });
+
+    const city = screen.getByRole('button', { name: /Show details for city/ });
+    expect(city.getAttribute('aria-label')).toBe('Show details for city, sorted descending');
+    expect(city.querySelector('.column-sort')?.textContent?.trim()).toMatch(/Descending$/);
+  });
+});
+
+describe('quick sort arrows', () => {
+  const columns = [
+    { name: 'city', type: 'String', nullable: true },
+    { name: 'draft_only', type: 'String', nullable: true },
+  ];
+  const page: Preview = { ...preview([{ city: 'b', draft_only: 'x' }]), columns };
+
+  function renderWithSort(view: Preview['view'], onSort?: (keys: unknown) => void) {
+    render(
+      <DatasetPreview
+        dataset={{ ...dataset, schema: [columns[0]] }}
+        preview={{ ...page, view }}
+        selectedColumn={null}
+        selectedColumns={['city', 'draft_only']}
+        onOpenColumnSelector={() => undefined}
+        onSelectColumn={() => undefined}
+        onOpenColumnDetails={() => undefined}
+        onPage={() => undefined}
+        onSort={onSort}
+      />,
+    );
+  }
+
+  it('sorts by one column from its header arrows, with a hover hint', () => {
+    const onSort = vi.fn();
+    renderWithSort([], onSort);
+
+    const down = screen.getByRole('button', { name: 'Sort city descending' });
+    expect(down.getAttribute('title')).toBe('Sort descending');
+    fireEvent.click(down);
+
+    expect(onSort).toHaveBeenCalledWith([
+      { column: 'city', direction: 'descending', nulls: 'last' },
+    ]);
+  });
+
+  it('clears the sort when the active arrow is pressed again', () => {
+    const onSort = vi.fn();
+    renderWithSort([{ column: 'city', direction: 'ascending', nulls: 'last' }], onSort);
+
+    const up = screen.getByRole('button', { name: 'Sort city ascending' });
+    expect(up.getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(up);
+
+    expect(onSort).toHaveBeenCalledWith([]);
+  });
+
+  it('offers arrows only for columns in the file and only when sorting is available', () => {
+    renderWithSort([], vi.fn());
+    expect(screen.queryByRole('button', { name: /Sort draft_only/ })).toBeNull();
+    cleanup();
+
+    renderWithSort([]);
+    expect(screen.queryByRole('button', { name: /Sort city/ })).toBeNull();
+  });
+});
+
+describe('rows per page', () => {
+  function renderPage(limit: number) {
+    render(
+      <DatasetPreview
+        dataset={dataset}
+        preview={{ ...preview([{ value: 1 }]), limit }}
+        selectedColumn={null}
+        selectedColumns={['value']}
+        onOpenColumnSelector={() => undefined}
+        onSelectColumn={() => undefined}
+        onOpenColumnDetails={() => undefined}
+        onPage={() => undefined}
+      />,
+    );
+    return screen.getByLabelText('Rows per page') as HTMLSelectElement;
+  }
+
+  it('offers 500 up to 4000 rows', () => {
+    const select = renderPage(500);
+    expect([...select.options].map((option) => option.value)).toEqual([
+      '500',
+      '1000',
+      '2000',
+      '3000',
+      '4000',
+    ]);
+    expect(select.value).toBe('500');
+  });
+
+  it('adds a custom size from Settings to the menu', () => {
+    const select = renderPage(7000);
+    expect([...select.options].map((option) => option.value)).toEqual([
+      '500',
+      '1000',
+      '2000',
+      '3000',
+      '4000',
+      '7000',
+    ]);
+    expect(select.value).toBe('7000');
+  });
+});

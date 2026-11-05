@@ -20,12 +20,13 @@ def test_billion_row_lazy_preview_stays_bounded():
     service.history_service.open(dataset, service.frames[dataset.dataset_id])
     started = time.perf_counter()
     result = service.preview(
-        dataset.dataset_id, offset=1000, limit=10_000, columns=["value"]
+        dataset.dataset_id, offset=1000, limit=25_000, columns=["value"]
     )
     elapsed = time.perf_counter() - started
-    assert len(result["records"]) == 500
-    assert result["limit"] == 500
+    assert len(result["records"]) == 20000
+    assert result["limit"] == 20000
     assert [column["name"] for column in result["columns"]] == ["value"]
-    assert len(json.dumps(result["records"])) < 20_000
+    # One small column at the 20000-row cap is about 360 KB: bounded, not the data.
+    assert len(json.dumps(result["records"])) < 400_000
     assert result["total_count"] is None
     assert elapsed < 5

@@ -39,7 +39,7 @@ TRANSFORMATION_TYPES = {
     "pivot",
     "unpivot",
 }
-MAX_PREVIEW = 500
+MAX_PREVIEW = 20000
 
 
 @dataclass
@@ -47,6 +47,7 @@ class WorkingStateEntry:
     dataset: "Dataset"
     frame: Any
     operation: dict[str, Any] | None = None
+    view: list[dict[str, str]] = field(default_factory=list)
 
     @property
     def dataset_id(self) -> str:
@@ -59,6 +60,7 @@ class ChangeHistory:
     states: list[WorkingStateEntry] = field(default_factory=list)
     current_index: int = 0
     saved_index: int = 0
+    saved_path: str | None = None
 
     @property
     def current(self) -> WorkingStateEntry:
@@ -157,7 +159,7 @@ class DatasetPreview:
             or isinstance(self.limit, bool)
             or not 0 < self.limit <= MAX_PREVIEW
         ):
-            raise ValueError("preview limit must be between 1 and 500")
+            raise ValueError(f"preview limit must be between 1 and {MAX_PREVIEW}")
         if len(self.records) > self.limit:
             raise ValueError("preview records exceed requested limit")
         if self.total_count is not None and self.total_count < 0:

@@ -49,7 +49,7 @@ Request:
 |-------|-------|
 | `operations` | List of operation objects, else `INVALID_REQUEST`. Disabled steps are skipped. |
 | `offset` | Integer ≥ 0, default 0. Pages over **source** rows so removed rows keep their place. |
-| `limit` | Integer 1–500, default 100. |
+| `limit` | Integer 1–20000 (raised from 500, see 004). The desktop asks for its rows-per-page setting, 500 by default. |
 | `columns` | Optional list of **source** column names (the Data-tab visible columns, in order). Result columns are shown when their lineage origin is listed; columns added by steps are always shown, after the listed columns. Omitted = all columns. |
 | `search` | Optional string; filters source rows exactly as `dataset.preview` does, before paging. |
 

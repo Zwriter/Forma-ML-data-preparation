@@ -1,10 +1,13 @@
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import type { Dataset, Preview } from '../../types/dataset';
 import type { WorksheetMarkers } from '../../types/cleaning';
+import type { SortKey } from '../../types/dataOperations';
 import { useDatasetStore } from '../../stores/datasetStore';
 import { Icon } from '../../components/Icon';
+import { ColumnHeading } from './ColumnHeading';
 import { SchemaSummary } from './SchemaSummary';
 import { TablePager } from './TablePager';
+import { DEFAULT_PAGE_SIZE } from '../../services/pageSize';
 
 type Props = {
   dataset: Dataset;
@@ -17,6 +20,8 @@ type Props = {
   onPage: (offset: number, limit?: number, search?: string) => void;
   /** Read-only change markers shown by the Clean tab's live preview. */
   markers?: WorksheetMarkers;
+  /** Sorts the worksheet from a column header's arrows. */
+  onSort?: (keys: SortKey[]) => void;
 };
 
 export function DatasetPreview({
@@ -29,6 +34,7 @@ export function DatasetPreview({
   onOpenColumnSelector,
   onPage,
   markers,
+  onSort,
 }: Props) {
   const offset = preview?.offset ?? 0;
   const query = useDatasetStore((state) => state.search);
@@ -102,8 +108,8 @@ export function DatasetPreview({
               searchTimer.current = setTimeout(
                 () =>
                   search.trim()
-                    ? onPage(0, preview?.limit ?? 100, search)
-                    : onPage(0, preview?.limit ?? 100),
+                    ? onPage(0, preview?.limit ?? DEFAULT_PAGE_SIZE, search)
+                    : onPage(0, preview?.limit ?? DEFAULT_PAGE_SIZE),
                 250,
               );
             }}
@@ -139,33 +145,19 @@ export function DatasetPreview({
               <tr>
                 <th className="row-number-heading" aria-label="Row number" />
                 {preview?.columns.map((column) => (
-                  <th
+                  <ColumnHeading
                     key={column.name}
-                    className={selectedColumn === column.name ? 'selected' : ''}
-                  >
-                    <button
-                      type="button"
-                      className="column-heading"
-                      aria-label={`Show details for ${column.name}`}
-                      aria-pressed={selectedColumn === column.name}
-                      onClick={() => onSelectColumn(column.name)}
-                      onContextMenu={(event) => {
-                        event.preventDefault();
-                        onOpenColumnDetails(column.name);
-                      }}
-                    >
-                      <strong>{column.name}</strong>
-                      <small>
-                        <span aria-hidden="true">
-                          {column.type.toLowerCase().match(/int|float|double|decimal/) ? '#' : 'A'}
-                        </span>{' '}
-                        {column.type}
-                      </small>
-                      {markers?.columnNotes[column.name] && (
-                        <small className="column-note">{markers.columnNotes[column.name]}</small>
-                      )}
-                    </button>
-                  </th>
+                    column={column}
+                    selected={selectedColumn === column.name}
+                    note={markers?.columnNotes[column.name]}
+                    view={preview.view}
+                    onSelect={onSelectColumn}
+                    onOpenDetails={onOpenColumnDetails}
+                    // Only columns in the file can be sorted; draft columns do not exist yet.
+                    onSort={
+                      dataset.schema.some((item) => item.name === column.name) ? onSort : undefined
+                    }
+                  />
                 ))}
               </tr>
             </thead>

@@ -1,12 +1,11 @@
 from dataclasses import dataclass, field
 import polars as pl
-from forma_engine.domain.entities import Dataset
+from forma_engine.domain.entities import MAX_PREVIEW, Dataset
 from forma_engine.domain.errors import DatasetNotFoundError, RequestError
 from forma_engine.io.readers import scan, schema_for
 from forma_engine.io.schema_service import SchemaService
 from forma_engine.services.history_service import HistoryService
-
-MAX_PREVIEW = 500
+from forma_engine.services.view_mask import SortKey, apply_view, validate_view
 
 
 @dataclass
@@ -16,16 +15,19 @@ class DatasetService:
     schema_service: SchemaService = field(default_factory=SchemaService)
     history_service: HistoryService = field(default_factory=HistoryService)
 
-    def open(self, path: str) -> dict:
+    def open(self, path: str, view: list[SortKey] | None = None) -> dict:
+        """Open path with a remembered sort view; keys for missing columns drop."""
         frame = scan(path)
         metadata = self.schema_service.inspect(frame, path)
         dataset = Dataset(
             path, path.rsplit(".", 1)[-1].lower(), metadata["schema"], metadata["rows"]
         )
+        names = [column["name"] for column in dataset.schema]
+        kept, dropped = validate_view(view or [], names)
         self.datasets[dataset.dataset_id] = dataset
         self.frames[dataset.dataset_id] = frame
-        self.history_service.open(dataset, frame)
-        return dataset.to_dict()
+        self.history_service.open(dataset, frame, kept)
+        return dataset.to_dict() | {"view": kept, "dropped_columns": dropped}
 
     def get(self, dataset_id: str) -> Dataset:
         dataset = self.datasets.get(dataset_id)
@@ -37,12 +39,22 @@ class DatasetService:
         self.get(dataset_id)
         return self.history_service.current(dataset_id).frame
 
+    def view(self, dataset_id: str) -> list[SortKey]:
+        self.get(dataset_id)
+        return self.history_service.current(dataset_id).view
+
     def register_derived(
-        self, source_id: str, dataset: Dataset, frame, operation: dict
+        self,
+        source_id: str,
+        dataset: Dataset,
+        frame,
+        operation: dict,
+        view: list[SortKey] | None = None,
     ):
+        """Commit a derived entry; view None keeps the current sort view."""
         self.datasets[dataset.dataset_id] = dataset
         self.frames[dataset.dataset_id] = frame
-        self.history_service.commit(source_id, dataset, frame, operation)
+        self.history_service.commit(source_id, dataset, frame, operation, view)
         return self.history_service.metadata(dataset.dataset_id)
 
     def history(self, dataset_id: str) -> dict:
@@ -73,7 +85,7 @@ class DatasetService:
             raise RequestError("search must be a string")
         self.get(dataset_id)
         entry = self.history_service.current(dataset_id)
-        frame = entry.frame
+        frame = apply_view(entry.frame, entry.view)
         dataset_id = entry.dataset_id
         names = frame.collect_schema().names()
         if columns is not None:
@@ -95,6 +107,7 @@ class DatasetService:
             "offset": offset,
             "limit": min(limit, MAX_PREVIEW),
             "total_count": total_count,
+            "view": entry.view,
         }
 
 

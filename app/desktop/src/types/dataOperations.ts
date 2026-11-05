@@ -64,6 +64,8 @@ export type SaveResult = {
   schema: Dataset['schema'];
   replaced_existing: boolean;
   validated: true;
+  /** False when only the sort view changed and no file was written. */
+  rewritten: boolean;
   history: HistoryMetadata;
 };
 export type SaveStatus = 'idle' | 'saving' | 'saved' | 'dirty' | 'failed';

@@ -85,6 +85,7 @@ export function ColumnDetails({ column, records, onClose }: Props) {
           type="button"
           className="quiet-button"
           aria-label="Close column details"
+          title="Close"
           onClick={onClose}
         >
           ×

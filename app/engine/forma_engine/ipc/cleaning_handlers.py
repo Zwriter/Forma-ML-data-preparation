@@ -1,7 +1,6 @@
+from forma_engine.domain.entities import MAX_PREVIEW as MAX_PREVIEW_ROWS
 from forma_engine.domain.errors import RequestError
 from forma_engine.ipc.dataset_handlers import page_params
-
-MAX_PREVIEW_ROWS = 500
 
 
 class CleaningHandlers:

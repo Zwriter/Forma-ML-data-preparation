@@ -37,6 +37,7 @@ export function RenameForm({ parameters: p, columns, onChange, errorFor }: StepF
               type="button"
               className="rename-remove"
               aria-label={`Remove rename ${index + 1}`}
+              title="Remove"
               onClick={() => update(rows.filter((_, at) => at !== index))}
             >
               ×

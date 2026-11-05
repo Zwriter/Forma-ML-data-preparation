@@ -67,8 +67,9 @@ def fill_null(frame: pl.LazyFrame, p: dict) -> pl.LazyFrame:
         "constant": lambda: value.fill_null(p.get("value")),
         "mean": lambda: value.fill_null(value.mean()),
         "median": lambda: value.fill_null(value.median()),
-        # Ties pick the smallest value so preview and apply always agree.
-        "mode": lambda: value.fill_null(value.mode().sort().first()),
+        # Missing cells are not a value to fill with. Ties pick the smallest value
+        # so preview and apply always agree.
+        "mode": lambda: value.fill_null(value.drop_nulls().mode().sort().first()),
         "previous": value.forward_fill,
         "next": value.backward_fill,
     }

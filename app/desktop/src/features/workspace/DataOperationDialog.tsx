@@ -4,7 +4,7 @@ import { GroupBuilder } from '../data-operations/GroupBuilder';
 import { PivotBuilder } from '../data-operations/PivotBuilder';
 import { UnpivotBuilder } from '../data-operations/UnpivotBuilder';
 import type { Column } from '../../types/dataset';
-import type { DataOperation } from '../../types/dataOperations';
+import type { DataOperation, SortKey } from '../../types/dataOperations';
 import type { PopupPosition } from './popupPositions';
 
 type OperationDialog = 'filter' | 'sort' | 'group_by' | 'pivot' | 'unpivot' | null;
@@ -16,6 +16,7 @@ export function DataOperationDialog({
   onApply,
   onClose,
   popupPosition,
+  activeSort,
 }: {
   kind: OperationDialog;
   columns: Column[];
@@ -23,6 +24,7 @@ export function DataOperationDialog({
   onApply: (operation: DataOperation) => void;
   onClose: () => void;
   popupPosition?: PopupPosition;
+  activeSort?: SortKey[];
 }) {
   if (!kind) return null;
   const props = { columns, onApply, onClose, popupPosition };
@@ -30,7 +32,7 @@ export function DataOperationDialog({
     case 'filter':
       return <FilterBuilder {...props} />;
     case 'sort':
-      return <SortBuilder {...props} />;
+      return <SortBuilder {...props} active={activeSort} />;
     case 'group_by':
       return <GroupBuilder {...props} busy={busy} />;
     case 'pivot':

@@ -32,16 +32,17 @@ def ids(result):
     return [(row["values"]["id"], row["removed"]) for row in result["rows"]]
 
 
-def test_page_keeps_removed_rows_in_place_and_marks_changed_cells():
+def test_page_lists_affected_rows_first_and_marks_changed_cells():
     result = preview(FILL_AND_DEDUPE)
+    # Changed and removed rows come first, so the draft's effect is visible at once.
     assert result["rows"] == [
-        {"values": {"id": "a", "charges": 1.0, "flag": "0"}, "removed": False},
         {"values": {"id": "b", "charges": 0.0, "flag": "1"}, "removed": False},
         {"values": {"id": "b", "charges": None, "flag": "1"}, "removed": True},
+        {"values": {"id": "a", "charges": 1.0, "flag": "0"}, "removed": False},
         {"values": {"id": "c", "charges": 5.0, "flag": "0"}, "removed": False},
     ]
     # Each changed cell carries its source value so the worksheet can show old -> new.
-    assert result["changed_cells"] == [{"row": 1, "column": "charges", "before": None}]
+    assert result["changed_cells"] == [{"row": 0, "column": "charges", "before": None}]
     assert [(c["name"], c["origin"]) for c in result["columns"]] == [
         ("id", "id"),
         ("charges", "charges"),
@@ -61,8 +62,8 @@ def test_page_keeps_removed_rows_in_place_and_marks_changed_cells():
 
 def test_pages_over_source_rows_while_summary_covers_the_full_dataset():
     result = preview(FILL_AND_DEDUPE, offset=1, limit=2)
-    assert ids(result) == [("b", False), ("b", True)]
-    assert result["changed_cells"] == [{"row": 0, "column": "charges", "before": None}]
+    assert ids(result) == [("b", True), ("a", False)]
+    assert result["changed_cells"] == []
     assert result["total_count"] == 4
     assert result["summary"]["rows_removed"] == 1
 
@@ -202,6 +203,19 @@ def test_changed_cells_carry_the_replaced_value():
         ]
     )
     assert result["changed_cells"] == [
+        {"row": 0, "column": "flag", "before": "1"},
         {"row": 1, "column": "flag", "before": "1"},
-        {"row": 2, "column": "flag", "before": "1"},
     ]
+
+
+def test_affected_rows_come_first_in_view_order_then_the_rest():
+    view = [{"column": "id", "direction": "descending", "nulls": "last"}]
+    frame = pl.DataFrame(
+        {"id": ["a", "b", "c", "d"], "charges": [None, 2.0, None, 4.0]}
+    ).lazy()
+    fill = [step("fill_null", column="charges", strategy="constant", value=0.0)]
+
+    result = CleaningPreviewer().preview(frame, fill, view=view)
+
+    assert [row["values"]["id"] for row in result["rows"]] == ["c", "a", "d", "b"]
+    assert [cell["row"] for cell in result["changed_cells"]] == [0, 1]

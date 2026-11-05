@@ -22,10 +22,10 @@ const dataset = {
 const firstPage = {
   dataset_id: 'dataset-1',
   columns: dataset.schema,
-  records: Array.from({ length: 100 }, (_, value) => ({ value })),
+  records: Array.from({ length: 500 }, (_, value) => ({ value })),
   offset: 0,
-  limit: 100,
-  total_count: 200,
+  limit: 500,
+  total_count: 1000,
 };
 
 describe('dataset explorer workflow', () => {
@@ -176,9 +176,9 @@ describe('dataset explorer workflow', () => {
     await waitFor(() => expect(screen.getByText('Dataset overview')).toBeTruthy());
     expect(screen.getByText('source.csv')).toBeTruthy();
     expect(screen.getAllByText('Int64').length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('row')).toHaveLength(102);
+    expect(screen.getAllByRole('row')).toHaveLength(502);
     expect(invoke).toHaveBeenCalledTimes(3);
-    expect(invoke.mock.calls[1][1].request.params).toMatchObject({ offset: 0, limit: 100 });
+    expect(invoke.mock.calls[1][1].request.params).toMatchObject({ offset: 0, limit: 500 });
   });
 
   it('shows loading state and keeps open control disabled until request finishes', async () => {
@@ -235,7 +235,7 @@ describe('dataset explorer workflow', () => {
     invoke.mockResolvedValueOnce({
       id: 'ui-5',
       status: 'success',
-      result: { ...firstPage, records: [{ value: 3 }], offset: 100, total_count: 101 },
+      result: { ...firstPage, records: [{ value: 3 }], offset: 500, total_count: 501 },
       error: null,
     });
 
@@ -245,8 +245,8 @@ describe('dataset explorer workflow', () => {
     await waitFor(() => expect(screen.getByRole('cell', { name: '3' })).toBeTruthy());
     expect(invoke.mock.calls[0][1].request.params).toMatchObject({
       dataset_id: 'dataset-1',
-      offset: 100,
-      limit: 100,
+      offset: 500,
+      limit: 500,
     });
     expect(useDatasetStore.getState().sourcePreview?.records).toEqual(firstPage.records);
   });
@@ -277,7 +277,7 @@ describe('dataset explorer workflow', () => {
     expect(invoke.mock.calls[0][1].request.params).toMatchObject({
       dataset_id: 'dataset-1',
       offset: 0,
-      limit: 100,
+      limit: 500,
       columns: ['value'],
     });
     expect(useWorkspaceStore.getState().history?.is_dirty).toBe(false);

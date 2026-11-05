@@ -9,7 +9,7 @@ from forma_engine.domain.errors import DatasetNotFoundError, RequestError
 
 def test_open_and_preview_correlate_and_cap_limit(tmp_path):
     source = tmp_path / "sample.csv"
-    source.write_text("value\n" + "1\n" * 520)
+    source.write_text("value\n" + "1\n" * 20020)
     router, jobs = build_router(EventPublisher(io.StringIO()))
     requests = [
         {"id": "open-1", "method": "dataset.open", "params": {"path": str(source)}},
@@ -19,10 +19,10 @@ def test_open_and_preview_correlate_and_cap_limit(tmp_path):
     opened = json.loads(output.getvalue().splitlines()[0])["result"]
     response = router.dispatch(
         "dataset.preview",
-        {"dataset_id": opened["dataset_id"], "offset": 0, "limit": 999},
+        {"dataset_id": opened["dataset_id"], "offset": 0, "limit": 25000},
     )
-    assert len(response["records"]) == 500
-    assert response["limit"] == 500
+    assert len(response["records"]) == 20000
+    assert response["limit"] == 20000
     history = router.dispatch("dataset.history", {"dataset_id": opened["dataset_id"]})
     assert history["dataset_id"] == opened["dataset_id"]
     jobs.shutdown()

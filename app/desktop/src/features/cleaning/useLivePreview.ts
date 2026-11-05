@@ -3,6 +3,7 @@ import { request } from '../../services/ipcClient';
 import { toOperations, useCleaningStore } from '../../stores/cleaningStore';
 import { useDatasetStore } from '../../stores/datasetStore';
 import type { CleaningPreview, CleaningStep } from '../../types/cleaning';
+import { DEFAULT_PAGE_SIZE } from '../../services/pageSize';
 
 const DEBOUNCE_MS = 250;
 
@@ -13,7 +14,7 @@ const DEBOUNCE_MS = 250;
 export function useLivePreview(steps: CleaningStep[]) {
   const datasetId = useDatasetStore((state) => state.dataset?.dataset_id);
   const offset = useDatasetStore((state) => state.preview?.offset ?? 0);
-  const limit = useDatasetStore((state) => state.preview?.limit ?? 100);
+  const limit = useDatasetStore((state) => state.preview?.limit ?? DEFAULT_PAGE_SIZE);
   const columns = useDatasetStore((state) => state.selectedColumns);
   const search = useDatasetStore((state) => state.search);
   const latest = useRef(0);
