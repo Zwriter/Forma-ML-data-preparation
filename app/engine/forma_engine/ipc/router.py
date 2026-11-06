@@ -45,6 +45,7 @@ class Router:
             "data.apply": data_operation.apply,
             "dataset.profile": profile.profile,
             "profile.export_invalid": profile.export_invalid,
+            "profile.report": profile.report,
             "cleaning.preview": clean.preview,
             "cleaning.validate": clean.validate,
             "cleaning.apply": clean.apply,

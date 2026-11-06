@@ -144,3 +144,32 @@ def test_data_version_tracks_data_changes_not_sorts(
 
     undone = run("dataset.undo", {"dataset_id": cleaned["dataset"]["dataset_id"]})
     assert undone["history"]["data_version"] == profiled
+
+
+def test_profile_then_report_writes_an_offline_html_file(
+    router_jobs, mixed_frame, write_csv, tmp_path
+):
+    router, jobs = router_jobs
+    dataset_id = open_csv(router, write_csv(mixed_frame, "mixed.csv"))
+    ack = router.dispatch("dataset.profile", {"dataset_id": dataset_id})
+    profile = finished(jobs, ack["job_id"])["result"]
+
+    target = tmp_path / "mixed-profile.html"
+    ack = router.dispatch(
+        "profile.report",
+        {
+            "dataset_id": dataset_id,
+            "data_version": profile["data_version"],
+            "destination": str(target),
+        },
+    )
+    assert finished(jobs, ack["job_id"])["state"] == "completed"
+
+    html = target.read_text(encoding="utf-8")
+    assert "mixed.csv" in html
+    assert f"<strong>{profile['row_count']:,}</strong>Rows" in html
+    assert f"<strong>{profile['missing_cells']:,}</strong>Missing cells" in html
+    for column in mixed_frame.columns:
+        assert f"<td>{column}</td>" in html
+    for external in ("http://", "https://", "src=", "<link"):
+        assert external not in html

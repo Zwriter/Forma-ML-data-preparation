@@ -448,3 +448,63 @@ describe('Keeping the profile current', () => {
     expect(screen.queryByText('Out of date')).toBeNull();
   });
 });
+
+describe('Generating a report', () => {
+  const reportCalls = () =>
+    invoke.mock.calls
+      .map(([, args]) => args.request)
+      .filter((request) => request.method === 'profile.report');
+
+  beforeEach(() => {
+    useDatasetStore.getState().setDataset({
+      dataset_id: 'dataset-1',
+      source_path: 'C:/data/telco.csv',
+      format: 'csv',
+      columns: 21,
+      rows: 7043,
+      state: 'open',
+      schema: [],
+    });
+    useDatasetStore.setState({ history });
+    useProfileStore.setState({
+      entries: {
+        'history-1': {
+          profile: { ...demoProfile, history_id: 'history-1' },
+          status: 'ready',
+          jobId: null,
+          progress: null,
+          message: null,
+          error: null,
+        },
+      },
+      chartColumns: {},
+      exportJobId: null,
+    });
+    vi.mocked(save).mockResolvedValue('C:/out/telco-profile.html');
+    invoke.mockResolvedValue(reply({ job_id: 'report-1', state: 'pending' }));
+  });
+  afterEach(() => {
+    cleanup();
+    invoke.mockReset();
+    useProfileStore.setState({ entries: {}, chartColumns: {}, exportJobId: null });
+    useDatasetStore.setState({ dataset: null, history: null });
+  });
+
+  it('saves the current profile as a report', async () => {
+    render(<WorkflowActions activeTab="Profile" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Generate report' }));
+    await waitFor(() => expect(reportCalls()).toHaveLength(1));
+    expect(reportCalls()[0].params).toMatchObject({
+      data_version: 'demo-v1',
+      destination: 'C:/out/telco-profile.html',
+    });
+  });
+
+  it('is disabled while the profile is out of date', () => {
+    useDatasetStore.setState({ history: { ...history, data_version: 'demo-v2' } });
+    render(<WorkflowActions activeTab="Profile" />);
+    const button = screen.getByRole('button', { name: 'Generate report' });
+    expect((button as HTMLButtonElement).disabled).toBe(true);
+    expect(button.getAttribute('title')).toBe('Refresh the profile first');
+  });
+});

@@ -71,3 +71,21 @@ describe('ProfileHeader staleness', () => {
     expect(screen.queryByText('Out of date')).toBeNull();
   });
 });
+
+describe('ProfileHeader report action', () => {
+  afterEach(cleanup);
+
+  it('generates a report when one can be made', () => {
+    const onReport = vi.fn();
+    render(<ProfileHeader {...base} reportHint={null} onReport={onReport} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Generate report' }));
+    expect(onReport).toHaveBeenCalledOnce();
+  });
+
+  it('explains why it cannot', () => {
+    render(<ProfileHeader {...base} reportHint="Refresh the profile first" onReport={vi.fn()} />);
+    const button = screen.getByRole('button', { name: 'Generate report' });
+    expect((button as HTMLButtonElement).disabled).toBe(true);
+    expect(button.getAttribute('title')).toBe('Refresh the profile first');
+  });
+});

@@ -27,6 +27,7 @@ const actionNames: Record<string, string> = {
   clean: 'Cleaning',
   profile: 'Profile',
   export_invalid: 'Invalid-rows export',
+  profile_report: 'Profile report',
   export: 'Export',
   pivot: 'Pivot',
   unpivot: 'Unpivot',

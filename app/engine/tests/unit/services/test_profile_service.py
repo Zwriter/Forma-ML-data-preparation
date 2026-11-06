@@ -41,3 +41,32 @@ def test_submit_profiles_the_current_version_and_keeps_the_latest(
     assert jobs.result["row_count"] == 63
     assert service.latest(history_id) is jobs.result
     assert service.latest("unknown") is None
+
+
+def test_report_renders_the_latest_profile_to_html(tmp_path, mixed_frame):
+    import pytest
+    from forma_engine.domain.errors import ProfileStaleError, RequestError
+
+    datasets, dataset_id = opened(tmp_path, mixed_frame)
+    jobs = InlineJobs()
+    service = ProfileService(datasets, jobs)
+    version = datasets.data_version(dataset_id)
+    target = tmp_path / "profile.html"
+
+    with pytest.raises(ProfileStaleError):  # nothing profiled yet
+        service.submit_report(dataset_id, version, str(target), None, None, False)
+
+    service.submit(dataset_id)
+    service.submit_report(dataset_id, version, str(target), "price", "name", False)
+    assert jobs.kind == "profile_report"
+    assert jobs.result["bytes"] == target.stat().st_size
+    assert "Distribution of price" in target.read_text(encoding="utf-8")
+
+    with pytest.raises(ProfileStaleError):
+        service.submit_report(dataset_id, "older", str(target), None, None, True)
+    with pytest.raises(RequestError):
+        service.submit_report(dataset_id, version, str(target), "name", None, True)
+    with pytest.raises(RequestError):
+        service.submit_report(
+            dataset_id, version, str(tmp_path / "x.txt"), None, None, True
+        )

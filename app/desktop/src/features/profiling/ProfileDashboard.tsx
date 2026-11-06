@@ -30,7 +30,7 @@ export function ProfileDashboard({ onTabChange }: { onTabChange?: (tab: string) 
   const dataVersion = useDatasetStore((state) => state.history?.data_version);
   const entry = useProfileStore((state) => (historyId ? state.entries[historyId] : undefined));
   const { run, cancel } = useProfileJob();
-  const { exportInvalid, cancelExport, exporting } = useProfileExports();
+  const { exportInvalid, generateReport, cancelExport, exporting } = useProfileExports();
   const running = entry?.status === 'running';
   const profile = entry?.profile;
   const stale = isStale(entry, dataVersion);
@@ -39,6 +39,13 @@ export function ProfileDashboard({ onTabChange }: { onTabChange?: (tab: string) 
     : profile?.quality.invalid_cells
       ? null
       : 'No invalid values';
+  const reportHint = !profile
+    ? 'Profile the dataset first'
+    : stale
+      ? 'Refresh the profile first'
+      : exporting
+        ? 'Wait for the current file to finish saving'
+        : null;
 
   // Profile automatically only on the first visit; after a cancel or failure the user decides.
   const neverRun = historyId !== undefined && entry === undefined;
@@ -56,6 +63,8 @@ export function ProfileDashboard({ onTabChange }: { onTabChange?: (tab: string) 
         progress={entry?.progress ?? null}
         message={entry?.message ?? null}
         stale={stale}
+        reportHint={reportHint}
+        onReport={() => void generateReport()}
         onRefresh={() => void run()}
         onCancel={() => void cancel()}
       />

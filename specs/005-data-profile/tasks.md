@@ -445,16 +445,16 @@ Refresh. A sort shows no notice.
 **Independent Test**: Generate a report, open the file without Forma or a network connection, and
 compare its figures with the dashboard.
 
-- [ ] T052 [P] [US6] Write failing tests in `tests/unit/io/test_writers.py`, then add
+- [x] T052 [P] [US6] Write failing tests in `tests/unit/io/test_writers.py`, then add
   `write_text_safe(text, destination, force_overwrite, cancelled)` to `forma_engine/io/writers.py`:
   - shares a temp-file-then-`os.replace` helper with `write_safe`, so there is no duplicated
     temp logic
   - the same overwrite and folder errors as `write_safe`; no partial file on cancel or failure
   - returns `{destination, bytes, replaced_existing}`
-- [ ] T053 [P] [US6] Write failing tests in `tests/unit/profiling/test_html_charts.py`, then create
+- [x] T053 [P] [US6] Write failing tests in `tests/unit/profiling/test_html_charts.py`, then create
   `forma_engine/profiling/html_charts.py`: `ring_svg(breakdown)`, `hbars_svg(items)`, and
   `vbars_svg(items)`, returning inline SVG strings with escaped labels and `<title>` per bar.
-- [ ] T054 [US6] Write failing tests in `tests/unit/profiling/test_html_report.py`, then create
+- [x] T054 [US6] Write failing tests in `tests/unit/profiling/test_html_report.py`, then create
   `forma_engine/profiling/html_report.py`:
   - `render_report(profile, distribution_column, category_column) -> str`, a complete HTML
     document with inline CSS
@@ -463,7 +463,7 @@ compare its figures with the dashboard.
   - every value goes through `html.escape` (test with `<script>` in a column name and a value)
   - no `http://`, `https://`, `src=`, or `<link` references (offline)
   - depends on T053
-- [ ] T055 [US6] Write failing tests in `tests/unit/services/test_profile_service.py` and
+- [x] T055 [US6] Write failing tests in `tests/unit/services/test_profile_service.py` and
   `tests/contract/test_profile_report_contract.py`, then add `ProfileService.submit_report` and
   `profile.report` in `forma_engine/ipc/profile_handlers.py` (register in `router.py`):
   - validates `dataset_id`, `data_version`, a `destination` ending in `.html`, boolean
@@ -471,15 +471,15 @@ compare its figures with the dashboard.
   - `PROFILE_STALE` when the latest profile for the history has a different `data_version` or
     none exists
   - job kind `profile_report`, written via `write_text_safe`
-- [ ] T056 [US6] Write failing tests in `tests/unit/profiling/useProfileExports.test.tsx`, then
+- [x] T056 [US6] Write failing tests in `tests/unit/profiling/useProfileExports.test.tsx`, then
   add `generateReport()` to `src/features/profiling/useProfileExports.ts`:
   - save dialog with an HTML filter and default name "{dataset}-profile-{yyyy-mm-dd}.html"
   - sends `profile.report` with the current chart picks, and handles the overwrite confirmation
   - shows a success notification and actionable errors
-- [ ] T057 [US6] Enable "Generate report" in `ProfileHeader.tsx`: disabled with "Profile the
+- [x] T057 [US6] Enable "Generate report" in `ProfileHeader.tsx`: disabled with "Profile the
   dataset first" when there is no profile and "Refresh the profile first" when stale. Extend
   `tests/integration/profile-dashboard.test.tsx` for the disabled states and the request payload.
-- [ ] T058 [US6] Extend `tests/integration/test_profile_dashboard_workflow.py`: profile → report →
+- [x] T058 [US6] Extend `tests/integration/test_profile_dashboard_workflow.py`: profile → report →
   file exists, contains every column name and the summary figures, and has no external
   references.
 

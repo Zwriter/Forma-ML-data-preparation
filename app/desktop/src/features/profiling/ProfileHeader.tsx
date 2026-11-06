@@ -8,8 +8,11 @@ type Props = {
   message: string | null;
   /** The data changed since this profile was computed. */
   stale?: boolean;
+  /** Why a report cannot be generated now, or null when it can. */
+  reportHint?: string | null;
   onRefresh: () => void;
   onCancel: () => void;
+  onReport?: () => void;
 };
 
 export function ProfileHeader({
@@ -18,8 +21,10 @@ export function ProfileHeader({
   progress,
   message,
   stale = false,
+  reportHint = 'Profile the dataset first',
   onRefresh,
   onCancel,
+  onReport,
 }: Props) {
   return (
     <header className="profile-header" role="region" aria-label="Data profile">
@@ -60,8 +65,12 @@ export function ProfileHeader({
         >
           <Icon name="reload" />
         </button>
-        {/* Wired in US6 (report generation). */}
-        <button type="button" disabled title="Profile the dataset first">
+        <button
+          type="button"
+          disabled={reportHint !== null}
+          title={reportHint ?? 'Save this profile as an HTML file you can share'}
+          onClick={onReport}
+        >
           Generate report
         </button>
       </div>

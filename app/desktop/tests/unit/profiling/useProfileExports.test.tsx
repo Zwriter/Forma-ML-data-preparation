@@ -124,3 +124,75 @@ describe('applyExportEvent', () => {
     );
   });
 });
+
+describe('generateReport', () => {
+  beforeEach(() => {
+    useDatasetStore.setState({
+      dataset: {
+        dataset_id: 'dataset-1',
+        source_path: 'C:/data/telco.csv',
+        format: 'csv',
+        columns: 1,
+        rows: 1,
+        state: 'open',
+        schema: [],
+      },
+      history: {
+        history_id: 'history-1',
+        dataset_id: 'dataset-1',
+        current_index: 0,
+        saved_index: 0,
+        is_dirty: false,
+        can_undo: false,
+        can_redo: false,
+        data_version: 'v7',
+      },
+    });
+    useProfileStore.setState({
+      chartColumns: { 'history-1': { distribution: 'MonthlyCharges' } },
+      exportJobId: null,
+    });
+  });
+  afterEach(() => {
+    request.mockReset();
+    save.mockReset();
+    useProfileStore.setState({ chartColumns: {}, exportJobId: null });
+    useWorkspaceStore.setState({ notification: null });
+  });
+
+  it('saves an HTML report featuring the charts picked on the dashboard', async () => {
+    save.mockResolvedValue('C:/out/telco.html');
+    request.mockResolvedValue({ job_id: 'report-1', state: 'pending' });
+    const { result } = renderHook(() => useProfileExports());
+
+    await act(() => result.current.generateReport());
+
+    expect(save.mock.calls[0][0]).toMatchObject({
+      defaultPath: expect.stringMatching(/telco-profile-\d{4}-\d\d-\d\d\.html$/),
+      filters: [{ name: 'HTML', extensions: ['html'] }],
+    });
+    expect(request).toHaveBeenCalledWith('profile.report', {
+      dataset_id: 'dataset-1',
+      data_version: 'v7',
+      destination: 'C:/out/telco.html',
+      distribution_column: 'MonthlyCharges',
+      category_column: null,
+      force_overwrite: true,
+    });
+    expect(useProfileStore.getState().exportJobId).toBe('report-1');
+  });
+
+  it('confirms a saved report', () => {
+    useProfileStore.setState({ exportJobId: 'report-1' });
+    applyExportEvent({
+      job_id: 'report-1',
+      kind: 'profile_report',
+      state: 'completed',
+      result: { destination: 'C:/out/telco.html', bytes: 900 },
+    });
+    expect(useWorkspaceStore.getState().notification?.message).toBe(
+      'Saved the profile report to telco.html.',
+    );
+    expect(useProfileStore.getState().exportJobId).toBeNull();
+  });
+});

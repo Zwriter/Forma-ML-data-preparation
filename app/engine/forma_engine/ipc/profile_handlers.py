@@ -25,6 +25,22 @@ class ProfileHandlers:
         self.datasets.get(dataset_id)
         return self.service.submit(dataset_id)
 
+    def report(self, params):
+        dataset_id = _text(params, "dataset_id", "Provide a dataset_id.")
+        version = _text(params, "data_version", "Provide the profile's data_version.")
+        destination = _text(params, "destination", "Choose where to save the report.")
+        charts = []
+        for key in ("distribution_column", "category_column"):
+            column = params.get(key)
+            if column is not None and not isinstance(column, str):
+                raise RequestError(f"{key} must be a column name or null.")
+            charts.append(column)
+        overwrite = _flag(params, "force_overwrite")
+        self.datasets.get(dataset_id)
+        return self.service.submit_report(
+            dataset_id, version, destination, *charts, overwrite
+        )
+
     def export_invalid(self, params):
         dataset_id = _text(params, "dataset_id", "Provide a dataset_id.")
         version = _text(params, "data_version", "Provide the profile's data_version.")
