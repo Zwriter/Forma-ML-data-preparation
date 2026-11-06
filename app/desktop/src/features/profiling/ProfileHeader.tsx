@@ -6,6 +6,8 @@ type Props = {
   running: boolean;
   progress: number | null;
   message: string | null;
+  /** The data changed since this profile was computed. */
+  stale?: boolean;
   onRefresh: () => void;
   onCancel: () => void;
 };
@@ -15,6 +17,7 @@ export function ProfileHeader({
   running,
   progress,
   message,
+  stale = false,
   onRefresh,
   onCancel,
 }: Props) {
@@ -41,6 +44,11 @@ export function ProfileHeader({
               Last updated <time dateTime={computedAt}>{formatUpdated(computedAt)}</time>
             </span>
           )
+        )}
+        {stale && !running && (
+          <span className="profile-stale" role="status">
+            Out of date
+          </span>
         )}
         <button
           type="button"

@@ -55,3 +55,19 @@ describe('ProfileHeader', () => {
     expect(onCancel).toHaveBeenCalledOnce();
   });
 });
+
+describe('ProfileHeader staleness', () => {
+  afterEach(cleanup);
+
+  it('marks an out-of-date profile next to the last-updated time', () => {
+    render(<ProfileHeader {...base} computedAt={new Date().toISOString()} stale />);
+    const status = screen.getByRole('status');
+    expect(status.textContent).toBe('Out of date');
+    expect(screen.getByText(/Last updated/).textContent).toMatch(/^Last updated Today /);
+  });
+
+  it('shows no notice for a current profile', () => {
+    render(<ProfileHeader {...base} computedAt={new Date().toISOString()} />);
+    expect(screen.queryByText('Out of date')).toBeNull();
+  });
+});

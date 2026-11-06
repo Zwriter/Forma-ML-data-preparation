@@ -311,3 +311,11 @@
   font-size: 12px;
   pointer-events: none;
 }
+
+/* Text plus a warning colour, so the notice does not rely on colour alone. */
+.profile-stale {
+  padding: 2px 8px;
+  color: var(--warning);
+  background: #fff4e0;
+  font-size: 12px;
+}

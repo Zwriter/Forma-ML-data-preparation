@@ -20,6 +20,7 @@ export function SummaryCards({ profile }: { profile: Profile }) {
             key={label}
             className={`summary-card${flagged ? ` summary-card-${tone}` : ''}`}
             aria-label={`${label}: ${formatCount(value)}${flagged ? ', needs attention' : ''}`}
+            id={label === 'Duplicate rows' ? 'profile-duplicates-card' : undefined}
             tabIndex={label === 'Duplicate rows' ? -1 : undefined}
           >
             <span className="summary-card-icon">

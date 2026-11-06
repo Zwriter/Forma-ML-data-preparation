@@ -50,7 +50,7 @@ export function ColumnsSection({
   }
 
   return (
-    <section className="profile-columns" aria-label="Columns" tabIndex={-1}>
+    <section id="profile-columns" className="profile-columns" aria-label="Columns" tabIndex={-1}>
       <ColumnTableToolbar
         filter={filter}
         count={countLabel(visible.length, profile.columns.length)}

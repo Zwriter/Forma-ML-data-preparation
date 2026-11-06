@@ -125,3 +125,10 @@ def test_jobs_that_never_report_emit_only_start_and_finish():
     manager.shutdown()
 
     assert [e["event"] for e in recorder.events] == ["job.progress", "job.completed"]
+
+
+def test_the_acknowledgement_is_pending_even_for_an_instant_job():
+    manager = JobManager(Recorder())
+    acks = [manager.submit("export", lambda cancel: {"ok": True}) for _ in range(50)]
+    manager.shutdown()
+    assert {ack["state"] for ack in acks} == {"pending"}

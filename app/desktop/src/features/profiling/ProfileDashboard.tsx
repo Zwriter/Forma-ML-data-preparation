@@ -55,6 +55,7 @@ export function ProfileDashboard({ onTabChange }: { onTabChange?: (tab: string) 
         running={running}
         progress={entry?.progress ?? null}
         message={entry?.message ?? null}
+        stale={stale}
         onRefresh={() => void run()}
         onCancel={() => void cancel()}
       />

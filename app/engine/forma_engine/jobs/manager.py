@@ -30,8 +30,10 @@ class JobManager:
     def submit(self, kind, work):
         job = Job(kind)
         self.jobs[job.job_id] = job
+        # Build the acknowledgement first: a fast job may finish before submit returns.
+        ack = {"job_id": job.job_id, "state": job.state.value}
         self.pool.submit(self._run, job, work)
-        return {"job_id": job.job_id, "state": job.state.value}
+        return ack
 
     def _emit(self, job):
         name = "job." + (

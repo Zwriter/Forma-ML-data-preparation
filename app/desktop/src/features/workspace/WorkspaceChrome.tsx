@@ -3,6 +3,7 @@ import { Icon } from '../../components/Icon';
 import type { IconName } from '../../components/Icon';
 import { topTabs } from './navigation';
 import { commandIcons, ribbonCommands } from './ribbonCommands';
+import { profileRibbonActions } from '../profiling/profileRibbon';
 import { ribbonStepTypes } from '../cleaning/stepCatalog';
 import { useCleaningStore } from '../../stores/cleaningStore';
 import { stepCommand } from '../cleaning/stepCommand';
@@ -61,6 +62,14 @@ export function WorkspaceChrome({
   const groups = ribbonCommands[activeTab] ?? [];
 
   function toolFor(label: string): Tool {
+    const profileAction = activeTab === 'Profile' ? profileRibbonActions[label] : undefined;
+    if (profileAction)
+      return {
+        label,
+        icon: commandIcons[label],
+        onClick: () => void profileAction(),
+        disabled: !hasDataset,
+      };
     if (label === 'Save')
       return { label, icon: commandIcons[label], onClick: onSave, disabled: !hasDataset };
     if (label === 'Undo')
@@ -79,46 +88,24 @@ export function WorkspaceChrome({
         disabled: !hasDataset,
         active: label === 'Select columns' && showColumnSelector,
       };
-    if (label === 'Filter row')
+    // Data-tab buttons that open an operation dialog: [dialog, handler].
+    const dialogs: Record<string, [Props['operationDialog'], Tool['onClick']]> = {
+      'Filter row': ['filter', onFilter],
+      Sort: ['sort', onSort],
+      'Group by': ['group_by', onGroup],
+      Pivot: ['pivot', onPivot],
+      Unpivot: ['unpivot', onUnpivot],
+    };
+    if (dialogs[label]) {
+      const [dialog, onClick] = dialogs[label];
       return {
         label,
         icon: commandIcons[label],
-        onClick: onFilter,
+        onClick,
         disabled: !hasDataset,
-        active: operationDialog === 'filter',
+        active: operationDialog === dialog,
       };
-    if (label === 'Sort')
-      return {
-        label,
-        icon: commandIcons[label],
-        onClick: onSort,
-        disabled: !hasDataset,
-        active: operationDialog === 'sort',
-      };
-    if (label === 'Group by')
-      return {
-        label,
-        icon: commandIcons[label],
-        onClick: onGroup,
-        disabled: !hasDataset,
-        active: operationDialog === 'group_by',
-      };
-    if (label === 'Pivot')
-      return {
-        label,
-        icon: commandIcons[label],
-        onClick: onPivot,
-        disabled: !hasDataset,
-        active: operationDialog === 'pivot',
-      };
-    if (label === 'Unpivot')
-      return {
-        label,
-        icon: commandIcons[label],
-        onClick: onUnpivot,
-        disabled: !hasDataset,
-        active: operationDialog === 'unpivot',
-      };
+    }
     if (label === 'Connect to DB')
       return {
         label,

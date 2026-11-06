@@ -390,3 +390,61 @@ describe('Exporting invalid rows', () => {
     expect(screen.queryByRole('menuitem', { name: 'Export invalid rows' })).toBeNull();
   });
 });
+
+describe('Keeping the profile current', () => {
+  beforeEach(() => {
+    useDatasetStore.getState().setDataset({
+      dataset_id: 'dataset-1',
+      source_path: 'source.csv',
+      format: 'csv',
+      columns: 21,
+      rows: 7043,
+      state: 'open',
+      schema: [],
+    });
+    useDatasetStore.setState({ history });
+    useProfileStore.setState({
+      entries: {
+        'history-1': {
+          profile: { ...demoProfile, history_id: 'history-1' },
+          status: 'ready',
+          jobId: null,
+          progress: null,
+          message: null,
+          error: null,
+        },
+      },
+    });
+    invoke.mockResolvedValue(reply({ job_id: 'profile-2', state: 'pending' }));
+  });
+  afterEach(() => {
+    cleanup();
+    invoke.mockReset();
+    useProfileStore.setState({ entries: {} });
+    useDatasetStore.setState({ dataset: null, history: null });
+  });
+
+  it('flags a data change, keeps the old numbers, and refreshes on demand', async () => {
+    render(<WorkflowActions activeTab="Profile" />);
+    expect(screen.queryByText('Out of date')).toBeNull();
+
+    act(() => useDatasetStore.setState({ history: { ...history, data_version: 'demo-v2' } }));
+    expect(screen.getByText('Out of date')).toBeTruthy();
+    expect(
+      within(screen.getByRole('list', { name: 'Dataset summary' })).getByText('7,043'),
+    ).toBeTruthy();
+    expect(profileCalls()).toHaveLength(0); // no automatic re-run
+
+    fireEvent.click(screen.getByRole('button', { name: 'Refresh profile' }));
+    await waitFor(() => expect(profileCalls()).toHaveLength(1));
+  });
+
+  it('clears the notice when undo returns to the profiled data', () => {
+    useDatasetStore.setState({ history: { ...history, data_version: 'demo-v2' } });
+    render(<WorkflowActions activeTab="Profile" />);
+    expect(screen.getByText('Out of date')).toBeTruthy();
+
+    act(() => useDatasetStore.setState({ history }));
+    expect(screen.queryByText('Out of date')).toBeNull();
+  });
+});

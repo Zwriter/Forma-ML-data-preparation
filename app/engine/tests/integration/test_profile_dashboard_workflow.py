@@ -109,3 +109,38 @@ def test_profile_then_export_invalid_rows_with_a_sort_active(
     parquet = pl.read_parquet(tmp_path / "rejected.parquet")
     assert parquet.schema["id"] == pl.Int64 and parquet.schema["joined"] == pl.Date
     assert path.read_bytes() == source
+
+
+def test_data_version_tracks_data_changes_not_sorts(
+    router_jobs, mixed_frame, write_csv
+):
+    router, jobs = router_jobs
+    dataset_id = open_csv(router, write_csv(mixed_frame, "mixed.csv"))
+    profile = router.dispatch("dataset.profile", {"dataset_id": dataset_id})
+    profiled = finished(jobs, profile["job_id"])["result"]["data_version"]
+
+    def run(method, params):
+        ack = router.dispatch(method, params)
+        return finished(jobs, ack["job_id"])["result"]
+
+    sort = {
+        "type": "sort_rows",
+        "parameters": {
+            "keys": [{"column": "id", "direction": "descending", "nulls": "last"}]
+        },
+    }
+    sorted_ = run("data.apply", {"dataset_id": dataset_id, "operation": sort})
+    assert sorted_["history"]["data_version"] == profiled
+
+    fill = {
+        "type": "fill_null",
+        "parameters": {"column": "price", "strategy": "previous"},
+    }
+    cleaned = run(
+        "cleaning.apply",
+        {"dataset_id": sorted_["dataset"]["dataset_id"], "operations": [fill]},
+    )
+    assert cleaned["history"]["data_version"] != profiled
+
+    undone = run("dataset.undo", {"dataset_id": cleaned["dataset"]["dataset_id"]})
+    assert undone["history"]["data_version"] == profiled

@@ -33,7 +33,12 @@ export function QualityPanel({
     setTip(segment && { label: segment.label, count: segment.count, total });
 
   return (
-    <section className="profile-panel" aria-label="Data quality" tabIndex={-1}>
+    <section
+      id="profile-quality-panel"
+      className="profile-panel"
+      aria-label="Data quality"
+      tabIndex={-1}
+    >
       <div className="profile-panel-heading">
         <h3>Data quality</h3>
         {exporting ? (

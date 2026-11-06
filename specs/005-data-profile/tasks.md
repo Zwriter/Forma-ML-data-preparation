@@ -416,7 +416,7 @@ reuse on return.
 **Independent Test**: Profile, apply a Clean step, return to Profile, see "Out of date", then
 Refresh. A sort shows no notice.
 
-- [ ] T049 [US5] Write failing tests in `tests/integration/profile-dashboard.test.tsx`, then show
+- [x] T049 [US5] Write failing tests in `tests/integration/profile-dashboard.test.tsx`, then show
   the stale state in `ProfileHeader.tsx` and `ProfileDashboard.tsx`:
   - "Out of date" status text next to the last-updated time when
     `profile.data_version !== history.data_version` or the `history_id` changed; the old numbers
@@ -424,14 +424,14 @@ Refresh. A sort shows no notice.
   - Refresh (header) re-runs the profile
   - returning to the tab with a current profile sends no request
   - undoing back to the profiled version clears the notice
-- [ ] T050 [US5] Write failing tests in `tests/unit/workspace/ribbonCommands.test.ts` (or the
+- [x] T050 [US5] Write failing tests in `tests/unit/workspace/ribbonCommands.test.ts` (or the
   existing ribbon test), then wire the Profile ribbon in
   `src/features/workspace/ribbonCommands.ts` and `WorkflowActions.tsx`:
   - "Refresh" runs the profile
   - "Column details", "Data quality", "Distribution", and "Duplicates" scroll to and focus the
     Columns region, Data quality panel, Distribution panel, and Duplicate rows card
   - the Insights commands are unchanged
-- [ ] T051 [US5] Extend `tests/integration/test_profile_dashboard_workflow.py` (engine): profile
+- [x] T051 [US5] Extend `tests/integration/test_profile_dashboard_workflow.py` (engine): profile
   → sort → `data_version` unchanged; Clean apply → changed; undo → original version again.
 
 **Checkpoint**: Profiles can no longer silently mislead.
