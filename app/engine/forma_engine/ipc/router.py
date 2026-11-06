@@ -19,6 +19,7 @@ class Router:
         exports,
         saves=None,
         data_operations=None,
+        invalid_rows=None,
     ):
         self.datasets, self.cleaning, self.jobs, self.exports = (
             datasets,
@@ -28,7 +29,7 @@ class Router:
         )
         self.profile_service = profile_service
         dataset = DatasetHandlers(datasets, jobs, saves)
-        profile = ProfileHandlers(datasets, profile_service)
+        profile = ProfileHandlers(datasets, profile_service, jobs, invalid_rows)
         clean = CleaningHandlers(datasets, cleaning)
         export = ExportHandlers(datasets, jobs, exports)
         job = JobHandlers(jobs)
@@ -43,6 +44,7 @@ class Router:
             "settings.history_limit": self._set_history_limit,
             "data.apply": data_operation.apply,
             "dataset.profile": profile.profile,
+            "profile.export_invalid": profile.export_invalid,
             "cleaning.preview": clean.preview,
             "cleaning.validate": clean.validate,
             "cleaning.apply": clean.apply,

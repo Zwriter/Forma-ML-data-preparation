@@ -6,6 +6,7 @@ import { useDatasetStore } from '../../src/stores/datasetStore';
 import { useProfileStore } from '../../src/stores/profileStore';
 import { useWorkspaceStore } from '../../src/stores/workspaceStore';
 import { demoProfile } from '../../src/services/demoProfile';
+import { save } from '@tauri-apps/plugin-dialog';
 
 const eventBus = vi.hoisted(() => ({
   handlers: {} as Record<string, (event: { payload: unknown }) => unknown>,
@@ -316,5 +317,76 @@ describe('Profile charts', () => {
     fireEvent.click(screen.getByRole('menuitem', { name: 'Show distribution' }));
     const category = await screen.findByRole('region', { name: 'Contract (categorical)' });
     await waitFor(() => expect(document.activeElement).toBe(category));
+  });
+});
+
+describe('Exporting invalid rows', () => {
+  const exportCalls = () =>
+    invoke.mock.calls
+      .map(([, args]) => args.request)
+      .filter((request) => request.method === 'profile.export_invalid');
+
+  beforeEach(() => {
+    useDatasetStore.getState().setDataset({
+      dataset_id: 'dataset-1',
+      source_path: 'C:/data/telco.csv',
+      format: 'csv',
+      columns: 21,
+      rows: 7043,
+      state: 'open',
+      schema: [],
+    });
+    useDatasetStore.setState({ history });
+    useProfileStore.setState({
+      entries: {
+        'history-1': {
+          profile: { ...demoProfile, history_id: 'history-1' },
+          status: 'ready',
+          jobId: null,
+          progress: null,
+          message: null,
+          error: null,
+        },
+      },
+      exportJobId: null,
+    });
+    vi.mocked(save).mockResolvedValue('C:/out/rejected.csv');
+    invoke.mockResolvedValue(reply({ job_id: 'export-1', state: 'pending' }));
+  });
+  afterEach(() => {
+    cleanup();
+    invoke.mockReset();
+    useProfileStore.setState({ entries: {}, exportJobId: null });
+    useDatasetStore.setState({ dataset: null, history: null });
+  });
+
+  it('exports all invalid rows from the Data quality panel', async () => {
+    render(<WorkflowActions activeTab="Profile" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Export invalid rows' }));
+
+    await waitFor(() => expect(exportCalls()).toHaveLength(1));
+    expect(exportCalls()[0].params).toMatchObject({ column: null, data_version: 'demo-v1' });
+    expect(await screen.findByText('Exporting…')).toBeTruthy();
+  });
+
+  it('exports one column from its row menu, only where it has invalid values', async () => {
+    render(<WorkflowActions activeTab="Profile" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Actions for tenure' }));
+    expect(screen.queryByRole('menuitem', { name: 'Export invalid rows' })).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Actions for TotalCharges' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Export invalid rows' }));
+    await waitFor(() => expect(exportCalls()[0]?.params.column).toBe('TotalCharges'));
+  });
+
+  it('is unavailable while the profile is out of date', () => {
+    useDatasetStore.setState({ history: { ...history, data_version: 'demo-v2' } });
+    render(<WorkflowActions activeTab="Profile" />);
+
+    const button = screen.getByRole('button', { name: 'Export invalid rows' });
+    expect((button as HTMLButtonElement).disabled).toBe(true);
+    expect(button.getAttribute('title')).toBe('Refresh the profile first');
+    fireEvent.click(screen.getByRole('button', { name: 'Actions for TotalCharges' }));
+    expect(screen.queryByRole('menuitem', { name: 'Export invalid rows' })).toBeNull();
   });
 });

@@ -21,10 +21,13 @@ export function ColumnsSection({
   profile,
   onTabChange,
   onShowDistribution,
+  onExportInvalid,
 }: {
   profile: Profile;
   onTabChange?: (tab: string) => void;
   onShowDistribution?: (column: ColumnProfile) => void;
+  /** Undefined while the profile is out of date or an export is already running. */
+  onExportInvalid?: (column: ColumnProfile) => void;
 }) {
   const [filter, setFilter] = useState(ALL);
   const [sort, setSort] = useState<ColumnSort>({ key: 'position', direction: 'ascending' });
@@ -70,6 +73,7 @@ export function ColumnsSection({
             onShowDistribution={
               column.numeric || column.categories ? onShowDistribution : undefined
             }
+            onExportInvalid={column.invalid_count > 0 ? onExportInvalid : undefined}
           />
         )}
       />

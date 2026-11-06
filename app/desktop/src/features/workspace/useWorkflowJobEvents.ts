@@ -9,6 +9,7 @@ import { useCleaningJob } from '../cleaning/useCleaningJob';
 import { draftKey, useCleaningStore } from '../../stores/cleaningStore';
 import { useViewMaskStore } from '../../stores/viewMaskStore';
 import { applyProfileEvent } from '../profiling/useProfileJob';
+import { applyExportEvent } from '../profiling/useProfileExports';
 import type { SortKey } from '../../types/dataOperations';
 
 type EventJob = Job & {
@@ -25,6 +26,7 @@ const actionNames: Record<string, string> = {
   save: 'Save',
   clean: 'Cleaning',
   profile: 'Profile',
+  export_invalid: 'Invalid-rows export',
   export: 'Export',
   pivot: 'Pivot',
   unpivot: 'Unpivot',
@@ -78,6 +80,7 @@ export function useWorkflowJobEvents(onSaveComplete?: (success: boolean) => void
           onSaveComplete?.(job.state === 'completed' && job.result?.history?.is_dirty === false);
       }
       applyProfileEvent(job);
+      applyExportEvent(job);
     })
       .then((unlisten) => {
         stop = unlisten;

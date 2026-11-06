@@ -26,6 +26,9 @@ type ProfileState = {
   /** The column each chart shows, per history, for this session. */
   chartColumns: Record<string, Partial<Record<ChartKind, string>>>;
   pickChartColumn: (historyId: string, chart: ChartKind, column: string) => void;
+  /** The invalid-rows export running in the background, if any. */
+  exportJobId: string | null;
+  setExportJob: (jobId: string | null) => void;
 };
 
 export type ChartKind = 'distribution' | 'category';
@@ -124,5 +127,7 @@ export const useProfileStore = create<ProfileState>()((set) => {
           [historyId]: { ...state.chartColumns[historyId], [chart]: column },
         },
       })),
+    exportJobId: null,
+    setExportJob: (exportJobId) => set({ exportJobId }),
   };
 });

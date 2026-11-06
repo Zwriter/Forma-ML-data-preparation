@@ -28,8 +28,10 @@ Each chart region has `tabIndex=-1` so ribbon commands can focus it.
 - Sortable headers are `button`s inside `columnheader`s with `aria-sort` = `ascending`,
   `descending`, or `none`. Examples is not sortable.
 - Row menu: `button` "Actions for {column}" opens a `menu` with `menuitem`s "Show distribution"
-  (only when the column has a summary), "Clean this column", "Export invalid rows" (disabled when
-  `invalid_count = 0` or the profile is out of date), and "Copy column name".
+  (only when the column has a summary), "Clean this column", "Export invalid rows" (shown only
+  when `invalid_count > 0`, the profile is current, and no export is running), and "Copy column
+  name". The Data quality panel's "Export invalid rows" button stays visible and is disabled with
+  its reason as the title ("No invalid values" or "Refresh the profile first").
 - Table settings `menu` holds `menuitemcheckbox`es for Type, Completeness, Unique values, Quality,
   Missing, and Examples.
 - Quality badge text is "Good", "Needs attention", or "Poor", with an icon beside it.

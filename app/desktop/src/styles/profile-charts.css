@@ -236,3 +236,14 @@
   text-align: left;
   text-overflow: clip;
 }
+
+.profile-link-button:disabled {
+  color: var(--muted);
+  cursor: default;
+}
+
+.profile-panel-status {
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}

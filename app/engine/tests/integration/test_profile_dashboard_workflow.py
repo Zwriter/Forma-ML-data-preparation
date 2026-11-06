@@ -68,3 +68,44 @@ def test_cancelling_a_large_profile_stores_no_result(router_jobs, tmp_path):
 
     assert status["state"] == "cancelled"
     assert router.profile_service.latest(router.datasets.history_id(dataset_id)) is None
+
+
+def test_profile_then_export_invalid_rows_with_a_sort_active(
+    router_jobs, mixed_frame, write_csv, tmp_path
+):
+    router, jobs = router_jobs
+    path = write_csv(mixed_frame, "mixed.csv")
+    source = path.read_bytes()
+    dataset_id = open_csv(router, path)
+    sort = {
+        "type": "sort_rows",
+        "parameters": {
+            "keys": [{"column": "id", "direction": "descending", "nulls": "last"}]
+        },
+    }
+    ack = router.dispatch("data.apply", {"dataset_id": dataset_id, "operation": sort})
+    dataset_id = finished(jobs, ack["job_id"])["result"]["dataset"]["dataset_id"]
+    profile = router.dispatch("dataset.profile", {"dataset_id": dataset_id})
+    version = finished(jobs, profile["job_id"])["result"]["data_version"]
+
+    for fmt in ("csv", "parquet"):
+        target = tmp_path / f"rejected.{fmt}"
+        ack = router.dispatch(
+            "profile.export_invalid",
+            {
+                "dataset_id": dataset_id,
+                "data_version": version,
+                "column": None,
+                "destination": str(target),
+                "format": fmt,
+            },
+        )
+        assert finished(jobs, ack["job_id"])["state"] == "completed"
+        written = pl.read_csv(target) if fmt == "csv" else pl.read_parquet(target)
+        assert written["id"].to_list() == [3, 10]  # stored order, not the sort view
+        assert written.columns == [*mixed_frame.columns, "reject_reason_1"]
+        assert written["reject_reason_1"][0] == 'amount: "n/a" is not a decimal number'
+
+    parquet = pl.read_parquet(tmp_path / "rejected.parquet")
+    assert parquet.schema["id"] == pl.Int64 and parquet.schema["joined"] == pl.Date
+    assert path.read_bytes() == source

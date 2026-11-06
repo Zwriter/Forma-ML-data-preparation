@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useDatasetStore } from '../../stores/datasetStore';
-import { useProfileStore } from '../../stores/profileStore';
+import { isStale, useProfileStore } from '../../stores/profileStore';
 import type { ColumnProfile } from '../../types/profile';
 import { CategoryPanel } from './CategoryPanel';
 import { DistributionPanel } from './DistributionPanel';
@@ -9,6 +9,7 @@ import { ProfileHeader } from './ProfileHeader';
 import { QualityPanel } from './QualityPanel';
 import { SummaryCards } from './SummaryCards';
 import { ColumnsSection } from './columns/ColumnsSection';
+import { useProfileExports } from './useProfileExports';
 import { useProfileJob } from './useProfileJob';
 import '../../styles/profile.css';
 import '../../styles/profile-charts.css';
@@ -26,10 +27,18 @@ function showDistribution(historyId: string, column: ColumnProfile) {
 /** The Profile tab: layout regions from specs/005-data-profile/contracts/ui.md. */
 export function ProfileDashboard({ onTabChange }: { onTabChange?: (tab: string) => void }) {
   const historyId = useDatasetStore((state) => state.history?.history_id);
+  const dataVersion = useDatasetStore((state) => state.history?.data_version);
   const entry = useProfileStore((state) => (historyId ? state.entries[historyId] : undefined));
   const { run, cancel } = useProfileJob();
+  const { exportInvalid, cancelExport, exporting } = useProfileExports();
   const running = entry?.status === 'running';
   const profile = entry?.profile;
+  const stale = isStale(entry, dataVersion);
+  const exportHint = stale
+    ? 'Refresh the profile first'
+    : profile?.quality.invalid_cells
+      ? null
+      : 'No invalid values';
 
   // Profile automatically only on the first visit; after a cancel or failure the user decides.
   const neverRun = historyId !== undefined && entry === undefined;
@@ -69,7 +78,13 @@ export function ProfileDashboard({ onTabChange }: { onTabChange?: (tab: string) 
         <>
           <SummaryCards profile={profile} />
           <div className="profile-panels">
-            <QualityPanel quality={profile.quality} />
+            <QualityPanel
+              quality={profile.quality}
+              exportHint={exportHint}
+              exporting={exporting}
+              onExport={() => void exportInvalid(null)}
+              onCancelExport={() => void cancelExport()}
+            />
             <MissingValuesPanel columns={profile.columns} rowCount={profile.row_count} />
             <DistributionPanel historyId={historyId} columns={profile.columns} />
             <CategoryPanel historyId={historyId} columns={profile.columns} />
@@ -78,6 +93,9 @@ export function ProfileDashboard({ onTabChange }: { onTabChange?: (tab: string) 
             profile={profile}
             onTabChange={onTabChange}
             onShowDistribution={(column) => showDistribution(historyId, column)}
+            onExportInvalid={
+              stale || exporting ? undefined : (column) => void exportInvalid(column.name)
+            }
           />
         </>
       )}

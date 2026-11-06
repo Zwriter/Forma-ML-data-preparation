@@ -356,7 +356,7 @@ quality panel or a column's row menu.
 the 2 `amount` rows in stored order, with all columns plus `reject_reason_1`, and that the source
 file is unchanged.
 
-- [ ] T043 [P] [US4] Write failing tests in `tests/unit/profiling/test_rejects.py`, then create
+- [x] T043 [P] [US4] Write failing tests in `tests/unit/profiling/test_rejects.py`, then create
   `forma_engine/profiling/rejects.py`:
   - `reason_column_name(names)` → `reject_reason`, or `reject_reason_N` with the first free N
   - `reason_expression(columns, detected_types, scope)` builds `{column}: "{value}" is not {type
@@ -367,7 +367,7 @@ file is unchanged.
     filtered to non-null reasons, in stored order
   - tests: multi-reason rows, single-column scope, quotes in values, and that the row count equals
     the profile's invalid-row count
-- [ ] T044 [P] [US4] Write failing tests in `tests/unit/services/test_invalid_rows_service.py`,
+- [x] T044 [P] [US4] Write failing tests in `tests/unit/services/test_invalid_rows_service.py`,
   then create `forma_engine/services/invalid_rows_service.py` (`InvalidRowsService`):
   - `submit(jobs, dataset_id, data_version, column, destination, fmt, force_overwrite)` runs as
     job kind `export_invalid`
@@ -377,18 +377,18 @@ file is unchanged.
   - no invalid rows in scope raises `INVALID_REQUEST` "There are no invalid values to export."
   - writes through `io/writers.write_safe`; the result adds `reason_column`
   - cancel or failure leaves no file, and the working data and history are unchanged
-- [ ] T045 [US4] Write failing contract tests in `tests/contract/test_profile_export_contract.py`,
+- [x] T045 [US4] Write failing contract tests in `tests/contract/test_profile_export_contract.py`,
   then add `profile.export_invalid` to `forma_engine/ipc/profile_handlers.py`:
   - validates `dataset_id`, `data_version`, `column` (`null` or an existing name), a non-empty
     `destination`, `format` (`csv | parquet`), and a boolean `force_overwrite`
   - register it in `forma_engine/ipc/router.py` and `forma_engine/bootstrap.py`
-- [ ] T046 [US4] Extend `tests/integration/test_profile_dashboard_workflow.py`:
+- [x] T046 [US4] Extend `tests/integration/test_profile_dashboard_workflow.py`:
   - profile → export all invalid rows → read the file back and assert rows, order, columns,
     `reject_reason_1`, reasons like `amount: "n/a" is not a decimal number`, and an unchanged
     source file (byte comparison)
   - with a sort view active the rows stay in stored order
   - Parquet keeps the original types
-- [ ] T047 [US4] Write failing tests in `tests/unit/profiling/useProfileExports.test.tsx`, then
+- [x] T047 [US4] Write failing tests in `tests/unit/profiling/useProfileExports.test.tsx`, then
   create `src/features/profiling/useProfileExports.ts` with `exportInvalid(column | null)`:
   - opens the save dialog with filters for CSV and Parquet and a default name
     "{dataset}_rejected_{yyyy-mm-dd}.{ext}"
@@ -397,7 +397,7 @@ file is unchanged.
     `force_overwrite: true`
   - shows progress, Cancel, and a confirmation naming the file and row count; errors are
     actionable
-- [ ] T048 [US4] Add the "Export invalid rows" button to `QualityPanel.tsx` and enable the
+- [x] T048 [US4] Add the "Export invalid rows" button to `QualityPanel.tsx` and enable the
   matching item in `ColumnRowMenu.tsx`:
   - disabled with the hint "No invalid values" when the invalid count is 0, or "Refresh the
     profile first" when stale
