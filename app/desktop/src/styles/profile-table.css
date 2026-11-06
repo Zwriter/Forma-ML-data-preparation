@@ -1,0 +1,170 @@
+/* Takes the dashboard's leftover height; keeps room for a few rows in short windows. */
+.profile-dashboard > .profile-columns {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 210px;
+  /* The toolbar keeps its padding; the table frame runs to the card edges. */
+  padding: 0;
+}
+
+.profile-table-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px 0;
+}
+
+.profile-table-toolbar h3 {
+  margin: 0 8px 0 0;
+  font-size: 14px;
+}
+
+.profile-table-toolbar input[type='search'] {
+  flex: 1 1 200px;
+  max-width: 320px;
+}
+
+.profile-table-count {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* The table scrolls inside its region; the page itself never scrolls sideways. */
+.profile-table-wrap {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: auto;
+  border-top: 1px solid var(--line);
+}
+
+.profile-table {
+  width: 100%;
+  min-width: 860px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.profile-table th,
+.profile-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.profile-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  color: var(--muted);
+  background: #f7f8fb;
+  font-weight: 600;
+}
+
+.profile-table th button {
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.profile-cell-name,
+.profile-cell-examples {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.type-tag {
+  display: inline-block;
+  min-width: 30px;
+  margin-right: 6px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  color: var(--purple);
+  background: var(--purple-soft);
+  font-size: 11px;
+  text-align: center;
+}
+
+.profile-cell-completeness {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.completeness-value {
+  min-width: 46px;
+  font-variant-numeric: tabular-nums;
+}
+
+.completeness-bar {
+  flex: 1;
+  min-width: 60px;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--track);
+}
+
+.completeness-bar span {
+  display: block;
+  height: 100%;
+  background: var(--good);
+}
+
+.quality-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.quality-badge::before {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  content: '';
+}
+
+.quality-badge-good {
+  color: var(--good);
+  background: #e6f4ec;
+}
+
+.quality-badge-needs_attention {
+  color: var(--warning);
+  background: #fff4e0;
+}
+
+.quality-badge-poor {
+  color: var(--alert);
+  background: #fde8ec;
+}
+
+.profile-cell-menu {
+  width: 1%;
+}
+
+.profile-table-empty {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  padding: 16px;
+  color: var(--muted);
+}
+
+.workflow-card .profile-table-toolbar input,
+.workflow-card .profile-table-toolbar select {
+  padding: 5px 8px;
+  font-size: 13px;
+}

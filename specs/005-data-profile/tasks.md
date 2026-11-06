@@ -223,8 +223,8 @@ values that match the dataset. Cancel during a run restores the previous state.
   - Cancel keeps the previous profile or shows the "Profile dataset" empty state
   - a failure shows an actionable message with "Try again"
 - [x] T028 [US1] Add `src/styles/profile-responsive.css` with the breakpoints from
-  contracts/ui.md for the summary cards and panel grid: "≥ 1200 px 4 per row; 760–1199 px 2 per
-  row; < 760 px 1 per row".
+  contracts/ui.md for the summary cards and panel grid: "≥ 1000 px 4 per row; 640–999 px 2 per
+  row; < 640 px 1 per row" (revised 2026-11-06 so the default window fits without scrolling).
 - [x] T029 [US1] Write a failing Playwright test in `tests/ui/profile-dashboard.pw.ts` (demo
   build): at 1440, 1024, and 700 px, cards and panels show 4/2/1 per row with no horizontal page
   scroll. Break the breakpoint CSS once and confirm the test fails.
@@ -241,7 +241,7 @@ menu.
 **Independent Test**: Search, filter, and sort the table on a mixed dataset and check the visible
 rows and the "N of M columns" label.
 
-- [ ] T030 [P] [US2] Write failing tests in `tests/unit/profiling/columnTableModel.test.ts`, then
+- [x] T030 [P] [US2] Write failing tests in `tests/unit/profiling/columnTableModel.test.ts`, then
   create `src/features/profiling/columns/columnTableModel.ts`:
   - `filterColumns(columns, { search, type, quality })` with case-insensitive name search, where
     all three filters combine
@@ -249,13 +249,13 @@ rows and the "N of M columns" label.
     unique | quality | missing`, with a stable tie-break by position and null completeness last
   - `countLabel(visible, total)` gives "21 columns" when unfiltered, else "3 of 21 columns"
   - must run in under 200 ms for 500 columns (timed test)
-- [ ] T031 [P] [US2] Write failing tests in `tests/unit/profiling/profileTablePrefs.test.ts`, then
+- [x] T031 [P] [US2] Write failing tests in `tests/unit/profiling/profileTablePrefs.test.ts`, then
   add hidden-column preferences to `src/stores/profileStore.ts`:
   - stored in `localStorage` key `forma.profile-columns`
   - allowed values `type | completeness | unique | quality | missing | examples`; unknown values
     are dropped
   - unreadable storage → nothing hidden; reads and writes are wrapped in try/catch
-- [ ] T032 [US2] Write failing tests in `tests/unit/profiling/ColumnTable.test.tsx`, then create
+- [x] T032 [US2] Write failing tests in `tests/unit/profiling/ColumnTable.test.tsx`, then create
   `src/features/profiling/columns/ColumnTable.tsx`:
   - a `table` "Column profiles" with #, name, type badge (text + icon), completeness % with a bar,
     unique values, quality badge ("Good", "Needs attention", or "Poor", with an icon), missing
@@ -264,13 +264,13 @@ rows and the "N of M columns" label.
   - long names and values are truncated with the full text in `title`
   - "No columns match" with a "Clear filters" button
   - depends on T030
-- [ ] T033 [P] [US2] Write failing tests in `tests/unit/profiling/ColumnTableToolbar.test.tsx`,
+- [x] T033 [P] [US2] Write failing tests in `tests/unit/profiling/ColumnTableToolbar.test.tsx`,
   then create `src/features/profiling/columns/ColumnTableToolbar.tsx` (`searchbox` "Search
   columns", `combobox` "Type filter", `combobox` "Quality filter", `status` count) and
   `src/features/profiling/columns/ColumnSettingsMenu.tsx` (`button` "Table settings" opening
   `menuitemcheckbox`es for the six optional columns; arrow keys move, Escape closes and returns
   focus).
-- [ ] T034 [US2] Write failing tests in `tests/unit/profiling/ColumnRowMenu.test.tsx`, then create
+- [x] T034 [US2] Write failing tests in `tests/unit/profiling/ColumnRowMenu.test.tsx`, then create
   `src/features/profiling/columns/ColumnRowMenu.tsx`:
   - `button` "Actions for {column}" opening a `menu`
   - "Clean this column" switches to the Clean tab with the column selected, through the existing
@@ -278,11 +278,11 @@ rows and the "N of M columns" label.
   - "Copy column name" writes to the clipboard and shows a notification
   - "Show distribution" and "Export invalid rows" items are rendered but hidden until US3/US4
     provide handlers (props)
-- [ ] T035 [US2] Mount the table and toolbar in a `region` "Columns" with `tabIndex=-1` in
+- [x] T035 [US2] Mount the table and toolbar in a `region` "Columns" with `tabIndex=-1` in
   `ProfileDashboard.tsx`. Give it inner scrolling with a sticky header in `profile.css`. Extend
   `tests/integration/profile-dashboard.test.tsx` for search + filter + sort and for hidden columns
   surviving a remount.
-- [ ] T036 [US2] Extend `tests/ui/profile-dashboard.pw.ts`:
+- [x] T036 [US2] Extend `tests/ui/profile-dashboard.pw.ts`:
   - the table scrolls inside its region with `page.mouse.wheel` while the header stays visible,
     and the page never scrolls horizontally at 700 px
   - Tab reaches the search, filters, settings, and row menus; Escape closes a menu and returns

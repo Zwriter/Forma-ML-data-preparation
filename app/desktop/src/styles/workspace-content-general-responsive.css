@@ -13,11 +13,6 @@
   .sidebar-footer a span {
     display: none;
   }
-
-  .dataset-heading {
-    align-items: flex-start;
-    flex-direction: column;
-  }
 }
 
 @media (max-width: 620px) {
@@ -142,10 +137,6 @@
   .welcome-panel .row {
     align-items: stretch;
     flex-direction: column;
-  }
-
-  .dataset-heading h1 {
-    font-size: 24px;
   }
 
   .open-panel {

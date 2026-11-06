@@ -152,3 +152,111 @@ describe('Profile dashboard', () => {
     await waitFor(() => expect(profileCalls()).toHaveLength(2));
   });
 });
+
+describe('Profile columns table', () => {
+  const ready = () =>
+    useProfileStore.setState({
+      entries: {
+        'history-1': {
+          profile: { ...demoProfile, history_id: 'history-1' },
+          status: 'ready',
+          jobId: null,
+          progress: null,
+          message: null,
+          error: null,
+        },
+      },
+      hiddenColumns: [],
+    });
+  const rowNames = () =>
+    within(screen.getByRole('table', { name: 'Column profiles' }))
+      .getAllByRole('row')
+      .slice(1)
+      .map((row) => within(row).getAllByRole('cell')[1].textContent);
+
+  beforeEach(() => {
+    useDatasetStore.getState().setDataset({
+      dataset_id: 'dataset-1',
+      source_path: 'source.csv',
+      format: 'csv',
+      columns: 21,
+      rows: 7043,
+      state: 'open',
+      schema: [],
+    });
+    useDatasetStore.setState({ history });
+    ready();
+  });
+  afterEach(() => {
+    cleanup();
+    window.localStorage.clear();
+    useProfileStore.setState({ entries: {}, hiddenColumns: [] });
+    useDatasetStore.setState({ dataset: null, history: null, activeCell: null });
+    useWorkspaceStore.setState({ notification: null });
+  });
+
+  it('combines search, filters, and sorting with a live count', () => {
+    render(<WorkflowActions activeTab="Profile" />);
+    expect(screen.getByRole('status').textContent).toBe('21 columns');
+
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Search columns' }), {
+      target: { value: 'o' },
+    });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Quality filter' }), {
+      target: { value: 'needs_attention' },
+    });
+    expect(rowNames()).toEqual([
+      'SeniorCitizen',
+      'OnlineSecurity',
+      'OnlineBackup',
+      'MonthlyCharges',
+    ]);
+    expect(screen.getByRole('status').textContent).toBe('4 of 21 columns');
+
+    const missing = screen.getByRole('columnheader', { name: 'Missing' });
+    fireEvent.click(within(missing).getByRole('button'));
+    expect(rowNames()).toEqual([
+      'MonthlyCharges',
+      'SeniorCitizen',
+      'OnlineSecurity',
+      'OnlineBackup',
+    ]);
+
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Search columns' }), {
+      target: { value: 'zzz' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Clear filters' }));
+    expect(screen.getByRole('status').textContent).toBe('21 columns');
+  });
+
+  it('keeps hidden columns hidden after the dashboard remounts', () => {
+    const view = render(<WorkflowActions activeTab="Profile" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Table settings' }));
+    fireEvent.click(screen.getByRole('menuitemcheckbox', { name: 'Examples' }));
+    expect(screen.queryByRole('columnheader', { name: 'Examples' })).toBeNull();
+
+    view.unmount();
+    render(<WorkflowActions activeTab="Profile" />);
+    expect(screen.queryByRole('columnheader', { name: 'Examples' })).toBeNull();
+    expect(window.localStorage.getItem('forma.profile-columns')).toBe('["examples"]');
+  });
+
+  it('opens the Clean tab on the chosen column and copies names', async () => {
+    const onTabChange = vi.fn();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
+    render(<WorkflowActions activeTab="Profile" onTabChange={onTabChange} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Actions for tenure' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Clean this column' }));
+    expect(onTabChange).toHaveBeenCalledWith('Clean');
+    expect(useDatasetStore.getState().activeCell?.column).toBe('tenure');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Actions for tenure' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Copy column name' }));
+    expect(writeText).toHaveBeenCalledWith('tenure');
+    await waitFor(() =>
+      expect(useWorkspaceStore.getState().notification?.message).toBe('Copied "tenure".'),
+    );
+  });
+});

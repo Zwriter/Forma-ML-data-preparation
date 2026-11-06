@@ -46,9 +46,14 @@ Each chart region has `tabIndex=-1` so ribbon commands can focus it.
 
 | Width | Summary cards | Chart panels |
 |-------|---------------|--------------|
-| ≥ 1200 px | 4 per row | 4 per row |
-| 760–1199 px | 2 per row | 2 per row |
-| < 760 px | 1 per row | 1 per row |
+| ≥ 1000 px | 4 per row | 4 per row |
+| 640–999 px | 2 per row | 2 per row |
+| < 640 px | 1 per row | 1 per row |
 
 The Columns table scrolls inside its region (horizontally and vertically) with a sticky header.
 The page itself never scrolls horizontally.
+
+The dashboard fills the workspace without a dataset heading above it. At normal desktop and
+full-screen sizes nothing scrolls except the Columns table, which takes the leftover height
+(at least 210 px). Only windows too short to hold everything fall back to scrolling the
+dashboard.

@@ -18,12 +18,14 @@ export function WorkflowActions({
   operationDialog,
   onCloseOperationDialog,
   popupPosition,
+  onTabChange,
 }: {
   activeTab: string;
   onSaveComplete?: (success: boolean) => void;
   operationDialog?: 'filter' | 'sort' | 'group_by' | 'pivot' | 'unpivot' | null;
   onCloseOperationDialog?: () => void;
   popupPosition?: PopupPosition;
+  onTabChange?: (tab: string) => void;
 }) {
   const { dataset } = useCleaningJob();
   const exportDataset = useExportJob();
@@ -51,7 +53,7 @@ export function WorkflowActions({
   }
   return (
     <>
-      {activeTab === 'Profile' && <ProfileDashboard />}
+      {activeTab === 'Profile' && <ProfileDashboard onTabChange={onTabChange} />}
       {activeTab === 'Export' && (
         <ExportDialog
           busy={busy}

@@ -61,14 +61,6 @@
   padding: 0;
 }
 
-.worksheet-work-area .dataset-heading {
-  display: none;
-}
-
-.worksheet-work-area .dataset-heading h1 {
-  font-size: 22px;
-}
-
 .column-selector-backdrop {
   z-index: 1100;
 }

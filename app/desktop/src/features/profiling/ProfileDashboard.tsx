@@ -4,12 +4,14 @@ import { useProfileStore } from '../../stores/profileStore';
 import { ProfileHeader } from './ProfileHeader';
 import { QualityPanel } from './QualityPanel';
 import { SummaryCards } from './SummaryCards';
+import { ColumnsSection } from './columns/ColumnsSection';
 import { useProfileJob } from './useProfileJob';
 import '../../styles/profile.css';
+import '../../styles/profile-table.css';
 import '../../styles/profile-responsive.css';
 
 /** The Profile tab: layout regions from specs/005-data-profile/contracts/ui.md. */
-export function ProfileDashboard() {
+export function ProfileDashboard({ onTabChange }: { onTabChange?: (tab: string) => void }) {
   const historyId = useDatasetStore((state) => state.history?.history_id);
   const entry = useProfileStore((state) => (historyId ? state.entries[historyId] : undefined));
   const { run, cancel } = useProfileJob();
@@ -63,7 +65,7 @@ export function ProfileDashboard() {
             <section className="profile-panel" aria-label="Distribution" tabIndex={-1} />
             <section className="profile-panel" aria-label="Categories" tabIndex={-1} />
           </div>
-          <section className="profile-columns" aria-label="Columns" tabIndex={-1} />
+          <ColumnsSection profile={profile} onTabChange={onTabChange} />
         </>
       )}
     </section>

@@ -1,7 +1,22 @@
-.profile-dashboard {
-  display: grid;
-  gap: 16px;
+/* The dashboard fills the workspace instead of scrolling it: only the columns table scrolls.
+   Windows too short to hold it all fall back to scrolling the dashboard. */
+.card.profile-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   min-width: 0;
+  min-height: 0;
+  /* Flush with the ribbon and window edges, like the worksheet. */
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow-y: auto;
+}
+
+.profile-dashboard > * {
+  flex: none;
 }
 
 .profile-header {
@@ -10,15 +25,17 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
+  padding: 10px 10px 0;
 }
 
-.profile-header h2 {
+.card .profile-header h2 {
   margin: 0;
 }
 
 .profile-subtitle {
-  margin: 4px 0 0;
+  margin: 2px 0 0;
   color: var(--muted);
+  font-size: 13px;
 }
 
 .profile-progress {
@@ -55,12 +72,53 @@
   gap: 12px;
 }
 
+.profile-panel {
+  height: 212px;
+}
+
+/* Summary cards and chart panels each form one strip: no gaps, split by lines that stop
+   short of the strip's top and bottom. */
+.profile-dashboard .profile-summary,
+.profile-dashboard .profile-panels {
+  gap: 0;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.profile-summary .summary-card,
+.profile-panels .profile-panel {
+  position: relative;
+  border: 0;
+  --inset: 14px;
+}
+
+.profile-summary .summary-card {
+  --inset: 10px;
+}
+
+.profile-summary .summary-card + .summary-card::before,
+.profile-panels .profile-panel + .profile-panel::before {
+  position: absolute;
+  top: var(--inset);
+  bottom: var(--inset);
+  left: 0;
+  border-left: 1px solid var(--line);
+  content: '';
+}
+
+/* Each strip hangs off the one above it and shares its line. */
+.profile-dashboard .profile-summary + .profile-panels,
+.profile-dashboard .profile-panels + .profile-columns {
+  margin-top: -12px;
+  border-top: 0;
+}
+
 .profile-panel,
 .profile-columns {
   min-width: 0;
-  padding: 14px;
+  padding: 8px 10px;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 0;
   background: var(--surface);
 }
 
@@ -70,7 +128,7 @@
   outline-offset: 2px;
 }
 
-.profile-dashboard {
+.card.profile-dashboard {
   --good: #1e8e4f;
   --warning: #b86e00;
   --alert: #c4314b;
@@ -108,9 +166,9 @@
   align-items: center;
   gap: 12px;
   min-width: 0;
-  padding: 14px 16px;
+  padding: 6px 10px;
   border: 1px solid var(--line);
-  border-radius: 10px;
+  border-radius: 0;
   background: var(--surface);
 }
 
@@ -142,7 +200,7 @@
 
 .summary-card-value {
   display: block;
-  font-size: 22px;
+  font-size: 20px;
   line-height: 1.2;
 }
 
@@ -162,8 +220,8 @@
 
 .ring-chart {
   position: relative;
-  width: min(180px, 100%);
-  margin: 0 auto 12px;
+  width: min(100px, 100%);
+  margin: 0 auto 6px;
 }
 
 .ring-chart svg {
@@ -206,7 +264,7 @@
 }
 
 .ring-center strong {
-  font-size: 22px;
+  font-size: 18px;
 }
 
 .ring-center span {
@@ -216,7 +274,7 @@
 
 .quality-legend {
   display: grid;
-  gap: 4px;
+  gap: 2px;
   margin: 0;
   padding: 0;
   list-style: none;

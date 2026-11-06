@@ -20,7 +20,38 @@ type ProfileState = {
   complete: (jobId: string, profile: Profile) => void;
   fail: (jobId: string, error: ProfileEntry['error']) => void;
   cancel: (jobId: string) => void;
+  /** Optional Columns-table columns the user hid; remembered across sessions. */
+  hiddenColumns: OptionalColumn[];
+  toggleColumn: (column: OptionalColumn) => void;
 };
+
+export const OPTIONAL_COLUMNS = [
+  'type',
+  'completeness',
+  'unique',
+  'quality',
+  'missing',
+  'examples',
+] as const;
+export type OptionalColumn = (typeof OPTIONAL_COLUMNS)[number];
+export const PROFILE_COLUMNS_KEY = 'forma.profile-columns';
+
+export function readHiddenColumns(): OptionalColumn[] {
+  try {
+    const saved: unknown = JSON.parse(window.localStorage.getItem(PROFILE_COLUMNS_KEY) ?? '[]');
+    return Array.isArray(saved) ? OPTIONAL_COLUMNS.filter((column) => saved.includes(column)) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveHiddenColumns(columns: OptionalColumn[]) {
+  try {
+    window.localStorage.setItem(PROFILE_COLUMNS_KEY, JSON.stringify(columns));
+  } catch {
+    // A blocked or full storage only loses the preference, never the table.
+  }
+}
 
 const empty: ProfileEntry = {
   profile: null,
@@ -69,5 +100,16 @@ export const useProfileStore = create<ProfileState>()((set) => {
     fail: (jobId, error) => update(jobId, () => ({ ...finished, status: 'failed', error })),
     cancel: (jobId) =>
       update(jobId, (entry) => ({ ...finished, status: entry.profile ? 'ready' : 'idle' })),
+    hiddenColumns: readHiddenColumns(),
+    toggleColumn: (column) =>
+      set((state) => {
+        const hiddenColumns = state.hiddenColumns.includes(column)
+          ? state.hiddenColumns.filter((hidden) => hidden !== column)
+          : OPTIONAL_COLUMNS.filter(
+              (name) => name === column || state.hiddenColumns.includes(name),
+            );
+        saveHiddenColumns(hiddenColumns);
+        return { hiddenColumns };
+      }),
   };
 });
