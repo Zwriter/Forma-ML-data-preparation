@@ -1,14 +1,27 @@
 import { useEffect } from 'react';
 import { useDatasetStore } from '../../stores/datasetStore';
 import { useProfileStore } from '../../stores/profileStore';
+import type { ColumnProfile } from '../../types/profile';
+import { CategoryPanel } from './CategoryPanel';
+import { DistributionPanel } from './DistributionPanel';
+import { MissingValuesPanel } from './MissingValuesPanel';
 import { ProfileHeader } from './ProfileHeader';
 import { QualityPanel } from './QualityPanel';
 import { SummaryCards } from './SummaryCards';
 import { ColumnsSection } from './columns/ColumnsSection';
 import { useProfileJob } from './useProfileJob';
 import '../../styles/profile.css';
+import '../../styles/profile-charts.css';
 import '../../styles/profile-table.css';
 import '../../styles/profile-responsive.css';
+
+/** Shows a column in the chart that fits it and moves focus to that chart. */
+function showDistribution(historyId: string, column: ColumnProfile) {
+  const chart = column.numeric ? 'distribution' : 'category';
+  useProfileStore.getState().pickChartColumn(historyId, chart, column.name);
+  // Focus after React re-renders the panel with its new title.
+  requestAnimationFrame(() => document.getElementById(`profile-${chart}-panel`)?.focus());
+}
 
 /** The Profile tab: layout regions from specs/005-data-profile/contracts/ui.md. */
 export function ProfileDashboard({ onTabChange }: { onTabChange?: (tab: string) => void }) {
@@ -52,20 +65,20 @@ export function ProfileDashboard({ onTabChange }: { onTabChange?: (tab: string) 
           </button>
         </div>
       )}
-      {profile && (
+      {profile && historyId && (
         <>
           <SummaryCards profile={profile} />
           <div className="profile-panels">
             <QualityPanel quality={profile.quality} />
-            <section
-              className="profile-panel"
-              aria-label="Missing values by column"
-              tabIndex={-1}
-            />
-            <section className="profile-panel" aria-label="Distribution" tabIndex={-1} />
-            <section className="profile-panel" aria-label="Categories" tabIndex={-1} />
+            <MissingValuesPanel columns={profile.columns} rowCount={profile.row_count} />
+            <DistributionPanel historyId={historyId} columns={profile.columns} />
+            <CategoryPanel historyId={historyId} columns={profile.columns} />
           </div>
-          <ColumnsSection profile={profile} onTabChange={onTabChange} />
+          <ColumnsSection
+            profile={profile}
+            onTabChange={onTabChange}
+            onShowDistribution={(column) => showDistribution(historyId, column)}
+          />
         </>
       )}
     </section>

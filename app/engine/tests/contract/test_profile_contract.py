@@ -87,3 +87,18 @@ def test_profile_rejects_a_missing_dataset_id(opened, params):
     router = opened[0]
     with pytest.raises(RequestError):
         router.dispatch("dataset.profile", params)
+
+
+def test_profile_summaries_have_the_documented_shapes(opened):
+    router, jobs, _, dataset_id = opened
+    ack = router.dispatch("dataset.profile", {"dataset_id": dataset_id})
+    columns = {c["name"]: c for c in finished(jobs, ack["job_id"])["result"]["columns"]}
+
+    numeric = columns["price"]["numeric"]
+    assert set(numeric) == {"mean", "median", "std", "min", "max", "histogram"}
+    assert 1 <= len(numeric["histogram"]) <= 50
+    assert set(numeric["histogram"][0]) == {"start", "end", "count"}
+    category = columns["name"]["categories"]
+    assert set(category) == {"top", "other_count", "distinct_count"}
+    assert len(category["top"]) <= 10
+    assert set(category["top"][0]) == {"value", "count"}

@@ -28,3 +28,13 @@ export function formatUpdated(iso: string, now = new Date()): string {
   if (days === 1) return `Yesterday ${time.format(updated)}`;
   return dateTime.format(updated);
 }
+
+const values = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 });
+
+/** A summary value: numbers to 2 decimals, ISO date-times as their date. */
+export const formatValue = (value: number | string) =>
+  typeof value === 'number' ? values.format(value) : value.slice(0, 10);
+
+/** "18–23" for a bin, or the single value when a bin holds one value. */
+export const formatRange = (start: number | string, end: number | string) =>
+  start === end ? formatValue(start) : `${formatValue(start)}–${formatValue(end)}`;

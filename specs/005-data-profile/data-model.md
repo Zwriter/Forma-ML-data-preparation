@@ -91,7 +91,7 @@ cells are excluded.
 | Field | Type | Rules |
 |-------|------|-------|
 | `start` | number \| string | Inclusive lower edge (ISO string for datetime) |
-| `end` | number \| string | Exclusive upper edge; last bin is inclusive |
+| `end` | number \| string | Exclusive upper edge; last bin is inclusive. Integer columns with ≤ 30 distinct values get one bin per value with `start == end` |
 | `count` | int | ≥ 0 |
 
 ## CategorySummary

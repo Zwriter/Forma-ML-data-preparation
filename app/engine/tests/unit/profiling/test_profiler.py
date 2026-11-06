@@ -46,17 +46,34 @@ def test_columns_carry_types_counts_quality_and_examples(mixed_frame):
     assert columns["price"]["quality"] == "needs_attention"  # 57/63 = 90.5%
     assert columns["name"]["quality"] == "poor"  # 56/63 = 88.9%
     assert columns["reject_reason"]["examples"] == ["keep"]
-    assert all(column["numeric"] is None for column in columns.values())
+
+
+def test_numbers_and_dates_get_histograms_and_text_gets_top_values(mixed_frame):
+    columns = {column["name"]: column for column in run(mixed_frame)["columns"]}
+
+    for name in ("id", "price", "joined", "amount"):
+        assert columns[name]["numeric"]["histogram"], name
+        assert columns[name]["categories"] is None, name
+    for name in ("name", "active", "reject_reason"):
+        assert columns[name]["categories"]["top"], name
+        assert columns[name]["numeric"] is None, name
+    amount = columns["amount"]["numeric"]
+    assert sum(b["count"] for b in amount["histogram"]) == 63 - 1 - 2
+    assert columns["reject_reason"]["categories"]["top"] == [
+        {"value": "keep", "count": 63}
+    ]
 
 
 def test_progress_is_reported_per_phase_and_cancel_stops_work(mixed_frame):
     token = Token()
     run(mixed_frame, token)
-    assert [message for _, message in token.reports] == [
+    assert [message for _, message in token.reports][:4] == [
         "Detecting types",
         "Computing column statistics",
         "Finding duplicates",
+        "Building distributions",
     ]
+    assert token.reports[-1][0] < 1  # the job itself marks completion
 
     with pytest.raises(CancelledError):
         run(mixed_frame, Token(cancel_after=1))

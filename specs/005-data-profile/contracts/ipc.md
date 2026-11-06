@@ -39,7 +39,7 @@ Result: a `Profile` (see data model). Example (trimmed):
       "unique_count": 2, "completeness": 0.968, "quality": "needs_attention",
       "examples": ["0", "1"],
       "numeric": { "mean": 0.16, "median": 0, "std": 0.37, "min": 0, "max": 1,
-                   "histogram": [{ "start": 0, "end": 1, "count": 5679 },
+                   "histogram": [{ "start": 0, "end": 0, "count": 5679 },
                                  { "start": 1, "end": 1, "count": 1138 }] },
       "categories": null }
   ]

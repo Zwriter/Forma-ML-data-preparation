@@ -3,10 +3,14 @@ from datetime import datetime, timezone
 import polars as pl
 
 from forma_engine.domain.errors import CancelledError
-from forma_engine.profiling.column_stats import column_stats, examples
+from forma_engine.profiling.column_stats import NUMERIC, column_stats, examples
+from forma_engine.profiling.distributions import categories, histogram
 from forma_engine.profiling.quality import breakdown, completeness, quality_level
-from forma_engine.profiling.report import ColumnProfile, Profile
+from forma_engine.profiling.report import ColumnProfile, NumericSummary, Profile
 from forma_engine.profiling.type_detection import detect_types
+
+CATEGORICAL = {"text", "boolean"}
+BATCH = 10  # columns summarised between progress reports and cancel checks
 
 
 class _NoToken:
@@ -31,6 +35,25 @@ def _duplicates(frame: pl.LazyFrame, names: list[str], rows: int) -> int:
     return rows - int(frame.select(pl.struct(names).n_unique()).collect().item())
 
 
+def _summaries(frame, schema, types, stats, token) -> dict:
+    """Histogram or top values per column, in batches with progress and cancel checks"""
+    names = schema.names()
+    result = {}
+    for start in range(0, len(names), BATCH):
+        _phase(token, 0.8 + 0.19 * start / len(names), "Building distributions")
+        for name in names[start : start + BATCH]:
+            kind, dtype = types[name], schema[name]
+            numeric = categories_ = None
+            if kind in NUMERIC and stats[name]["numeric"]:
+                bins = histogram(frame, name, kind, dtype)
+                if bins:
+                    numeric = NumericSummary(**stats[name]["numeric"], histogram=bins)
+            elif kind in CATEGORICAL:
+                categories_ = categories(frame, name, kind, dtype)
+            result[name] = {"numeric": numeric, "categories": categories_}
+    return result
+
+
 def profile(frame, dataset_id, history_id, data_version, token=None) -> dict:
     token = token or _NoToken()
     schema = frame.collect_schema()
@@ -41,6 +64,7 @@ def profile(frame, dataset_id, history_id, data_version, token=None) -> dict:
     samples = examples(frame, types)
     _phase(token, 0.7, "Finding duplicates")
     duplicates = _duplicates(frame, schema.names(), rows)
+    summaries = _summaries(frame, schema, types, stats, token)
     if token():
         raise CancelledError("Profiling was cancelled.")
     columns = [
@@ -57,6 +81,7 @@ def profile(frame, dataset_id, history_id, data_version, token=None) -> dict:
             ),
             quality=quality_level(rows, stats[name]["missing"], stats[name]["invalid"]),
             examples=samples[name],
+            **summaries[name],
         )
         for index, (name, dtype) in enumerate(schema.items())
     ]

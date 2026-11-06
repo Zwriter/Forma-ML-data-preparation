@@ -1,0 +1,238 @@
+/* Chart panels share a fixed height: heading, then the chart takes the rest. */
+.profile-panels .profile-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.profile-panel-heading {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  margin-bottom: 6px;
+}
+
+.card .profile-panel-heading h3 {
+  overflow: hidden;
+  margin: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workflow-card .profile-panel-heading select {
+  max-width: 45%;
+  padding: 2px 4px;
+  font-size: 12px;
+}
+
+.profile-link-button {
+  flex: none;
+  padding: 0;
+  border: 0;
+  color: var(--purple);
+  background: none;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.profile-panel-note {
+  margin: auto 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* Horizontal bars: label | track | value, then a count axis. */
+.hbars {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  font-size: 11px;
+}
+
+.hbars-list {
+  display: grid;
+  flex: 1;
+  grid-auto-rows: minmax(0, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hbars-row {
+  display: grid;
+  grid-template-columns: minmax(0, 34%) 1fr auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.hbars-row:focus-visible,
+.vbars-column:focus-visible {
+  outline: 2px solid var(--purple);
+}
+
+.hbars-label {
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hbars-track {
+  height: 60%;
+  max-height: 10px;
+}
+
+.hbars-bar {
+  display: block;
+  height: 100%;
+  background: var(--purple);
+  opacity: 0.75;
+}
+
+.hbars-value {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.hbars-axis {
+  position: relative;
+  flex: none;
+  height: 14px;
+  margin: 2px 0 0 calc(34% + 6px);
+  margin-right: 60px;
+  color: var(--muted);
+}
+
+.hbars-axis span,
+.vbars-axis span {
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+/* Vertical bars: y axis on the left, columns with labels underneath. */
+.vbars {
+  position: relative;
+  display: grid;
+  flex: 1;
+  grid-template-columns: auto 1fr;
+  min-height: 0;
+  padding-top: 20px;
+  font-size: 10px;
+}
+
+.vbars-y-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: var(--muted);
+}
+
+.vbars-axis {
+  position: relative;
+  width: 30px;
+  margin-bottom: 14px;
+  color: var(--muted);
+}
+
+.vbars-axis span {
+  right: 4px;
+  transform: translateY(50%);
+}
+
+.vbars-list {
+  display: flex;
+  gap: 2px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border-left: 1px solid var(--line);
+  list-style: none;
+}
+
+.vbars-column {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.vbars-plot {
+  position: relative;
+  flex: 1;
+  border-bottom: 1px solid var(--line);
+}
+
+.vbars-bar {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: var(--purple);
+  opacity: 0.75;
+}
+
+.vbars-value {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  color: var(--ink);
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.vbars-label {
+  overflow: hidden;
+  height: 14px;
+  color: var(--muted);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-stats {
+  display: grid;
+  flex: none;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  margin: 6px 0 0;
+  padding: 4px 0 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+  font-size: 10px;
+  text-align: center;
+}
+
+.profile-stats span {
+  display: block;
+  color: var(--muted);
+}
+
+/* "Show all" opens over the panel instead of growing it. */
+.profile-popup {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: 0 6px 18px #1c2d4b26;
+}
+
+.profile-popup .hbars-list {
+  grid-auto-rows: 20px;
+}
+
+/* Sparse labels (every nth bar) may spill over their neighbours, which have none. */
+.vbars-sparse .vbars-label {
+  overflow: visible;
+  text-align: left;
+  text-overflow: clip;
+}

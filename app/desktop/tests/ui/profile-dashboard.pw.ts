@@ -75,7 +75,7 @@ test('table controls work from the keyboard and Escape returns focus', async ({ 
   const actions = page.getByRole('button', { name: 'Actions for customerID' });
   await actions.focus();
   await page.keyboard.press('Enter');
-  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('End');
   await expect(page.getByRole('menuitem', { name: 'Copy column name' })).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(actions).toBeFocused();

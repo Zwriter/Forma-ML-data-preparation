@@ -20,9 +20,11 @@ const ALL: ColumnFilter = { search: '', type: 'all', quality: 'all' };
 export function ColumnsSection({
   profile,
   onTabChange,
+  onShowDistribution,
 }: {
   profile: Profile;
   onTabChange?: (tab: string) => void;
+  onShowDistribution?: (column: ColumnProfile) => void;
 }) {
   const [filter, setFilter] = useState(ALL);
   const [sort, setSort] = useState<ColumnSort>({ key: 'position', direction: 'ascending' });
@@ -59,7 +61,17 @@ export function ColumnsSection({
         hidden={hidden}
         onSort={setSort}
         onClearFilters={() => setFilter(ALL)}
-        rowMenu={(column) => <ColumnRowMenu column={column} onClean={clean} onCopy={copy} />}
+        rowMenu={(column) => (
+          <ColumnRowMenu
+            column={column}
+            onClean={clean}
+            onCopy={copy}
+            // Only columns with a histogram or top values have a chart to show.
+            onShowDistribution={
+              column.numeric || column.categories ? onShowDistribution : undefined
+            }
+          />
+        )}
       />
     </section>
   );

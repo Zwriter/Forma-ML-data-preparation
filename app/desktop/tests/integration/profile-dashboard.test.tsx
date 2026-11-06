@@ -190,7 +190,7 @@ describe('Profile columns table', () => {
   afterEach(() => {
     cleanup();
     window.localStorage.clear();
-    useProfileStore.setState({ entries: {}, hiddenColumns: [] });
+    useProfileStore.setState({ entries: {}, hiddenColumns: [], chartColumns: {} });
     useDatasetStore.setState({ dataset: null, history: null, activeCell: null });
     useWorkspaceStore.setState({ notification: null });
   });
@@ -258,5 +258,63 @@ describe('Profile columns table', () => {
     await waitFor(() =>
       expect(useWorkspaceStore.getState().notification?.message).toBe('Copied "tenure".'),
     );
+  });
+});
+
+describe('Profile charts', () => {
+  beforeEach(() => {
+    useDatasetStore.getState().setDataset({
+      dataset_id: 'dataset-1',
+      source_path: 'source.csv',
+      format: 'csv',
+      columns: 21,
+      rows: 7043,
+      state: 'open',
+      schema: [],
+    });
+    useDatasetStore.setState({ history });
+    useProfileStore.setState({
+      entries: {
+        'history-1': {
+          profile: { ...demoProfile, history_id: 'history-1' },
+          status: 'ready',
+          jobId: null,
+          progress: null,
+          message: null,
+          error: null,
+        },
+      },
+      chartColumns: {},
+    });
+  });
+  afterEach(() => {
+    cleanup();
+    useProfileStore.setState({ entries: {}, chartColumns: {} });
+    useDatasetStore.setState({ dataset: null, history: null });
+  });
+
+  it('shows all four panels', () => {
+    render(<WorkflowActions activeTab="Profile" />);
+    for (const name of [
+      'Data quality',
+      'Missing values by column',
+      'Distribution of SeniorCitizen',
+      'gender (categorical)',
+    ])
+      expect(screen.getByRole('region', { name })).toBeTruthy();
+  });
+
+  it('Show distribution switches the matching chart and focuses it', async () => {
+    render(<WorkflowActions activeTab="Profile" />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Actions for tenure' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Show distribution' }));
+    const numeric = await screen.findByRole('region', { name: 'Distribution of tenure' });
+    await waitFor(() => expect(document.activeElement).toBe(numeric));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Actions for Contract' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Show distribution' }));
+    const category = await screen.findByRole('region', { name: 'Contract (categorical)' });
+    await waitFor(() => expect(document.activeElement).toBe(category));
   });
 });

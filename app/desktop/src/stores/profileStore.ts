@@ -23,7 +23,12 @@ type ProfileState = {
   /** Optional Columns-table columns the user hid; remembered across sessions. */
   hiddenColumns: OptionalColumn[];
   toggleColumn: (column: OptionalColumn) => void;
+  /** The column each chart shows, per history, for this session. */
+  chartColumns: Record<string, Partial<Record<ChartKind, string>>>;
+  pickChartColumn: (historyId: string, chart: ChartKind, column: string) => void;
 };
+
+export type ChartKind = 'distribution' | 'category';
 
 export const OPTIONAL_COLUMNS = [
   'type',
@@ -111,5 +116,13 @@ export const useProfileStore = create<ProfileState>()((set) => {
         saveHiddenColumns(hiddenColumns);
         return { hiddenColumns };
       }),
+    chartColumns: {},
+    pickChartColumn: (historyId, chart, column) =>
+      set((state) => ({
+        chartColumns: {
+          ...state.chartColumns,
+          [historyId]: { ...state.chartColumns[historyId], [chart]: column },
+        },
+      })),
   };
 });

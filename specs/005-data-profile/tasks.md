@@ -199,7 +199,7 @@ values that match the dataset. Cancel during a run restores the previous state.
   - warning/alert accent when Missing or Duplicate is > 0, neutral at 0, with a text cue as well
     as colour
   - the duplicates card has `tabIndex=-1`
-- [ ] T024 [P] [US1] (Moved to US3 with T039: the ring uses dashed circle strokes and needs no
+- [x] T024 [P] [US1] (Moved to US3 with T039: the ring uses dashed circle strokes and needs no
   scale maths; only the bar charts need ticks.) Write failing tests in
   `tests/unit/profiling/chartScale.test.ts`, then create
   `src/features/profiling/charts/chartScale.ts`: `niceTicks(max, count)`,
@@ -301,7 +301,7 @@ chart, each with column selectors.
 **Independent Test**: Profile numeric and categorical data and compare bars, labels, and
 statistics with independently computed values.
 
-- [ ] T037 [P] [US3] Write failing tests in `tests/unit/profiling/test_distributions.py`, then
+- [x] T037 [P] [US3] Write failing tests in `tests/unit/profiling/test_distributions.py`, then
   create `forma_engine/profiling/distributions.py`:
   - `histogram(frame, column, detected_type, stats)`: at most 30 bins by default, hard cap 50;
     integer columns with ≤ 30 distinct values get one bin per value; datetime is binned on epoch
@@ -310,24 +310,24 @@ statistics with independently computed values.
   - `categories(frame, column)`: "≤ 10, by count descending, then value ascending", plus
     `other_count` and `distinct_count`
   - edge cases: a constant column gives one bin and `std = 0`; an all-null column gives no summary
-- [ ] T038 [US3] Write failing tests in `tests/unit/profiling/test_profiler.py`, then add the
+- [x] T038 [US3] Write failing tests in `tests/unit/profiling/test_profiler.py`, then add the
   "Building distributions" phase to `profile()` in `forma_engine/profiling/statistics.py`:
   - batches of columns, with `token.report` and a cancel check between batches
   - fills `numeric` for `integer`/`decimal`/`datetime` and `categories` for `text`/`boolean` when
     the column has ≥ 1 value
   - extend `tests/contract/test_profile_contract.py` for the summary shapes
-- [ ] T039 [P] [US3] Write failing tests in `tests/unit/profiling/HorizontalBars.test.tsx` and
+- [x] T039 [P] [US3] Write failing tests in `tests/unit/profiling/HorizontalBars.test.tsx` and
   `VerticalBars.test.tsx`, then create `src/features/profiling/charts/HorizontalBars.tsx` and
   `src/features/profiling/charts/VerticalBars.tsx`:
   - SVG bars with axes and ticks from `chartScale`
   - every bar is focusable with an `aria-label` and the tooltip
   - a visually hidden text summary
-- [ ] T040 [P] [US3] Write failing tests in `tests/unit/profiling/MissingValuesPanel.test.tsx`,
+- [x] T040 [P] [US3] Write failing tests in `tests/unit/profiling/MissingValuesPanel.test.tsx`,
   then create `src/features/profiling/MissingValuesPanel.tsx`:
   - top 10 columns by `missing_count` descending, labelled "1,521 (21.6%)"
   - "Show all" lists the rest
   - "No missing values" when every count is 0
-- [ ] T041 [US3] Write failing tests in `tests/unit/profiling/DistributionPanel.test.tsx` and
+- [x] T041 [US3] Write failing tests in `tests/unit/profiling/DistributionPanel.test.tsx` and
   `CategoryPanel.test.tsx`, then create `src/features/profiling/DistributionPanel.tsx` and
   `src/features/profiling/CategoryPanel.tsx`:
   - titles "Distribution of {column}" and "{column} (categorical)"
@@ -339,7 +339,7 @@ statistics with independently computed values.
   - category bars labelled "3,875 (55.0%)", plus an "Other" bar when `other_count > 0`
   - explanations when no eligible column exists
   - picks are kept in `profileStore` for the session
-- [ ] T042 [US3] Wire the row menu's "Show distribution" in `ColumnRowMenu.tsx` and
+- [x] T042 [US3] Wire the row menu's "Show distribution" in `ColumnRowMenu.tsx` and
   `ProfileDashboard.tsx` to set the matching panel's column and move focus to that panel. Mount
   the three panels in the dashboard grid. Extend `tests/integration/profile-dashboard.test.tsx`.
 
