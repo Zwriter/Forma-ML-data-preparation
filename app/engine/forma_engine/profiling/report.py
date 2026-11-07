@@ -1,9 +1,15 @@
 from dataclasses import asdict, dataclass, field
+from datetime import datetime, timezone
 from typing import Any
 
 MAX_BINS = 50
 MAX_CATEGORIES = 10
 MAX_EXAMPLES = 3
+
+
+def utc_now() -> str:
+    """The current time as ISO text ending in Z, as every profile result uses."""
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def _non_negative(**counts: int) -> None:

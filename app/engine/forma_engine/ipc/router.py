@@ -1,6 +1,7 @@
 from forma_engine.domain.errors import RequestError
 from forma_engine.ipc.dataset_handlers import DatasetHandlers
 from forma_engine.ipc.profile_handlers import ProfileHandlers
+from forma_engine.ipc.profile_tool_handlers import ProfileToolHandlers
 from forma_engine.ipc.cleaning_handlers import CleaningHandlers
 from forma_engine.ipc.export_handlers import ExportHandlers
 from forma_engine.ipc.job_handlers import JobHandlers
@@ -20,6 +21,7 @@ class Router:
         saves=None,
         data_operations=None,
         invalid_rows=None,
+        profile_tools=None,
     ):
         self.datasets, self.cleaning, self.jobs, self.exports = (
             datasets,
@@ -27,12 +29,13 @@ class Router:
             jobs,
             exports,
         )
-        self.profile_service = profile_service
+        self.profile_service, self.profile_tools = profile_service, profile_tools
         dataset = DatasetHandlers(datasets, jobs, saves)
         profile = ProfileHandlers(datasets, profile_service, jobs, invalid_rows)
         clean = CleaningHandlers(datasets, cleaning)
         export = ExportHandlers(datasets, jobs, exports)
         job = JobHandlers(jobs)
+        tools = ProfileToolHandlers(datasets, profile_tools)
         data_operation = DataOperationHandlers(datasets, data_operations)
         self.handlers = {
             "dataset.open": dataset.open,
@@ -46,6 +49,13 @@ class Router:
             "dataset.profile": profile.profile,
             "profile.export_invalid": profile.export_invalid,
             "profile.report": profile.report,
+            "profile.column_detail": tools.column_detail,
+            "profile.rows": tools.rows,
+            "profile.distribution": tools.distribution,
+            "profile.duplicates": tools.duplicates,
+            "profile.patterns": tools.patterns,
+            "profile.anomalies": tools.anomalies,
+            "profile.suggestions": tools.suggestions,
             "cleaning.preview": clean.preview,
             "cleaning.validate": clean.validate,
             "cleaning.apply": clean.apply,

@@ -2,6 +2,7 @@ import type { Operation } from '../types/cleaning';
 import type { Dataset, HistoryMetadata, Preview } from '../types/dataset';
 import { previewDemoCleaning, validateDemoCleaning } from './demoCleaning';
 import { demoProfile } from './demoProfile';
+import { DEMO_TOOL_METHODS, demoProfileTool } from './demoProfileTools';
 import { demoView, sortDemoRecords } from './demoView';
 import { DEFAULT_PAGE_SIZE } from './pageSize';
 
@@ -154,6 +155,7 @@ export async function requestDemo<T>(method: string, params: Record<string, unkn
     const result = { ...demoProfile, dataset_id: current.dataset.dataset_id };
     return { job_id: 'demo-profile', state: 'completed', result } as T;
   }
+  if (DEMO_TOOL_METHODS.has(method)) return demoProfileTool(method, params) as T;
   if (method === 'cleaning.validate') {
     return validateDemoCleaning(params.operations as Operation[]) as T;
   }

@@ -3,7 +3,8 @@ import { Icon } from '../../components/Icon';
 import type { IconName } from '../../components/Icon';
 import { topTabs } from './navigation';
 import { commandIcons, ribbonCommands } from './ribbonCommands';
-import { profileRibbonActions } from '../profiling/profileRibbon';
+import { profileCommand } from '../profiling/profileRibbon';
+import { useProfileToolStore } from '../../stores/profileToolStore';
 import { ribbonStepTypes } from '../cleaning/stepCatalog';
 import { useCleaningStore } from '../../stores/cleaningStore';
 import { stepCommand } from '../cleaning/stepCommand';
@@ -59,17 +60,13 @@ export function WorkspaceChrome({
   const [showDbPanel, setShowDbPanel] = useState(false);
   const [connectionMessage, setConnectionMessage] = useState('');
   const stepForm = useCleaningStore((state) => state.form);
+  const profileTool = useProfileToolStore((state) => state.tool);
   const groups = ribbonCommands[activeTab] ?? [];
 
   function toolFor(label: string): Tool {
-    const profileAction = activeTab === 'Profile' ? profileRibbonActions[label] : undefined;
+    const profileAction = activeTab === 'Profile' ? profileCommand(label, profileTool) : undefined;
     if (profileAction)
-      return {
-        label,
-        icon: commandIcons[label],
-        onClick: () => void profileAction(),
-        disabled: !hasDataset,
-      };
+      return { label, icon: commandIcons[label], disabled: !hasDataset, ...profileAction };
     if (label === 'Save')
       return { label, icon: commandIcons[label], onClick: onSave, disabled: !hasDataset };
     if (label === 'Undo')

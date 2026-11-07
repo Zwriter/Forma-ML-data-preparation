@@ -558,19 +558,19 @@ replacing the focus-only ribbon behaviour of T050.
 
 ### Engine
 
-- [ ] T064 Write failing tests in `tests/unit/profiling/tools/conftest.py` and a fixture test, then
+- [x] T064 Write failing tests in `tests/unit/profiling/tools/conftest.py` and a fixture test, then
   add a `tools_frame` fixture to `tests/conftest.py` with known answers for every tool: two
   correlated number columns plus one unrelated, a phone column with two formats (90% / 10%),
   planted outliers in one column and a constant one, duplicate groups on a key subset, a
   text-stored number column with 3% missing, a 95%-empty column, a date column, and a
   "Last, First" name column.
-- [ ] T065 Write failing tests in `tests/unit/services/test_profile_tools_service.py`, then create
+- [x] T065 Write failing tests in `tests/unit/services/test_profile_tools_service.py`, then create
   `forma_engine/services/profile_tools_service.py`: `ProfileToolsService(datasets, jobs)` with one
   `submit(tool, dataset_id, data_version, params)` that raises `PROFILE_STALE` for an old
   version, runs the tool function on the current frame with the job token, and submits with
   `abandon_on_cancel=True`. The tool functions are injected as a registry (name → callable), so
   the service needs no change per tool (open/closed).
-- [ ] T066 Write failing tests in `tests/contract/test_profile_tools_contract.py`, then create
+- [x] T066 Write failing tests in `tests/contract/test_profile_tools_contract.py`, then create
   `forma_engine/ipc/profile_tool_handlers.py` and register the seven `profile.*` tool methods in
   `router.py` and `bootstrap.py`: shared validation of `dataset_id`, `data_version`, and column
   names; per-method checks from contracts/ipc.md (`bins` set, `limit` 1–100, `filter.kind`).
@@ -578,33 +578,50 @@ replacing the focus-only ribbon behaviour of T050.
 
 ### Desktop
 
-- [ ] T067 [P] Write failing tests in `tests/unit/stores/profileToolStore.test.ts`, then create
+- [x] T067 [P] Write failing tests in `tests/unit/stores/profileToolStore.test.ts`, then create
   `src/stores/profileToolStore.ts` per data-model.md: `open(tool)`, `close()`, `setInput`,
   result entries keyed by `data_version`, `dismiss(id)`, and `autoRefresh` persisted as
   `forma.profile-auto-refresh` (reads and writes wrapped in try/catch). Opening another file resets
   to the dashboard.
-- [ ] T068 [P] Write failing tests in `tests/unit/profiling/useToolJob.test.tsx`, then create
+- [x] T068 [P] Write failing tests in `tests/unit/profiling/useToolJob.test.tsx`, then create
   `src/features/profiling/tools/useToolJob.ts`: sends the tool request with the current
   `data_version`, stores the acknowledgement, applies `job.*` events for `profile_*` tool kinds
   (including events that arrive before the acknowledgement, as in `useProfileJob`), re-requests
   when inputs or `data_version` change, and cancels. Route the events from
   `useWorkflowJobEvents.ts`.
-- [ ] T069 Write failing tests in `tests/unit/profiling/ToolView.test.tsx`, then create
+- [x] T069 Write failing tests in `tests/unit/profiling/ToolView.test.tsx`, then create
   `src/features/profiling/tools/ToolView.tsx`: region named after the tool, h2, "Back to
   dashboard", "Out of date" status, progress and Cancel, "Profile the dataset first" empty state,
   actionable error with Try again, and Escape to close (ignored while a menu is open).
-- [ ] T070 Change the Profile ribbon to toggle tools: in `profileRibbon.ts` and
+- [x] T070 Change the Profile ribbon to toggle tools: in `profileRibbon.ts` and
   `WorkspaceChrome.tsx`, each tool command calls `open`/`close` and is `aria-pressed` while its
   tool is open; closing returns focus to the command. `ProfileDashboard.tsx` renders the open
   tool in place of the dashboard sections. Update `tests/unit/profiling/profileRibbon.test.ts`
   and replace the Playwright test "Profile ribbon buttons move focus…" with one that opens and
   closes a tool three ways and checks the active tab never changes.
-- [ ] T071 [P] Add demo answers for the seven tool methods in `src/services/demoProfileTools.ts`
+- [x] T071 [P] Add demo answers for the seven tool methods in `src/services/demoProfileTools.ts`
   (fixture results derived from `demoProfileColumns.json`, under 250 lines) and route them in
   `demoData.ts`. Extend `tests/unit/services/demoProfile.test.ts` to check each shape.
 
 **Checkpoint**: A placeholder tool can be opened and closed from the ribbon without leaving the
 Profile tab.
+
+Notes (Phase 10, 2026-11-08):
+- T064: the fixture lives in `tests/conftest.py` (`build_tools_frame`); its answers are checked in
+  `tests/unit/profiling/tools/test_tools_fixture.py` (unique name: the tests have no packages).
+- T065: tool functions take `(ToolContext(frame, token, profile), params)`; the registry is
+  `forma_engine/profiling/tools/__init__.py` `TOOLS` (empty until each tool phase), copied per
+  router. `utc_now()` moved to `profiling/report.py` so profiles and tools share one timestamp.
+- T066: the shared parameter checks moved from `profile_handlers.py` to `ipc/params.py`.
+  `profile.anomalies` returns `{ columns: OutlierSummary[] }` (results are objects), updated in
+  contracts/ipc.md.
+- T068: a request replaced before its acknowledgement now cancels its engine job when the late
+  acknowledgement arrives (found while checking the abandoned-job guard).
+- T070: before this change the Insights commands fell through to a link that switched to the
+  Clean tab. Tools without their phase show "This tool is not available yet." via `ToolHost`.
+  The tool frame styles are in `styles/profile-tools.css`; tool layout checks come in T091.
+- T071: the demo answers are split into `demoProfileTools.ts`, `demoProfileInsights.ts`, and
+  `demoProfileStats.ts` (≤ 250 lines each). Result types are in `src/types/profileTools.ts`.
 
 ---
 

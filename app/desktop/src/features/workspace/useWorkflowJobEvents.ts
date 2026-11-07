@@ -10,6 +10,7 @@ import { draftKey, useCleaningStore } from '../../stores/cleaningStore';
 import { useViewMaskStore } from '../../stores/viewMaskStore';
 import { applyProfileEvent } from '../profiling/useProfileJob';
 import { applyExportEvent } from '../profiling/useProfileExports';
+import { applyToolEvent, TOOL_JOB_KINDS } from '../profiling/tools/useToolJob';
 import type { SortKey } from '../../types/dataOperations';
 
 type EventJob = Job & {
@@ -68,8 +69,9 @@ export function useWorkflowJobEvents(onSaveComplete?: (success: boolean) => void
         setHistory(job.result.history);
         if (job.kind === 'save') setSaveStatus(job.result.history.is_dirty ? 'dirty' : 'saved');
       }
-      // Profile failures are shown in the Profile tab itself, with Try again.
-      if (job.state === 'failed' && job.kind !== 'profile') {
+      // Profile and tool failures are shown in the Profile tab itself, with Try again.
+      const shownInProfile = job.kind === 'profile' || TOOL_JOB_KINDS.has(job.kind);
+      if (job.state === 'failed' && !shownInProfile) {
         if (job.kind === 'save') setSaveStatus('failed');
         const detail = job.error?.message ?? 'The last valid state remains active.';
         setWorkspaceError(`${actionNames[job.kind] ?? job.kind} failed: ${detail}`);
@@ -82,6 +84,7 @@ export function useWorkflowJobEvents(onSaveComplete?: (success: boolean) => void
       }
       applyProfileEvent(job);
       applyExportEvent(job);
+      applyToolEvent(job);
     })
       .then((unlisten) => {
         stop = unlisten;

@@ -219,21 +219,49 @@ test('summary cards touch, split by inset lines, with the chart strip attached b
   expect(panels.y).toBeLessThanOrEqual(summary.y + summary.height);
 });
 
-test('Profile ribbon buttons move focus to their part of the dashboard', async ({ page }) => {
+test('Profile ribbon tools open in place of the dashboard and never switch tabs', async ({
+  page,
+}) => {
   await openProfile(page, 1180);
   const ribbon = page.getByRole('region', { name: 'Profile toolbar' });
-  for (const [command, target] of [
-    ['Column details', page.getByRole('region', { name: 'Columns' })],
-    ['Data quality', page.getByRole('region', { name: 'Data quality' })],
-    ['Distribution', page.getByRole('region', { name: /^Distribution of / })],
-    ['Duplicates', page.getByRole('listitem', { name: /^Duplicate rows/ })],
-  ] as const) {
-    await ribbon.getByRole('button', { name: command }).click();
-    await expect(target).toBeFocused();
+  const profileTab = page.getByRole('navigation').getByText('Profile', { exact: true });
+  const summary = page.getByRole('list', { name: 'Dataset summary' });
+
+  for (const command of [
+    'Column details',
+    'Data quality',
+    'Distribution',
+    'Duplicates',
+    'Patterns',
+    'Anomalies',
+    'Recommendations',
+    'Creations',
+  ]) {
+    const button = ribbon.getByRole('button', { name: command, exact: true });
+    await button.click();
+    await expect(page.getByRole('region', { name: command, exact: true })).toBeVisible();
+    await expect(button).toHaveAttribute('aria-pressed', 'true');
+    await expect(summary).toHaveCount(0);
+    await expect(profileTab).toHaveAttribute('aria-current', 'page');
+    await button.click(); // the pressed command closes its tool
+    await expect(summary).toBeVisible();
+    await expect(button).toBeFocused();
   }
+
+  const patterns = ribbon.getByRole('button', { name: 'Patterns', exact: true });
+  await patterns.click();
+  await page.getByRole('button', { name: 'Back to dashboard' }).click();
+  await expect(summary).toBeVisible();
+  await expect(patterns).toBeFocused();
+
+  await patterns.click();
+  await page.keyboard.press('Escape');
+  await expect(summary).toBeVisible();
+  await expect(patterns).toHaveAttribute('aria-pressed', 'false');
+
   // Refresh re-profiles (demo mode answers at once) and keeps the dashboard.
   await ribbon.getByRole('button', { name: 'Refresh' }).click();
-  await expect(page.getByRole('list', { name: 'Dataset summary' })).toBeVisible();
+  await expect(summary).toBeVisible();
 });
 
 test.describe('accessibility', () => {

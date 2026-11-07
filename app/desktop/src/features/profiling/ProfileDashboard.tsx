@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useDatasetStore } from '../../stores/datasetStore';
 import { isStale, useProfileStore } from '../../stores/profileStore';
+import { useProfileToolStore } from '../../stores/profileToolStore';
 import type { ColumnProfile } from '../../types/profile';
 import { CategoryPanel } from './CategoryPanel';
 import { DistributionPanel } from './DistributionPanel';
@@ -9,6 +10,7 @@ import { ProfileHeader } from './ProfileHeader';
 import { QualityPanel } from './QualityPanel';
 import { SummaryCards } from './SummaryCards';
 import { ColumnsSection } from './columns/ColumnsSection';
+import { ToolHost } from './tools/ToolHost';
 import { useProfileExports } from './useProfileExports';
 import { useProfileJob } from './useProfileJob';
 import '../../styles/profile.css';
@@ -16,6 +18,7 @@ import '../../styles/profile-quality.css';
 import '../../styles/profile-charts.css';
 import '../../styles/profile-table.css';
 import '../../styles/profile-responsive.css';
+import '../../styles/profile-tools.css';
 
 /** Shows a column in the chart that fits it and moves focus to that chart. */
 function showDistribution(historyId: string, column: ColumnProfile) {
@@ -27,7 +30,9 @@ function showDistribution(historyId: string, column: ColumnProfile) {
 
 /** The Profile tab: layout regions from specs/005-data-profile/contracts/ui.md. */
 export function ProfileDashboard({ onTabChange }: { onTabChange?: (tab: string) => void }) {
+  const datasetId = useDatasetStore((state) => state.dataset?.dataset_id ?? null);
   const historyId = useDatasetStore((state) => state.history?.history_id);
+  const tool = useProfileToolStore((state) => state.tool);
   const dataVersion = useDatasetStore((state) => state.history?.data_version);
   const entry = useProfileStore((state) => (historyId ? state.entries[historyId] : undefined));
   const { run, cancel } = useProfileJob();
@@ -55,6 +60,16 @@ export function ProfileDashboard({ onTabChange }: { onTabChange?: (tab: string) 
   useEffect(() => {
     if (historyId && neverRun && !useProfileStore.getState().entries[historyId]) void run();
   }, [neverRun]);
+
+  // Tools belong to one dataset: another file starts back on the dashboard.
+  useEffect(() => useProfileToolStore.getState().showFor(datasetId), [datasetId]);
+
+  if (tool !== 'dashboard')
+    return (
+      <section className="card workflow-card profile-dashboard" id="profile">
+        <ToolHost />
+      </section>
+    );
 
   return (
     <section className="card workflow-card profile-dashboard" id="profile">

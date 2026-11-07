@@ -46,3 +46,30 @@ def write_csv(tmp_path):
         return path
 
     return write
+
+
+def build_tools_frame() -> pl.DataFrame:
+    """100 rows with one known answer per profile tool (see test_tools_fixture.py)."""
+    rows = []
+    for i in range(100):
+        rows.append(
+            {
+                "x": float(i),
+                "y": 2.0 * i + (i % 7) - 3,  # strongly correlated with x
+                "z": float((i * 37) % 101),  # unrelated to x
+                "phone": f"{i % 10}{i % 10}5{i:04d}" if i % 10 == 0 else f"555-{i:04d}",
+                "spend": {13: 500, 57: -300}.get(i, 10 + i % 20),  # two outliers
+                "flat": 7,  # constant column
+                "email": f"user{i % 90}@example.com",  # rows 90-99 repeat 0-9
+                "amount_text": None if i in (5, 50, 95) else str(i * 2),
+                "notes": "checked" if i % 20 == 0 else None,  # 95% empty
+                "joined": date(2024, 1, 1) + timedelta(days=i * 3),
+                "full_name": f"Last{i % 9}, First{i % 7}",
+            }
+        )
+    return pl.DataFrame(rows)
+
+
+@pytest.fixture
+def tools_frame() -> pl.DataFrame:
+    return build_tools_frame()

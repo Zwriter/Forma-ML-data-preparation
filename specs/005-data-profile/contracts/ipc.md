@@ -109,7 +109,7 @@ Results are bounded as listed; nothing is stored between calls.
 | `profile.distribution` | `column` (number or date); `bins` ∈ {10, 20, 30, 50} | `profile_distribution` | `DistributionDetail` |
 | `profile.duplicates` | `columns`: string[] \| null (null = all) | `profile_duplicates` | `DuplicateGroups` |
 | `profile.patterns` | — | `profile_patterns` | `Patterns` |
-| `profile.anomalies` | — | `profile_anomalies` | `OutlierSummary[]` |
+| `profile.anomalies` | — | `profile_anomalies` | `{ columns: OutlierSummary[] }` |
 | `profile.suggestions` | — | `profile_suggestions` | `{ recommendations: Suggestion[], creations: Suggestion[] }` |
 
 Shapes are in data-model.md. `profile.rows` with `kind: "outliers"` uses the bounds from

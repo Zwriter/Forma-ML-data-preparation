@@ -1,5 +1,3 @@
-from datetime import datetime, timezone
-
 import polars as pl
 
 from forma_engine.domain.errors import CancelledError
@@ -7,7 +5,12 @@ from forma_engine.profiling.cancellable import collect
 from forma_engine.profiling.column_stats import NUMERIC, column_stats, examples
 from forma_engine.profiling.distributions import categories, histogram
 from forma_engine.profiling.quality import breakdown, completeness, quality_level
-from forma_engine.profiling.report import ColumnProfile, NumericSummary, Profile
+from forma_engine.profiling.report import (
+    ColumnProfile,
+    NumericSummary,
+    Profile,
+    utc_now,
+)
 from forma_engine.profiling.type_detection import detect_types
 
 CATEGORICAL = {"text", "boolean"}
@@ -92,7 +95,7 @@ def profile(frame, dataset_id, history_id, data_version, token=None) -> dict:
         dataset_id=dataset_id,
         history_id=history_id,
         data_version=data_version,
-        computed_at=datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        computed_at=utc_now(),
         row_count=rows,
         column_count=len(columns),
         missing_cells=cells["missing_cells"],
