@@ -2,10 +2,10 @@
 
 import polars as pl
 
-from forma_engine.domain.errors import RequestError
 from forma_engine.profiling.cancellable import collect
 from forma_engine.profiling.rejects import PHRASES, reason_expression
-from forma_engine.profiling.tools.common import detected_types
+from forma_engine.profiling.tools.common import box_summary, detected_types
+from forma_engine.profiling.tools.outliers import outside
 from forma_engine.profiling.type_detection import invalid_mask
 
 MAX_TEXT = 200
@@ -27,7 +27,7 @@ def _cells(names, types, schema) -> list[pl.Expr]:
     return cells
 
 
-def _row(record: dict, names: list[str]) -> dict:
+def _row(record: dict, names: list[str], rule: dict) -> dict:
     values, marks, reasons = [], {}, {}
     for i, name in enumerate(names):
         value = record[f"v{i}"]
@@ -37,6 +37,8 @@ def _row(record: dict, names: list[str]) -> dict:
         elif record[f"i{i}"]:
             marks[name] = "invalid"
             reasons[name] = record[f"r{i}"]
+    if rule["kind"] == "outliers":
+        marks[rule["column"]] = "outlier"
     return {
         "row": int(record[ROW]),
         "values": values,
@@ -45,20 +47,27 @@ def _row(record: dict, names: list[str]) -> dict:
     }
 
 
+def _matching(rule: dict, types: dict, schema, frame, token) -> pl.Expr:
+    """Rows with a problem cell (in one or any column), or an outlier in the column."""
+    if rule["kind"] == "outliers":
+        name = rule["column"]
+        kind, dtype = types[name], schema[name]
+        return outside(name, kind, dtype, box_summary(frame, name, kind, dtype, token))
+    scope = [rule["column"]] if rule["column"] else schema.names()
+    return pl.any_horizontal(
+        pl.col(name).is_null() | invalid_mask(name, types[name], schema[name])
+        for name in scope
+    )
+
+
 def rows(context, params: dict) -> dict:
     rule, offset, limit = params["filter"], params["offset"], params["limit"]
-    if rule["kind"] != "problems":
-        raise RequestError("Outlier rows are not available yet.")
     types = detected_types(context)
     frame, token = context.frame, context.token
     schema = frame.collect_schema()
     names = schema.names()
-    scope = [rule["column"]] if rule["column"] else names
-    problem = [
-        pl.col(name).is_null() | invalid_mask(name, types[name], schema[name])
-        for name in scope
-    ]
-    matching = frame.with_row_index(ROW, offset=1).filter(pl.any_horizontal(problem))
+    keep = _matching(rule, types, schema, frame, token)
+    matching = frame.with_row_index(ROW, offset=1).filter(keep)
     total = int(collect(matching.select(pl.len()), token).item())
     page = matching.slice(offset, limit).select(
         pl.col(ROW), *_cells(names, types, schema)
@@ -68,5 +77,5 @@ def rows(context, params: dict) -> dict:
         "columns": names,
         "total": total,
         "offset": offset,
-        "rows": [_row(record, names) for record in found.iter_rows(named=True)],
+        "rows": [_row(record, names, rule) for record in found.iter_rows(named=True)],
     }

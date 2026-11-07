@@ -103,6 +103,43 @@ describe('Profile tools in the workspace', () => {
     expect(screen.getByRole('status').textContent).toBe('Rows 1–100 of 3,229');
   });
 
+  it('shows patterns, then anomalies and their outlier rows, from engine events', async () => {
+    render(<WorkflowActions activeTab="Profile" />);
+    act(() => useProfileToolStore.getState().open('patterns'));
+    await waitFor(() => expect(calls('profile.patterns')).toHaveLength(1));
+    await finish('profile.patterns', 'profile_patterns', 'job-1');
+    expect(screen.getByRole('table', { name: 'Correlations' })).toBeTruthy();
+    expect(screen.getByRole('list', { name: 'Strongest pairs' }).textContent).toContain(
+      '0.83 strong',
+    );
+
+    act(() => useProfileToolStore.getState().open('anomalies'));
+    await waitFor(() => expect(calls('profile.anomalies')).toHaveLength(1));
+    await finish('profile.anomalies', 'profile_anomalies', 'job-1');
+    fireEvent.click(screen.getByRole('button', { name: 'Show rows for TotalCharges' }));
+    await waitFor(() => expect(calls('profile.rows')).toHaveLength(1));
+    await finish('profile.rows', 'profile_rows', 'job-1');
+    expect(screen.getByRole('table', { name: 'Outlier rows' })).toBeTruthy();
+  });
+
+  it('shows nothing for a cancelled anomalies job', async () => {
+    render(<WorkflowActions activeTab="Profile" />);
+    act(() => useProfileToolStore.getState().open('anomalies'));
+    await waitFor(() => expect(calls('profile.anomalies')).toHaveLength(1));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    await waitFor(() => expect(calls('job.cancel')).toHaveLength(1));
+    expect(calls('job.cancel')[0].params).toMatchObject({ job_id: 'job-1' });
+    await act(async () => {
+      await eventBus.handlers['engine-event']?.({
+        payload: { job_id: 'job-1', kind: 'profile_anomalies', state: 'cancelled' },
+      });
+    });
+
+    expect(screen.queryByRole('table', { name: 'Outliers by column' })).toBeNull();
+    expect(screen.queryByText('Loading results…')).toBeNull();
+  });
+
   it('shows a failed tool job in the tool, not as a workspace error', async () => {
     render(<WorkflowActions activeTab="Profile" />);
     act(() => useProfileToolStore.getState().open('duplicates'));

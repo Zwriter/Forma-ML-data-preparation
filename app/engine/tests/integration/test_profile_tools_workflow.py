@@ -1,4 +1,4 @@
-"""US7 through IPC: profile a file, use each investigate tool, then act on a finding."""
+"""US7–US8 through IPC: profile a file, use each tool, then act on a finding."""
 
 import time
 
@@ -19,22 +19,33 @@ def finished(jobs, job_id):
 
 
 @pytest.fixture
-def profiled(write_csv, mixed_frame):
+def profile_file(write_csv):
+    """Opens and profiles a frame as a CSV; returns a runner for tool methods."""
     router, jobs = build_router()
-    path = write_csv(mixed_frame, "mixed.csv")
-    dataset_id = router.dispatch("dataset.open", {"path": str(path)})["dataset_id"]
-    ack = router.dispatch("dataset.profile", {"dataset_id": dataset_id})
-    version = finished(jobs, ack["job_id"])["result"]["data_version"]
 
-    def run(method, **params):
+    def open_profiled(frame, name="data.csv"):
+        path = write_csv(frame, name)
+        dataset_id = router.dispatch("dataset.open", {"path": str(path)})["dataset_id"]
+        ack = router.dispatch("dataset.profile", {"dataset_id": dataset_id})
+        version = finished(jobs, ack["job_id"])["result"]["data_version"]
         base = {"dataset_id": dataset_id, "data_version": version}
-        ack = router.dispatch(method, base | params)
-        status = finished(jobs, ack["job_id"])
-        assert status["state"] == "completed", status
-        return status["result"]
 
-    yield router, jobs, dataset_id, run, pl.read_csv(path, try_parse_dates=True)
+        def run(method, **params):
+            status = finished(jobs, router.dispatch(method, base | params)["job_id"])
+            assert status["state"] == "completed", status
+            return status["result"]
+
+        return dataset_id, base, run, pl.read_csv(path, try_parse_dates=True)
+
+    yield router, jobs, open_profiled
     jobs.shutdown()
+
+
+@pytest.fixture
+def profiled(profile_file, mixed_frame):
+    router, jobs, open_profiled = profile_file
+    dataset_id, _, run, frame = open_profiled(mixed_frame, "mixed.csv")
+    return router, jobs, dataset_id, run, frame
 
 
 def test_investigate_tools_match_references(profiled):
@@ -75,3 +86,44 @@ def test_removing_found_duplicates_applies_and_makes_tools_out_of_date(profiled)
 
     with pytest.raises(ProfileStaleError):
         run("profile.duplicates", columns=["name"])
+
+
+def test_patterns_and_anomalies_match_references(profile_file, tools_frame):
+    _, _, open_profiled = profile_file
+    _, _, run, frame = open_profiled(tools_frame, "tools.csv")
+
+    patterns = run("profile.patterns")
+    correlation = patterns["correlation"]
+    x, y = correlation["columns"].index("x"), correlation["columns"].index("y")
+    expected = frame.select(pl.corr("x", "y")).item()
+    assert abs(correlation["matrix"][x][y] - expected) < 1e-9
+    assert {"x", "y"} in [{pair["a"], pair["b"]} for pair in correlation["strongest"]]
+    phone = next(f for f in patterns["formats"] if f["column"] == "phone")
+    assert phone["formats"][0] == {"shape": "999-9999", "count": 90, "share": 0.9}
+
+    anomalies = run("profile.anomalies")["columns"]
+    assert anomalies[0]["column"] == "spend" and anomalies[0]["count"] == 2
+
+    page = run("profile.rows", filter={"kind": "outliers", "column": "spend"})
+    assert page["total"] == anomalies[0]["count"]
+    assert [row["row"] for row in page["rows"]] == [14, 58]
+
+
+def test_cancelling_patterns_on_a_large_file_returns_nothing(profile_file):
+    router, jobs, open_profiled = profile_file
+    rows = 1_000_000
+    frame = pl.DataFrame(
+        {
+            "a": [i * 0.5 for i in range(rows)],
+            "b": [(i * 37) % 1001 for i in range(rows)],
+            "code": [f"C-{i % 977}" for i in range(rows)],
+        }
+    )
+    _, base, _, _ = open_profiled(frame, "large.csv")
+
+    ack = router.dispatch("profile.patterns", base)
+    router.dispatch("job.cancel", {"job_id": ack["job_id"]})
+    status = finished(jobs, ack["job_id"])
+
+    assert status["state"] == "cancelled"
+    assert status.get("result") is None

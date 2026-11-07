@@ -69,6 +69,16 @@ def test_long_values_are_cut_to_200_characters(tool_context):
     assert len(page["rows"][0]["values"][0]) == 200
 
 
-def test_outlier_rows_are_not_built_yet(mixed_frame, tool_context):
+def test_outlier_rows_use_the_anomalies_bounds(tools_frame, tool_context):
+    context = tool_context(tools_frame)
+    page = first_page(context, {"kind": "outliers", "column": "spend"})
+    assert page["total"] == 2
+    assert [row["row"] for row in page["rows"]] == [14, 58]  # stored order
+    spend = page["columns"].index("spend")
+    assert [row["values"][spend] for row in page["rows"]] == ["500", "-300"]
+    assert all(row["marks"]["spend"] == "outlier" for row in page["rows"])
+
+
+def test_outlier_rows_need_a_number_column(tools_frame, tool_context):
     with pytest.raises(RequestError):
-        first_page(tool_context(mixed_frame), {"kind": "outliers", "column": "price"})
+        first_page(tool_context(tools_frame), {"kind": "outliers", "column": "email"})

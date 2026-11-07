@@ -253,3 +253,53 @@
   color: var(--muted);
   font-size: 13px;
 }
+
+/* Patterns: correlation cells shaded by strength; the word carries the meaning. */
+.corr-grid td {
+  text-align: right;
+}
+
+.corr-strong {
+  background: #d9d3f7;
+}
+
+.corr-moderate {
+  background: #e9e5fb;
+}
+
+.corr-weak {
+  background: #f4f2fd;
+}
+
+.corr-neg.corr-strong {
+  background: #f7d3dc;
+}
+
+.corr-neg.corr-moderate {
+  background: #fbe5ea;
+}
+
+.corr-neg.corr-weak {
+  background: #fdf2f4;
+}
+
+.corr-empty {
+  color: var(--muted);
+}
+
+.tool-formats {
+  margin: 2px 0 6px 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.tool-flag {
+  color: var(--alert);
+  font-weight: 600;
+}
+
+/* Anomalies: the summary keeps its height; the outlier rows below take the rest. */
+.tool-table-fit {
+  flex: none;
+  max-height: 45%;
+}

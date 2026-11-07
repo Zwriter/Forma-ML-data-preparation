@@ -690,25 +690,37 @@ Notes (Phase 11, 2026-11-08):
 
 **Independent Test**: As in spec.md US8.
 
-- [ ] T080 [P] [US8] Write failing tests in `tests/unit/profiling/tools/test_correlations.py`,
+- [x] T080 [P] [US8] Write failing tests in `tests/unit/profiling/tools/test_correlations.py`,
   then create `correlations.py`: Pearson on pairwise-valid rows (parsed values for text-stored
   numbers), the 20 most complete number columns plus `left_out`, `null` under 10 shared rows,
   and the five strongest pairs. Compare with a NumPy reference in the test.
-- [ ] T081 [P] [US8] Write failing tests in `tests/unit/profiling/tools/test_formats.py`, then
+- [x] T081 [P] [US8] Write failing tests in `tests/unit/profiling/tools/test_formats.py`, then
   create `formats.py`: value shape (A / 9 / other kept, cut to 30), top five per text column with
   counts and shares, and the `mixed` flag below 90%.
-- [ ] T082 [P] [US8] Write failing tests in `tests/unit/profiling/tools/test_outliers.py`, then
+- [x] T082 [P] [US8] Write failing tests in `tests/unit/profiling/tools/test_outliers.py`, then
   create `outliers.py` (IQR bounds, count, share, five extremes furthest first, `no_spread` when
   IQR is 0, sorted by count) and add `kind: "outliers"` to `rows.py` using the same bounds
   function.
-- [ ] T083 [US8] Write failing tests, then create `PatternsTool.tsx` with
+- [x] T083 [US8] Write failing tests, then create `PatternsTool.tsx` with
   `charts/CorrelationGrid.tsx` (a table whose cells read "0.83 strong", shade plus word, row and
   column headers) and the formats list, and `AnomaliesTool.tsx` (outliers table, "Show rows for
   {column}" loading `RowsGrid` with outlier marks).
-- [ ] T084 [US8] Extend the Phase 11 integration tests with Patterns and Anomalies on
+- [x] T084 [US8] Extend the Phase 11 integration tests with Patterns and Anomalies on
   `tools_frame`, including a 1M-row cancel check that the job is cancelled and nothing is shown.
 
 **Checkpoint**: US8 works on its own.
+
+Notes (Phase 12, 2026-11-08):
+- T080: the reference is `statistics.correlation` (NumPy is not installed and is not worth a
+  dependency for a test). Dates are not number columns here; constant columns give `null`.
+- T081: digits are matched as `\p{Nd}`, letters as `\p{L}`; ties keep first appearance.
+- T082: `outside()` in `outliers.py` is the one fence test, used by `rows.py` for
+  `kind: "outliers"`. `no_spread` columns still report values that differ from the median.
+  Integers show as "500", not "500.0". Share is of valid values.
+- T083: Anomalies shows the outlier rows only once the rows job is ready, because the `rows`
+  result is shared with Data quality. Layout checks for both tools are left to T091.
+- T084: the engine 1M-row check cancels `profile.patterns` right after submitting it; the
+  desktop check cancels Anomalies and checks nothing is shown.
 
 ---
 

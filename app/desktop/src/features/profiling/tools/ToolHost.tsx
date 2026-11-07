@@ -4,10 +4,12 @@ import { useProfileStore } from '../../../stores/profileStore';
 import { useProfileToolStore, type ProfileTool } from '../../../stores/profileToolStore';
 import { TOOL_TITLES, closeProfileTool } from '../profileRibbon';
 import { runProfile } from '../useProfileJob';
+import { AnomaliesTool } from './AnomaliesTool';
 import { ColumnDetailsTool } from './ColumnDetailsTool';
 import { DataQualityTool } from './DataQualityTool';
 import { DistributionTool } from './DistributionTool';
 import { DuplicatesTool } from './DuplicatesTool';
+import { PatternsTool } from './PatternsTool';
 import { ToolView } from './ToolView';
 
 type OpenTool = Exclude<ProfileTool, 'dashboard'>;
@@ -18,6 +20,8 @@ const TOOL_VIEWS: Partial<Record<OpenTool, ComponentType>> = {
   data_quality: DataQualityTool,
   distribution: DistributionTool,
   duplicates: DuplicatesTool,
+  patterns: PatternsTool,
+  anomalies: AnomaliesTool,
 };
 
 /** Shown until a tool's phase is built. */
