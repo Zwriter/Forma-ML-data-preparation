@@ -1,7 +1,7 @@
 import type { ColumnProfile, NumericSummary } from '../../types/profile';
-import { VerticalBars } from './charts/VerticalBars';
+import { HistogramChart } from './charts/HistogramChart';
 import { useChartColumn } from './charts/useChartColumn';
-import { formatRange, formatValue } from './profileFormat';
+import { formatValue } from './profileFormat';
 
 /** Date/time spread is in seconds; days read better. */
 const formatSpread = (std: number, isDate: boolean) =>
@@ -57,17 +57,7 @@ export function DistributionPanel({
       </div>
       {column ? (
         <>
-          <VerticalBars
-            label={`${column.name} distribution`}
-            items={bins.map((bin) => ({
-              label: formatRange(bin.start, bin.end),
-              count: bin.count,
-            }))}
-            total={bins.reduce((sum, bin) => sum + bin.count, 0)}
-            labelEvery={Math.max(1, Math.ceil(bins.length / 5))}
-            axisLabels={bins.map((bin) => formatValue(bin.start))}
-            yLabel="Count"
-          />
+          <HistogramChart label={`${column.name} distribution`} bins={bins} />
           <ul className="profile-stats" aria-label="Summary statistics">
             {stats.map(([name, value]) => (
               <li key={name}>

@@ -2,6 +2,13 @@ import { formatCount, formatCountWithPercent } from '../profileFormat';
 import { niceTicks } from './chartScale';
 import { ChartTooltip, useBarTip, type BarItem } from './ChartTooltip';
 
+/** 0, then powers of ten up to the first one at or above `largest`. */
+function logTicks(largest: number) {
+  const ticks = [0, 1];
+  while (ticks.at(-1)! < largest) ticks.push(ticks.at(-1)! * 10);
+  return ticks;
+}
+
 /** Vertical bars (histograms, categories) with a count axis; bars are focusable list items. */
 export function VerticalBars({
   label,
@@ -11,6 +18,7 @@ export function VerticalBars({
   labelEvery = 1,
   axisLabels,
   yLabel,
+  scale = 'linear',
 }: {
   label: string;
   items: BarItem[];
@@ -22,11 +30,16 @@ export function VerticalBars({
   /** Shorter x labels than the bar labels, such as a bin's start value. */
   axisLabels?: string[];
   yLabel?: string;
+  /** `log` sizes bars by log10(count + 1), for skewed data; labels keep exact counts. */
+  scale?: 'linear' | 'log';
 }) {
   const { tip, bind } = useBarTip(total);
-  const ticks = niceTicks(Math.max(0, ...items.map((item) => item.count)), 4);
-  const top = ticks.at(-1) || 1;
-  const share = (value: number) => `${(value / top) * 100}%`;
+  const largest = Math.max(0, ...items.map((item) => item.count));
+  const ticks = scale === 'log' ? logTicks(largest) : niceTicks(largest, 4);
+  const size =
+    scale === 'log' ? (value: number) => Math.log10(value + 1) : (value: number) => value;
+  const top = size(ticks.at(-1) || 1) || 1;
+  const share = (value: number) => `${(size(value) / top) * 100}%`;
 
   return (
     <div className={labelEvery > 1 ? 'vbars vbars-sparse' : 'vbars'}>

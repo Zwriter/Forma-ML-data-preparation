@@ -110,7 +110,11 @@ function distribution(params: Params) {
   const q = quartiles(column)!;
   return {
     column: column.name,
-    bins: rebin(numeric.histogram, Number(params.bins ?? 30)),
+    // Like the engine: integers with no more values than bars get one bar per value.
+    bins:
+      column.detected_type === 'integer' && numeric.histogram.length <= Number(params.bins ?? 30)
+        ? numeric.histogram
+        : rebin(numeric.histogram, Number(params.bins ?? 30)),
     box: {
       ...q,
       lower_whisker: Number(numeric.min),

@@ -1,10 +1,13 @@
 import { create } from 'zustand';
 import type { HistoryMetadata } from '../types/dataset';
 import type { SaveStatus } from '../types/dataOperations';
+export type NotificationAction = { label: string; run: () => void };
 export type WorkspaceNotification = {
   id: number;
   kind: 'error' | 'info';
   message: string;
+  /** One follow-up button on the notice, such as Undo. */
+  action?: NotificationAction;
 };
 type State = {
   busy: boolean;
@@ -15,7 +18,7 @@ type State = {
   commands: { save?: () => Promise<void>; undo?: () => Promise<void>; redo?: () => Promise<void> };
   setBusy: (busy: boolean) => void;
   setError: (error: string | null) => void;
-  notify: (message: string) => void;
+  notify: (message: string, action?: NotificationAction) => void;
   dismissNotification: () => void;
   setHistory: (history: HistoryMetadata | null) => void;
   setSaveStatus: (status: SaveStatus) => void;
@@ -44,9 +47,9 @@ export const useWorkspaceStore = create<State>((set, get) => ({
         ...(state.notification?.kind === 'error' ? { notification: null } : {}),
       };
     }),
-  notify: (message) =>
+  notify: (message, action) =>
     set((state) => ({
-      notification: { id: (state.notification?.id ?? 0) + 1, kind: 'info', message },
+      notification: { id: (state.notification?.id ?? 0) + 1, kind: 'info', message, action },
     })),
   dismissNotification: () => set({ notification: null }),
   setHistory: (history) => set({ history, saveStatus: history?.is_dirty ? 'dirty' : 'saved' }),

@@ -89,3 +89,24 @@ describe('ProfileHeader report action', () => {
     expect(button.getAttribute('title')).toBe('Refresh the profile first');
   });
 });
+
+describe('ProfileHeader Refresh automatically', () => {
+  afterEach(cleanup);
+
+  it('is a switch that reports changes', () => {
+    const onAutoRefresh = vi.fn();
+    render(<ProfileHeader {...base} autoRefresh={false} onAutoRefresh={onAutoRefresh} />);
+
+    const toggle = screen.getByRole('switch', { name: 'Refresh automatically' });
+    expect((toggle as HTMLInputElement).checked).toBe(false);
+    fireEvent.click(toggle);
+    expect(onAutoRefresh).toHaveBeenCalledWith(true);
+  });
+
+  it('shows when it is on', () => {
+    render(<ProfileHeader {...base} autoRefresh onAutoRefresh={vi.fn()} />);
+    expect(
+      (screen.getByRole('switch', { name: 'Refresh automatically' }) as HTMLInputElement).checked,
+    ).toBe(true);
+  });
+});

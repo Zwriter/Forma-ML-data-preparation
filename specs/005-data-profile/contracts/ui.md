@@ -27,7 +27,8 @@ Each chart region has `tabIndex=-1` so ribbon commands can focus it.
 
 - Sortable headers are `button`s inside `columnheader`s with `aria-sort` = `ascending`,
   `descending`, or `none`. Examples is not sortable.
-- Row menu: `button` "Actions for {column}" opens a `menu` with `menuitem`s "Show distribution"
+- Row menu: `button` "Actions for {column}" opens a `menu` with `menuitem`s "Column details"
+  (opens that tool on the row's column), "Show distribution"
   (only when the column has a summary), "Clean this column", "Export invalid rows" (shown only
   when `invalid_count > 0`, the profile is current, and no export is running), and "Copy column
   name". The Data quality panel's "Export invalid rows" button stays visible and is disabled with
@@ -47,6 +48,7 @@ Each chart region has `tabIndex=-1` so ribbon commands can focus it.
   "Out of date" status and progress/Cancel as the header. Escape (outside open menus) and the
   pressed ribbon command return to the dashboard with focus on that command.
 - Header: next to "Refresh profile", a `switch` "Refresh automatically".
+- Tool inputs sit in a toolbar row under the heading, shown whenever a profile exists.
 - Column details: `combobox` "Column", `button`s "Previous column" / "Next column", stats `list`,
   chart (bars as in the dashboard), `list` "Invalid values".
 - Data quality: `combobox` "Problems in" (All columns or one column), `table` "Problem rows" with

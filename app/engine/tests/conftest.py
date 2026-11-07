@@ -73,3 +73,16 @@ def build_tools_frame() -> pl.DataFrame:
 @pytest.fixture
 def tools_frame() -> pl.DataFrame:
     return build_tools_frame()
+
+
+@pytest.fixture
+def tool_context():
+    """Builds the context a tool receives, with a real profile of the frame."""
+    from forma_engine.profiling.statistics import profile
+    from forma_engine.services.profile_tools_service import ToolContext
+
+    def build(frame: pl.DataFrame, cancelled=lambda: False):
+        lazy = frame.lazy()
+        return ToolContext(lazy, cancelled, profile(lazy, "d", "h", "v"))
+
+    return build

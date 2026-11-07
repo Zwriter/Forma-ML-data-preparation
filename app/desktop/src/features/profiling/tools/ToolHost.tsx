@@ -4,12 +4,21 @@ import { useProfileStore } from '../../../stores/profileStore';
 import { useProfileToolStore, type ProfileTool } from '../../../stores/profileToolStore';
 import { TOOL_TITLES, closeProfileTool } from '../profileRibbon';
 import { runProfile } from '../useProfileJob';
+import { ColumnDetailsTool } from './ColumnDetailsTool';
+import { DataQualityTool } from './DataQualityTool';
+import { DistributionTool } from './DistributionTool';
+import { DuplicatesTool } from './DuplicatesTool';
 import { ToolView } from './ToolView';
 
 type OpenTool = Exclude<ProfileTool, 'dashboard'>;
 
 /** Tool components by tool; each tool phase (US7–US9) adds its entry. */
-const TOOL_VIEWS: Partial<Record<OpenTool, ComponentType>> = {};
+const TOOL_VIEWS: Partial<Record<OpenTool, ComponentType>> = {
+  column_details: ColumnDetailsTool,
+  data_quality: DataQualityTool,
+  distribution: DistributionTool,
+  duplicates: DuplicatesTool,
+};
 
 /** Shown until a tool's phase is built. */
 function Placeholder({ tool }: { tool: OpenTool }) {

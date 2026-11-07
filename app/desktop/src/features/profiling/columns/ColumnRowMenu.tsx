@@ -10,12 +10,14 @@ export function ColumnRowMenu({
   onCopy,
   onShowDistribution,
   onExportInvalid,
+  onShowDetails,
 }: {
   column: ColumnProfile;
   onClean: Handler;
   onCopy: Handler;
   onShowDistribution?: Handler;
   onExportInvalid?: Handler;
+  onShowDetails?: Handler;
 }) {
   const optional = (label: string, handler?: Handler): MenuItem[] =>
     handler ? [{ label, onSelect: () => handler(column) }] : [];
@@ -26,6 +28,7 @@ export function ColumnRowMenu({
       ariaLabel={`Actions for ${column.name}`}
       menuLabel={`${column.name} actions`}
       items={[
+        ...optional('Column details', onShowDetails),
         ...optional('Show distribution', onShowDistribution),
         { label: 'Clean this column', onSelect: () => onClean(column) },
         ...optional('Export invalid rows', onExportInvalid),

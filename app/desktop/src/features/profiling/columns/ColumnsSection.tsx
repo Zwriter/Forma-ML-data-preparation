@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useProfileToolStore } from '../../../stores/profileToolStore';
 import { useDatasetStore } from '../../../stores/datasetStore';
 import { useProfileStore } from '../../../stores/profileStore';
 import { useWorkspaceStore } from '../../../stores/workspaceStore';
@@ -41,6 +42,12 @@ export function ColumnsSection({
     onTabChange?.('Clean');
   }
 
+  function showDetails({ name }: ColumnProfile) {
+    const tools = useProfileToolStore.getState();
+    tools.setInput('column_details', 'column', name);
+    tools.open('column_details');
+  }
+
   function copy({ name }: ColumnProfile) {
     const notify = useWorkspaceStore.getState().notify;
     navigator.clipboard
@@ -74,6 +81,7 @@ export function ColumnsSection({
               column.numeric || column.categories ? onShowDistribution : undefined
             }
             onExportInvalid={column.invalid_count > 0 ? onExportInvalid : undefined}
+            onShowDetails={showDetails}
           />
         )}
       />

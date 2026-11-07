@@ -8,12 +8,14 @@ export type ProfileEntry = {
   progress: number | null;
   message: string | null;
   error: { code: string; message: string } | null;
+  /** The data version the last run was asked for; automatic refresh asks once per version. */
+  requestedVersion?: string | null;
 };
 
 type ProfileState = {
   /** One entry per history, so a profile survives tab switches within a session. */
   entries: Record<string, ProfileEntry>;
-  start: (historyId: string, jobId: string) => void;
+  start: (historyId: string, jobId: string, dataVersion?: string) => void;
   /** Swaps a placeholder id for the engine's job id once the request is acknowledged. */
   rename: (jobId: string, engineJobId: string) => void;
   progress: (jobId: string, progress: number, message: string) => void;
@@ -87,7 +89,7 @@ export const useProfileStore = create<ProfileState>()((set) => {
 
   return {
     entries: {},
-    start: (historyId, jobId) =>
+    start: (historyId, jobId, dataVersion) =>
       set((state) => ({
         entries: {
           ...state.entries,
@@ -98,6 +100,7 @@ export const useProfileStore = create<ProfileState>()((set) => {
             progress: 0,
             message: null,
             error: null,
+            requestedVersion: dataVersion ?? null,
           },
         },
       })),

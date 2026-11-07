@@ -632,40 +632,55 @@ Notes (Phase 10, 2026-11-08):
 
 **Independent Test**: As in spec.md US7.
 
-- [ ] T072 [P] [US7] Write failing tests in `tests/unit/profiling/useProfileJob.test.tsx` and
+- [x] T072 [P] [US7] Write failing tests in `tests/unit/profiling/useProfileJob.test.tsx` and
   `ProfileHeader.test.tsx`, then add the "Refresh automatically" switch to `ProfileHeader.tsx`
   and the auto-run rule to `useProfileJob.ts`: profile when the data version changes while the
   Profile tab is shown, or on return after a change; never twice for one version.
-- [ ] T073 [P] [US7] Write failing tests in `tests/unit/profiling/tools/test_column_detail.py`,
+- [x] T073 [P] [US7] Write failing tests in `tests/unit/profiling/tools/test_column_detail.py`,
   then create `forma_engine/profiling/tools/column_detail.py`: quartiles (dates as ISO text),
   text length, top 50 values, full histogram, and up to 10 distinct invalid values with counts and
   reject-reason wording (reuse `rejects.py`, do not copy it). Register it in the tools registry.
-- [ ] T074 [P] [US7] Write failing tests in `tests/unit/profiling/tools/test_rows.py`, then create
+- [x] T074 [P] [US7] Write failing tests in `tests/unit/profiling/tools/test_rows.py`, then create
   `forma_engine/profiling/tools/rows.py` for `kind: "problems"`: rows with any missing or invalid
   cell (or in one column) using `invalid_mask`, stored order, 1-based row numbers, `total`,
   `offset`/`limit` paging, marks and reasons per cell, values cut to 200 characters. Leave
   `kind: "outliers"` to T082.
-- [ ] T075 [P] [US7] Write failing tests in `tests/unit/profiling/tools/test_distribution_detail.py`,
+- [x] T075 [P] [US7] Write failing tests in `tests/unit/profiling/tools/test_distribution_detail.py`,
   then add `distribution_detail(frame, column, bins)` (reusing `distributions.histogram` with a
   `bins` argument, default 30 so the profile is unchanged) and the box summary.
-- [ ] T076 [P] [US7] Write failing tests in `tests/unit/profiling/tools/test_duplicates.py`, then
+- [x] T076 [P] [US7] Write failing tests in `tests/unit/profiling/tools/test_duplicates.py`, then
   create `forma_engine/profiling/tools/duplicates.py`: duplicate rows, group count, and the 20
   largest groups for a key subset (null = all columns), ties by first appearance.
-- [ ] T077 [US7] Write failing tests in `tests/unit/profiling/tools/*.test.tsx`, then create
+- [x] T077 [US7] Write failing tests in `tests/unit/profiling/tools/*.test.tsx`, then create
   `ColumnDetailsTool.tsx` (picker, Previous/Next, stats, chart, invalid values; opens on the
   Columns table's selected row) and `DataQualityTool.tsx` with a reusable `RowsGrid.tsx`
   (sticky header, row numbers, markers with text and `aria-description`, Previous/Next problem
   across pages, paging status).
-- [ ] T078 [US7] Write failing tests, then create `DistributionTool.tsx` (column, Bars radio
+- [x] T078 [US7] Write failing tests, then create `DistributionTool.tsx` (column, Bars radio
   group, Log scale switch) with `charts/BoxPlot.tsx`, and `DuplicatesTool.tsx` (Key columns menu,
   counts, groups table, "Add step: Remove duplicates" through `useCleaningStore.add` with a
   notice and Undo; the active tab must not change).
-- [ ] T079 [US7] Extend `tests/integration/test_profile_tools_workflow.py` (new) and
+- [x] T079 [US7] Extend `tests/integration/test_profile_tools_workflow.py` (new) and
   `tests/integration/profile-tools.test.tsx` (new): open each US7 tool on `tools_frame` / the
   demo profile, check figures against references, add the duplicates step, then validate and
   apply it through the cleaning service.
 
 **Checkpoint**: US7 works on its own.
+
+Notes (Phase 11, 2026-11-08):
+- T072: each profile run records `requestedVersion`, so "Refresh automatically" asks once per
+  data version, also after a failure or cancel (`useAutoRefresh` in `useProfileJob.ts`).
+- T073–T076: shared helpers in `profiling/tools/common.py` (profile types, `box_summary` with
+  the 1.5 × IQR fences that Anomalies will reuse). `histogram` gained a `bins` argument and
+  `top_values` a `limit`; the dashboard keeps 30 bins and 10 values. `rejects.reason_expression`
+  is public so invalid values use the export's wording.
+- T077–T078: `addCleanSteps` (`tools/cleanSteps.ts`) adds steps and confirms with an Undo action;
+  `notify` now takes an optional action. `HistogramChart` is shared by the dashboard and the
+  tools, and `VerticalBars` gained a log scale. Column details also opens from a new row-menu
+  item "Column details", since the Columns table has no row selection.
+- T079: `tests/integration/test_profile_tools_workflow.py` (engine) and
+  `tests/integration/profile-tools.test.tsx` (desktop, through the engine-event path). The demo
+  answer now keeps one bar per value for small integer columns, like the engine.
 
 ---
 

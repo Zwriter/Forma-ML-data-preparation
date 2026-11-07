@@ -13,6 +13,8 @@ type Props = {
   onRefresh: () => void;
   onCancel: () => void;
   onReport?: () => void;
+  autoRefresh?: boolean;
+  onAutoRefresh?: (on: boolean) => void;
 };
 
 export function ProfileHeader({
@@ -25,6 +27,8 @@ export function ProfileHeader({
   onRefresh,
   onCancel,
   onReport,
+  autoRefresh = false,
+  onAutoRefresh,
 }: Props) {
   return (
     <header className="profile-header" role="region" aria-label="Data profile">
@@ -65,6 +69,15 @@ export function ProfileHeader({
         >
           <Icon name="reload" />
         </button>
+        <label className="profile-switch">
+          <input
+            type="checkbox"
+            role="switch"
+            checked={autoRefresh}
+            onChange={(event) => onAutoRefresh?.(event.target.checked)}
+          />
+          Refresh automatically
+        </label>
         <button
           type="button"
           disabled={reportHint !== null}

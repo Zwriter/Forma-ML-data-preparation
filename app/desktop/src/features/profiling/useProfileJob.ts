@@ -1,6 +1,8 @@
 import { request } from '../../services/ipcClient';
+import { useEffect } from 'react';
 import { useDatasetStore } from '../../stores/datasetStore';
-import { useProfileStore } from '../../stores/profileStore';
+import { isStale, useProfileStore } from '../../stores/profileStore';
+import { useProfileToolStore } from '../../stores/profileToolStore';
 import type { Profile } from '../../types/profile';
 
 type ProfileAck = { job_id: string; state: string; result?: Profile };
@@ -33,7 +35,7 @@ export async function runProfile() {
   const store = useProfileStore.getState();
   if (!dataset || !historyId || store.entries[historyId]?.status === 'running') return;
   const placeholder = `request:${historyId}`;
-  store.start(historyId, placeholder);
+  store.start(historyId, placeholder, history.data_version);
   try {
     const ack = await request<ProfileAck>('dataset.profile', { dataset_id: dataset.dataset_id });
     store.rename(placeholder, ack.job_id);
@@ -57,6 +59,24 @@ export function useProfileJob() {
   }
 
   return { run: runProfile, cancel };
+}
+
+/** With "Refresh automatically" on, re-profiles once per data version whenever the shown
+ *  profile is out of date: on a change while the tab is open, or on return to it. */
+export function useAutoRefresh() {
+  const autoRefresh = useProfileToolStore((state) => state.autoRefresh);
+  const historyId = useDatasetStore((state) => state.history?.history_id);
+  const dataVersion = useDatasetStore((state) => state.history?.data_version);
+  const entry = useProfileStore((state) => (historyId ? state.entries[historyId] : undefined));
+  const due =
+    autoRefresh &&
+    isStale(entry, dataVersion) &&
+    entry?.status !== 'running' &&
+    entry?.requestedVersion !== dataVersion;
+
+  useEffect(() => {
+    if (due) void runProfile();
+  }, [due, dataVersion]);
 }
 
 /** Routes engine job events for profile jobs into the profile store. */

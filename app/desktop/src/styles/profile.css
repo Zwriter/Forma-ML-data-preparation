@@ -231,3 +231,11 @@
   background: #fff4e0;
   font-size: 12px;
 }
+
+.profile-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  white-space: nowrap;
+}

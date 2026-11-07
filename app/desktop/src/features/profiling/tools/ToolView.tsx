@@ -12,6 +12,8 @@ type Props = {
   onCancel: () => void;
   onRetry: () => void;
   onProfile: () => void;
+  /** Inputs shown above the result whenever a profile exists (column pickers, paging). */
+  toolbar?: ReactNode;
   children: ReactNode;
 };
 
@@ -48,7 +50,7 @@ function Body({ entry, hasProfile, onRetry, onProfile, children }: Props) {
 
 /** The frame every Profile ribbon tool is shown in, in place of the dashboard. */
 export function ToolView(props: Props) {
-  const { title, entry, stale, onBack, onCancel } = props;
+  const { title, entry, stale, hasProfile, toolbar, onBack, onCancel } = props;
   const running = entry?.status === 'running';
 
   useEffect(() => {
@@ -84,6 +86,7 @@ export function ToolView(props: Props) {
         )}
       </header>
       <div className="profile-tool-body">
+        {hasProfile && toolbar && <div className="profile-tool-toolbar">{toolbar}</div>}
         <Body {...props} />
       </div>
     </section>

@@ -81,3 +81,10 @@
     animation: none;
   }
 }
+
+.notification-action {
+  flex: none;
+  align-self: center;
+  padding: 4px 10px;
+  font-weight: 600;
+}

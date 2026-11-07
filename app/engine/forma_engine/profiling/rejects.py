@@ -24,7 +24,8 @@ def reason_column_name(names: list[str]) -> str:
     return f"{REASON}_{n}"
 
 
-def _reason(name: str, kind: str) -> pl.Expr:
+def reason_expression(name: str, kind: str) -> pl.Expr:
+    """`{name}: "{value}" is not {type phrase}` for the cell, the export's wording."""
     text = pl.col(name).cast(pl.String)
     shown = pl.when(text.str.len_chars() > MAX_VALUE)
     shown = shown.then(text.str.slice(0, MAX_VALUE) + "…").otherwise(text)
@@ -42,7 +43,7 @@ def rejected_rows(
     names = [name for name in schema.names() if scope in (None, name)]
     masks = {name: invalid_mask(name, types[name], schema[name]) for name in names}
     reasons = [
-        pl.when(masks[name]).then(_reason(name, types[name]))
+        pl.when(masks[name]).then(reason_expression(name, types[name]))
         for name in names
         if types[name] in PHRASES
     ]

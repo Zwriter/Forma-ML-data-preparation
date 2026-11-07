@@ -12,7 +12,7 @@ import { SummaryCards } from './SummaryCards';
 import { ColumnsSection } from './columns/ColumnsSection';
 import { ToolHost } from './tools/ToolHost';
 import { useProfileExports } from './useProfileExports';
-import { useProfileJob } from './useProfileJob';
+import { useAutoRefresh, useProfileJob } from './useProfileJob';
 import '../../styles/profile.css';
 import '../../styles/profile-quality.css';
 import '../../styles/profile-charts.css';
@@ -33,6 +33,8 @@ export function ProfileDashboard({ onTabChange }: { onTabChange?: (tab: string) 
   const datasetId = useDatasetStore((state) => state.dataset?.dataset_id ?? null);
   const historyId = useDatasetStore((state) => state.history?.history_id);
   const tool = useProfileToolStore((state) => state.tool);
+  const autoRefresh = useProfileToolStore((state) => state.autoRefresh);
+  useAutoRefresh();
   const dataVersion = useDatasetStore((state) => state.history?.data_version);
   const entry = useProfileStore((state) => (historyId ? state.entries[historyId] : undefined));
   const { run, cancel } = useProfileJob();
@@ -83,6 +85,8 @@ export function ProfileDashboard({ onTabChange }: { onTabChange?: (tab: string) 
         onReport={() => void generateReport()}
         onRefresh={() => void run()}
         onCancel={() => void cancel()}
+        autoRefresh={autoRefresh}
+        onAutoRefresh={(on) => useProfileToolStore.getState().setAutoRefresh(on)}
       />
       {entry?.status === 'failed' && (
         <p className="profile-error" role="alert">

@@ -70,4 +70,21 @@ describe('VerticalBars', () => {
     expect(labels.filter(Boolean)).toEqual(['0', '10', '20']);
     expect(screen.queryByText('29 (6.7%)')).toBeNull();
   });
+
+  it('draws a log scale with power-of-ten ticks, keeping exact counts in labels', () => {
+    const skewed = [
+      { label: 'small', count: 9 },
+      { label: 'large', count: 999 },
+    ];
+    render(<VerticalBars label="Skewed" items={skewed} total={1008} scale="log" />);
+
+    const ticks = [...document.querySelectorAll('.vbars-axis span')].map((n) => n.textContent);
+    expect(ticks).toEqual(['0', '1', '10', '100', '1,000']);
+    const bars = within(screen.getByRole('list', { name: 'Skewed' })).getAllByRole('listitem');
+    const height = (bar: HTMLElement) =>
+      parseFloat((bar.querySelector('.vbars-bar') as HTMLElement).style.height);
+    expect(height(bars[0])).toBeCloseTo((Math.log10(10) / Math.log10(1001)) * 100, 1);
+    expect(height(bars[1])).toBeCloseTo((Math.log10(1000) / Math.log10(1001)) * 100, 1);
+    expect(bars[1].getAttribute('aria-label')).toBe('large: 999 (99.1%)');
+  });
 });

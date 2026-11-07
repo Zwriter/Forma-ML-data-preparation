@@ -4,7 +4,7 @@ import type { ColumnProfile, DetectedType, QualityLevel } from '../../../types/p
 import { formatCount, formatCountWithPercent, formatPercent } from '../profileFormat';
 import type { ColumnSort, SortKey } from './columnTableModel';
 
-const TYPES: Record<DetectedType, [tag: string, label: string]> = {
+export const TYPES: Record<DetectedType, [tag: string, label: string]> = {
   text: ['Abc', 'Text'],
   integer: ['123', 'Integer'],
   decimal: ['1.2', 'Decimal'],

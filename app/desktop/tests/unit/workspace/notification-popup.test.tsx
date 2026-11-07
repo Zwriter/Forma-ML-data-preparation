@@ -19,6 +19,22 @@ describe('notification popup', () => {
     expect(screen.queryByRole('alert')).toBeNull();
   });
 
+  it('offers an action, such as Undo, that runs and dismisses the notice', () => {
+    let undone = 0;
+    useWorkspaceStore.getState().notify('Added "Remove duplicate rows" to Clean steps.', {
+      label: 'Undo',
+      run: () => {
+        undone += 1;
+      },
+    });
+    render(<NotificationPopup />);
+
+    expect(screen.getByRole('status').textContent).toContain('Added "Remove duplicate rows"');
+    fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
+    expect(undone).toBe(1);
+    expect(screen.queryByRole('status')).toBeNull();
+  });
+
   it('does not show a popup for completed actions', () => {
     render(<NotificationPopup />);
 

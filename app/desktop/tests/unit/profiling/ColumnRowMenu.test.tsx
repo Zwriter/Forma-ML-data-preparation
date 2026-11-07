@@ -39,4 +39,20 @@ describe('ColumnRowMenu', () => {
     expect(screen.getByRole('menuitem', { name: 'Show distribution' })).toBeTruthy();
     expect(screen.queryByRole('menuitem', { name: 'Export invalid rows' })).toBeNull();
   });
+
+  it('opens Column details for the row first when given', () => {
+    const onShowDetails = vi.fn();
+    render(
+      <ColumnRowMenu
+        column={column}
+        onClean={vi.fn()}
+        onCopy={vi.fn()}
+        onShowDetails={onShowDetails}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Actions for SeniorCitizen' }));
+    expect(screen.getAllByRole('menuitem')[0].textContent).toBe('Column details');
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Column details' }));
+    expect(onShowDetails).toHaveBeenCalledWith(column);
+  });
 });
