@@ -132,6 +132,49 @@ failed / stale ready ──Refresh / Try again──▶ running
   Unreadable storage → nothing hidden.
 - Table filter, search, and sort state are not persisted.
 
+## Profile tool results (engine → desktop, US7–US9)
+
+All carry `dataset_id`, `data_version`, and `computed_at` like `Profile`.
+
+**ColumnDetail**: `column: ColumnProfile` (with up to 50 top values instead of 10 and the full
+histogram), `quartiles: {q1, median, q3} | null` (number and date columns; dates as ISO text),
+`text_length: {min, max, mean} | null` (text columns), `invalid_values: [{value, count, reason}]`
+(≤ 10 distinct, most frequent first; `reason` uses the reject reason wording).
+
+**RowsPage**: `columns: string[]`, `total: int` (rows matching the filter), `offset`, `rows:
+[{row: int (1-based stored position), values: (string | null)[], marks: {column: "missing" |
+"invalid" | "outlier"}, reasons: {column: string}}]` (≤ 100). Values are text, cut to 200
+characters.
+
+**DistributionDetail**: `column`, `bins: HistogramBin[]` (exactly the requested count, except one
+bin per value for integers with no more distinct values than bins), `box: {q1, median, q3,
+lower_whisker, upper_whisker, outliers: int}`.
+
+**DuplicateGroups**: `columns: string[]`, `duplicate_rows: int`, `group_count: int`, `groups:
+[{values: (string | null)[], size: int}]` (≤ 20, largest first, ties by first appearance).
+
+**Patterns**: `correlation: {columns: string[] (≤ 20), left_out: int, matrix: (float | null)[][],
+strongest: [{a, b, r}] (≤ 5, by |r|)}`, `formats: [{column, formats: [{shape, count, share}]
+(≤ 5), mixed: bool}]`. `null` means fewer than 10 shared valid rows.
+
+**OutlierSummary**: `column`, `low`, `high` (bounds), `count`, `share`, `extremes: string[]`
+(≤ 5, furthest first), `note: "no_spread" | null`. Sorted by `count` descending.
+
+**Suggestion**: `id` (stable: kind + columns), `kind` (`convert | fill_missing | drop_empty |
+drop_constant | remove_duplicates | date_parts | split`), `title`, `detail` (figures as text),
+`cells_affected: int`, `steps: [{type, parameters}]` (normally one; a fill on a text column
+includes its Convert step first), `examples: [{before, after: string[]}] | null` (≤ 3).
+
+## Profile tool state (desktop, `profileToolStore`)
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `tool` | `dashboard \| column_details \| data_quality \| distribution \| duplicates \| patterns \| anomalies \| recommendations \| creations` | Session only; reset to `dashboard` when another file opens |
+| `inputs` | per tool: `column`, `bins`, `logScale`, `keyColumns`, `filter`, `offset` | Session only |
+| `results` | `{[tool]: {jobId, state, result, error}}` | Keyed by `data_version`; older results show "Out of date" |
+| `dismissed` | `{[data_version]: string[]}` | Suggestion ids hidden until the data changes |
+| `autoRefresh` | bool | Persisted as `forma.profile-auto-refresh`, default false |
+
 ## RejectExportRequest / Result
 
 | Field | Type | Rules |

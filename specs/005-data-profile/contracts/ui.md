@@ -37,6 +37,37 @@ Each chart region has `tabIndex=-1` so ribbon commands can focus it.
 - Quality badge text is "Good", "Needs attention", or "Poor", with an icon beside it.
 - Empty result: text "No columns match" and `button` "Clear filters".
 
+## Tool views (US7–US9)
+
+- The ribbon commands Column details, Data quality, Distribution, Duplicates, Patterns,
+  Anomalies, Recommendations, and Creations are toggle `button`s with `aria-pressed`. Selecting
+  one replaces the dashboard with `region` "{tool name}" inside the Profile content area; the
+  active tab never changes.
+- Every tool view starts with h2 "{tool name}", a `button` "Back to dashboard", and the same
+  "Out of date" status and progress/Cancel as the header. Escape (outside open menus) and the
+  pressed ribbon command return to the dashboard with focus on that command.
+- Header: next to "Refresh profile", a `switch` "Refresh automatically".
+- Column details: `combobox` "Column", `button`s "Previous column" / "Next column", stats `list`,
+  chart (bars as in the dashboard), `list` "Invalid values".
+- Data quality: `combobox` "Problems in" (All columns or one column), `table` "Problem rows" with
+  a "Row" column, `button`s "Previous problem" / "Next problem", "Previous page" / "Next page",
+  `status` "Rows {a}–{b} of {n}". Missing cells read "Missing"; invalid cells have a warning icon
+  and `aria-description` with the reason.
+- Distribution: `combobox` "Column", `radiogroup` "Bars" (10, 20, 30, 50), `switch` "Log scale",
+  `img` "Box plot" with an `aria-label` listing Q1, median, Q3, whiskers, and outlier count.
+- Duplicates: `button` "Key columns" opening a `menu` of `menuitemcheckbox`es, `status` with the
+  duplicate row and group counts, `table` "Duplicate groups", `button` "Add step: Remove
+  duplicates".
+- Patterns: `table` "Correlations" (row and column headers are column names; each cell reads
+  "0.83 strong"), `list` "Strongest pairs", and a `list` "Value formats" with one item per text
+  column ("Mixed formats" text when flagged).
+- Anomalies: `table` "Outliers by column" with a `button` "Show rows for {column}" per row; the
+  rows appear in `table` "Outlier rows" below, with the outlier cell marked by an icon and text.
+- Recommendations and Creations: `list` of `article` cards, each with h3 title, the figures, an
+  example `table` (Creations), `button` "Add step" (reads "Added" and disabled once added), and
+  `button` "Dismiss" (Recommendations). Adding shows a notification "Added "{step}" to Clean
+  steps" with an Undo button.
+
 ## Keyboard
 
 - Tab reaches header actions, summary card targets, chart bars, selectors, table controls, and

@@ -2,6 +2,7 @@
 
 import polars as pl
 
+from forma_engine.profiling.cancellable import collect
 from forma_engine.profiling.type_detection import invalid_mask, parsed
 
 NUMERIC = {"integer", "decimal", "datetime"}
@@ -25,7 +26,9 @@ def _stat_expressions(i: int, name: str, kind: str, dtype) -> list[pl.Expr]:
     ]
 
 
-def column_stats(frame: pl.LazyFrame, types: dict[str, str]) -> tuple[int, dict]:
+def column_stats(
+    frame: pl.LazyFrame, types: dict[str, str], token=None
+) -> tuple[int, dict]:
     """Row count, plus missing/invalid/unique counts and numeric stats per column."""
     schema = frame.collect_schema()
     expressions = [pl.len().alias("rows")]
@@ -38,7 +41,7 @@ def column_stats(frame: pl.LazyFrame, types: dict[str, str]) -> tuple[int, dict]
         ]
         if kind in NUMERIC:
             expressions += _stat_expressions(i, name, kind, dtype)
-    row = frame.select(expressions).collect().row(0, named=True)
+    row = collect(frame.select(expressions), token).row(0, named=True)
     stats = {}
     for i, name in enumerate(schema.names()):
         numeric = None
@@ -54,7 +57,9 @@ def column_stats(frame: pl.LazyFrame, types: dict[str, str]) -> tuple[int, dict]
     return int(row["rows"]), stats
 
 
-def examples(frame: pl.LazyFrame, types: dict[str, str]) -> dict[str, list[str]]:
+def examples(
+    frame: pl.LazyFrame, types: dict[str, str], token=None
+) -> dict[str, list[str]]:
     """Up to 3 distinct present values per column, as text, from the first rows."""
     names = [name for name, kind in types.items() if kind != "other"]
     sample = frame.head(EXAMPLE_ROWS).select(
@@ -66,5 +71,5 @@ def examples(frame: pl.LazyFrame, types: dict[str, str]) -> dict[str, list[str]]
         .implode()
         for name in names
     )
-    row = sample.collect().row(0, named=True) if names else {}
+    row = collect(sample, token).row(0, named=True) if names else {}
     return {name: list(row.get(name) or []) for name in types}

@@ -132,3 +132,45 @@ def test_the_acknowledgement_is_pending_even_for_an_instant_job():
     acks = [manager.submit("export", lambda cancel: {"ok": True}) for _ in range(50)]
     manager.shutdown()
     assert {ack["state"] for ack in acks} == {"pending"}
+
+
+def test_an_abandonable_job_is_cancelled_at_once_and_its_late_result_dropped():
+    publisher = Recorder()
+    manager = JobManager(publisher)
+    started, release, finished = Event(), Event(), Event()
+
+    def work(cancel):
+        started.set()
+        release.wait(5)  # a long query that cannot see the cancel
+        finished.set()
+        return {"late": True}
+
+    ack = manager.submit("profile", work, abandon_on_cancel=True)
+    assert started.wait(1)
+    reply = manager.cancel(ack["job_id"])
+
+    assert reply["state"] == "cancelled"
+    assert manager.status(ack["job_id"])["state"] == "cancelled"
+    release.set()
+    assert finished.wait(1)
+    manager.shutdown()
+    job = manager.status(ack["job_id"])
+    assert job["state"] == "cancelled" and job.get("result") is None
+    terminal = [e for e in publisher.events if e["event"] != "job.progress"]
+    assert [e["event"] for e in terminal] == ["job.cancelled"]
+
+
+def test_jobs_wait_for_their_worker_to_cancel_by_default():
+    manager = JobManager(Publisher())
+    started, release = Event(), Event()
+
+    def work(cancel):
+        started.set()
+        release.wait(5)
+        return {"committed": True}
+
+    ack = manager.submit("export", work)
+    assert started.wait(1)
+    assert manager.cancel(ack["job_id"])["state"] == "running"
+    release.set()
+    manager.shutdown()

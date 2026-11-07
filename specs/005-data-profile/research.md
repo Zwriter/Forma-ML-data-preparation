@@ -151,8 +151,14 @@ Each section resolves one open question from the Technical Context in [plan.md](
   (4) distributions, batched per column with cancel checks between batches. Examples come from the
   first 10,000 rows (`head(10_000)` then the first 3 distinct non-null values). All statistics are
   exact. The spec allows approximations later if needed.
-- **Rationale**: Meets SC-001 (100k × 25 within 5 s) and keeps cancel latency under 2 s (SC-002)
-  thanks to checks between phases and batches. The bounded result keeps the IPC payload small.
+- **Rationale**: Meets SC-001 (100k × 25 within 5 s). The bounded result keeps the IPC payload
+  small.
+- **Revised in Phase 9 (cancel)**: at 10M rows a single pass takes 6–8 s and Polars cannot
+  interrupt it (`collect(background=True).cancel()` neither stops the query nor survives it: the
+  late result panics the worker pool). So the profile job is submitted with
+  `abandon_on_cancel=True`: `JobManager.cancel` marks it cancelled at once and the worker, which
+  checks the token before every query, drops its work at the next query. File-writing jobs keep
+  waiting for their worker, because a write may already be committing.
 - **Alternatives considered**: Approximate unique counts and medians now (not needed at target
   sizes, and results would be harder to test exactly).
 

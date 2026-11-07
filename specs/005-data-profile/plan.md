@@ -136,6 +136,16 @@ app/engine/forma_engine/
 ├── services/invalid_rows_service.py# NEW: guarded reject export through write_safe
 ├── ipc/profile_handlers.py         # dataset.profile, profile.report, profile.export_invalid
 ├── ipc/router.py, bootstrap.py     # register methods and services
+├── profiling/tools/                # NEW (US7–US9): one module per tool, pure functions
+│   ├── column_detail.py            #   quartiles, text length, top 50, invalid values
+│   ├── rows.py                     #   problem / outlier row pages
+│   ├── duplicates.py               #   duplicate groups for key columns
+│   ├── correlations.py, formats.py #   Patterns
+│   ├── outliers.py                 #   IQR bounds, counts, extremes
+│   └── recommendations.py, creations.py   # fixed-rule suggestions
+├── services/profile_tools_service.py      # NEW: stale check + job per tool
+├── ipc/profile_tool_handlers.py    # NEW: profile.column_detail … profile.suggestions
+├── transformations/cleaning_operations.py, cleaning_validators.py  # extract_date_parts
 └── tests/ (unit/profiling, unit/jobs, unit/services, contract, integration, performance)
 
 app/desktop/src/
@@ -160,6 +170,9 @@ app/desktop/src/
 │   └── useProfileExports.ts        # NEW: save dialogs + report/export jobs
 ├── features/workspace/WorkflowActions.tsx, ribbonCommands.ts, useWorkflowJobEvents.ts
 │                                   # mount dashboard, ribbon focus targets, progress events
+├── stores/profileToolStore.ts      # NEW (US7–US9): open tool, inputs, results, dismissals
+├── features/profiling/tools/       # NEW: ToolView shell, useToolJob, one component per tool,
+│                                   #   RowsGrid, BoxPlot, CorrelationGrid, SuggestionCard
 └── styles/profile.css, profile-responsive.css   # NEW
 
 app/desktop/tests/
@@ -167,6 +180,13 @@ app/desktop/tests/
 ├── integration/profile-dashboard.test.tsx
 └── ui/profile-dashboard.pw.ts      # reflow, table scroll, keyboard
 ```
+
+**Tools (added 2026-11-07)**: each ribbon tool is a pure engine function over the lazy frame
+(tested against references computed in the test), a shared `ProfileToolsService` that checks
+`data_version` and submits the job, and a desktop component loaded into the Profile content area
+by `profileToolStore`. Suggestions reuse the cleaning store's `add` so the Clean tab is never
+opened. The one new Clean operation, `extract_date_parts`, follows the existing operation,
+validator, and step-catalog pattern.
 
 **Structure Decision**: Extend the existing engine `profiling` package and the desktop
 `features/profiling` folder. `ProfilePanel.tsx` is removed once `ProfileDashboard` replaces it,

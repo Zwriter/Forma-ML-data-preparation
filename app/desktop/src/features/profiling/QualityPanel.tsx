@@ -77,6 +77,7 @@ export function QualityPanel({
           <li
             key={segment.label}
             tabIndex={0}
+            aria-label={`${segment.label}: ${formatPercentWithCount(segment.count, total)}`}
             onFocus={() => show(segment)}
             onBlur={() => show(null)}
           >

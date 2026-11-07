@@ -483,27 +483,248 @@ compare its figures with the dashboard.
   file exists, contains every column name and the summary figures, and has no external
   references.
 
-**Checkpoint**: All user stories are complete.
+**Checkpoint**: User stories 1–6 are complete.
 
 ---
 
 ## Phase 9: Polish & Cross-Cutting Concerns
 
-- [ ] T059 [P] Add `tests/performance/test_profile_performance.py`: profile a generated
+- [x] T059 [P] Add `tests/performance/test_profile_performance.py`: profile a generated
   100,000 × 25 frame in under 5 s (SC-001), and cancel a 10M-row profile within 2 s of the request
   (SC-002), using the existing performance markers and skip conventions.
-- [ ] T060 [P] Extend `tests/ui/profile-dashboard.pw.ts` with an accessibility pass:
+- [x] T060 [P] Extend `tests/ui/profile-dashboard.pw.ts` with an accessibility pass:
   - every control from contracts/ui.md has an accessible name
   - chart bars are reachable by Tab and show the tooltip on focus
   - quality badges carry text
-- [ ] T061 Check every new or changed production file is ≤ 250 formatted code lines (engine
+- [x] T061 Check every new or changed production file is ≤ 250 formatted code lines (engine
   `profiling/*`, services, handlers; desktop components and stores), and split any by
   responsibility.
-- [ ] T062 Run Ruff check and format on the changed engine files, `npx prettier --check` on the
+- [x] T062 Run Ruff check and format on the changed engine files, `npx prettier --check` on the
   changed desktop files only, and `npx tsc --noEmit`.
-- [ ] T063 Run the full suites from quickstart.md ("Full gates before finishing"): engine pytest,
+- [x] T063 Run the full suites from quickstart.md ("Full gates before finishing"): engine pytest,
   Vitest (check the exit code, not only "all passed"), and `npm run test:ui`. Record results and
   constitution compliance in the change review.
+
+Notes:
+- T059: the cancel test first failed (6.7 s to stop at 10M rows). Each profiling pass takes
+  6–8 s there and Polars cannot interrupt a running query (`collect(background=True).cancel()` did
+  not stop it, and the late result aborted the worker pool). Fix: `JobManager.submit(...,
+  abandon_on_cancel=True)` ends a profile job as soon as cancel is requested; the worker checks the
+  token before every query (`profiling/cancellable.py`) and drops its work. File-writing jobs keep
+  waiting for their worker. Recorded in research.md and contracts/ipc.md. The test uses plain
+  timing like `test_large_dataset_preview.py`; the engine has no performance markers.
+- T060: the name check found the Data quality legend items focusable with no accessible name; they
+  now carry the same `aria-label` as chart bars.
+- T061: `profile.css` was 267 lines. Duplicate `.card.profile-dashboard` and `.profile-panel`
+  blocks were merged and the ring chart and legend moved to `profile-quality.css` (195 + 68).
+
+### Constitution review (T063, 2026-11-06)
+
+Checks run: pytest (440 passed, exit 0), Ruff lint and format check (clean), Vitest (289 passed,
+exit 0), Playwright `npm run test:ui` (29 passed), `tsc --noEmit` (clean), Prettier on changed
+desktop files (clean), code-line count of all 133 production files changed on this branch (largest
+`WorkspaceChrome.tsx` 232; none over 250). Saving a report or invalid rows needs the real engine,
+which demo mode lacks, so those flows are covered by engine integration tests and Vitest with the
+engine simulated, not by a manual run in the desktop app.
+
+- **I/II SOLID, OOP**: profiling is split by responsibility (`type_detection`, `column_stats`,
+  `distributions`, `quality`, `statistics`, `rejects`, `html_report`); `ProfileService` and
+  `InvalidRowsService` own job submission and stale checks; `JobManager` owns cancel semantics.
+  The engine stays independent of React and Tauri, and `profile()` runs without a job.
+- **III TDD**: engine behaviour started from failing tests (unit, contract, integration and
+  performance). Lapses on T010, T027 and the row menu were noted when they happened and covered by
+  breaking the code to confirm the tests catch it.
+- **IV Frontend**: the dashboard reflows 4/2/1 per row by container width and fits common screens
+  with only the table scrolling (Playwright at 1920×1040, 1536×816, 1180×820, 900 and 600 px).
+  Every control has an accessible name, chart bars and legend items are reachable by Tab and show
+  their tooltip on focus, quality and stale states use words as well as colour, and menus return
+  focus on Escape.
+- **Architecture**: the frontend receives only the bounded profile (≤ 30 bins, top 10, ≤ 3
+  examples); invalid-row exports and reports are written by the engine to a temp file and moved
+  into place, never over the source file. New IPC parameters are validated.
+- **V Size and duplication**: all files within 250 lines. The one accepted duplication is chart
+  drawing in React and in the HTML report (plan.md Complexity Tracking); the invalid-value rule has
+  one implementation (`type_detection.invalid_mask`) used by both counts and exports.
+- **VI/VII Formatting**: Ruff and Prettier clean on changed source files. Exception: this
+  tasks.md already failed Prettier (it re-indents every wrapped checkbox line); it was left as is
+  to avoid rewriting the whole task list.
+
+---
+
+## Phase 10: Profile Tool Foundation (blocks US7–US9)
+
+**Purpose**: The shared pieces every ribbon tool uses (FR-029, FR-045, FR-046). Added 2026-11-07,
+replacing the focus-only ribbon behaviour of T050.
+
+### Engine
+
+- [ ] T064 Write failing tests in `tests/unit/profiling/tools/conftest.py` and a fixture test, then
+  add a `tools_frame` fixture to `tests/conftest.py` with known answers for every tool: two
+  correlated number columns plus one unrelated, a phone column with two formats (90% / 10%),
+  planted outliers in one column and a constant one, duplicate groups on a key subset, a
+  text-stored number column with 3% missing, a 95%-empty column, a date column, and a
+  "Last, First" name column.
+- [ ] T065 Write failing tests in `tests/unit/services/test_profile_tools_service.py`, then create
+  `forma_engine/services/profile_tools_service.py`: `ProfileToolsService(datasets, jobs)` with one
+  `submit(tool, dataset_id, data_version, params)` that raises `PROFILE_STALE` for an old
+  version, runs the tool function on the current frame with the job token, and submits with
+  `abandon_on_cancel=True`. The tool functions are injected as a registry (name → callable), so
+  the service needs no change per tool (open/closed).
+- [ ] T066 Write failing tests in `tests/contract/test_profile_tools_contract.py`, then create
+  `forma_engine/ipc/profile_tool_handlers.py` and register the seven `profile.*` tool methods in
+  `router.py` and `bootstrap.py`: shared validation of `dataset_id`, `data_version`, and column
+  names; per-method checks from contracts/ipc.md (`bins` set, `limit` 1–100, `filter.kind`).
+  Methods whose tool module does not exist yet return `INVALID_REQUEST` until its phase adds it.
+
+### Desktop
+
+- [ ] T067 [P] Write failing tests in `tests/unit/stores/profileToolStore.test.ts`, then create
+  `src/stores/profileToolStore.ts` per data-model.md: `open(tool)`, `close()`, `setInput`,
+  result entries keyed by `data_version`, `dismiss(id)`, and `autoRefresh` persisted as
+  `forma.profile-auto-refresh` (reads and writes wrapped in try/catch). Opening another file resets
+  to the dashboard.
+- [ ] T068 [P] Write failing tests in `tests/unit/profiling/useToolJob.test.tsx`, then create
+  `src/features/profiling/tools/useToolJob.ts`: sends the tool request with the current
+  `data_version`, stores the acknowledgement, applies `job.*` events for `profile_*` tool kinds
+  (including events that arrive before the acknowledgement, as in `useProfileJob`), re-requests
+  when inputs or `data_version` change, and cancels. Route the events from
+  `useWorkflowJobEvents.ts`.
+- [ ] T069 Write failing tests in `tests/unit/profiling/ToolView.test.tsx`, then create
+  `src/features/profiling/tools/ToolView.tsx`: region named after the tool, h2, "Back to
+  dashboard", "Out of date" status, progress and Cancel, "Profile the dataset first" empty state,
+  actionable error with Try again, and Escape to close (ignored while a menu is open).
+- [ ] T070 Change the Profile ribbon to toggle tools: in `profileRibbon.ts` and
+  `WorkspaceChrome.tsx`, each tool command calls `open`/`close` and is `aria-pressed` while its
+  tool is open; closing returns focus to the command. `ProfileDashboard.tsx` renders the open
+  tool in place of the dashboard sections. Update `tests/unit/profiling/profileRibbon.test.ts`
+  and replace the Playwright test "Profile ribbon buttons move focus…" with one that opens and
+  closes a tool three ways and checks the active tab never changes.
+- [ ] T071 [P] Add demo answers for the seven tool methods in `src/services/demoProfileTools.ts`
+  (fixture results derived from `demoProfileColumns.json`, under 250 lines) and route them in
+  `demoData.ts`. Extend `tests/unit/services/demoProfile.test.ts` to check each shape.
+
+**Checkpoint**: A placeholder tool can be opened and closed from the ribbon without leaving the
+Profile tab.
+
+---
+
+## Phase 11: User Story 7 - Investigate with the Profile Tools (P3)
+
+**Goal**: Refresh automatically, Column details, Data quality, Distribution, and Duplicates
+(FR-036–FR-040).
+
+**Independent Test**: As in spec.md US7.
+
+- [ ] T072 [P] [US7] Write failing tests in `tests/unit/profiling/useProfileJob.test.tsx` and
+  `ProfileHeader.test.tsx`, then add the "Refresh automatically" switch to `ProfileHeader.tsx`
+  and the auto-run rule to `useProfileJob.ts`: profile when the data version changes while the
+  Profile tab is shown, or on return after a change; never twice for one version.
+- [ ] T073 [P] [US7] Write failing tests in `tests/unit/profiling/tools/test_column_detail.py`,
+  then create `forma_engine/profiling/tools/column_detail.py`: quartiles (dates as ISO text),
+  text length, top 50 values, full histogram, and up to 10 distinct invalid values with counts and
+  reject-reason wording (reuse `rejects.py`, do not copy it). Register it in the tools registry.
+- [ ] T074 [P] [US7] Write failing tests in `tests/unit/profiling/tools/test_rows.py`, then create
+  `forma_engine/profiling/tools/rows.py` for `kind: "problems"`: rows with any missing or invalid
+  cell (or in one column) using `invalid_mask`, stored order, 1-based row numbers, `total`,
+  `offset`/`limit` paging, marks and reasons per cell, values cut to 200 characters. Leave
+  `kind: "outliers"` to T082.
+- [ ] T075 [P] [US7] Write failing tests in `tests/unit/profiling/tools/test_distribution_detail.py`,
+  then add `distribution_detail(frame, column, bins)` (reusing `distributions.histogram` with a
+  `bins` argument, default 30 so the profile is unchanged) and the box summary.
+- [ ] T076 [P] [US7] Write failing tests in `tests/unit/profiling/tools/test_duplicates.py`, then
+  create `forma_engine/profiling/tools/duplicates.py`: duplicate rows, group count, and the 20
+  largest groups for a key subset (null = all columns), ties by first appearance.
+- [ ] T077 [US7] Write failing tests in `tests/unit/profiling/tools/*.test.tsx`, then create
+  `ColumnDetailsTool.tsx` (picker, Previous/Next, stats, chart, invalid values; opens on the
+  Columns table's selected row) and `DataQualityTool.tsx` with a reusable `RowsGrid.tsx`
+  (sticky header, row numbers, markers with text and `aria-description`, Previous/Next problem
+  across pages, paging status).
+- [ ] T078 [US7] Write failing tests, then create `DistributionTool.tsx` (column, Bars radio
+  group, Log scale switch) with `charts/BoxPlot.tsx`, and `DuplicatesTool.tsx` (Key columns menu,
+  counts, groups table, "Add step: Remove duplicates" through `useCleaningStore.add` with a
+  notice and Undo; the active tab must not change).
+- [ ] T079 [US7] Extend `tests/integration/test_profile_tools_workflow.py` (new) and
+  `tests/integration/profile-tools.test.tsx` (new): open each US7 tool on `tools_frame` / the
+  demo profile, check figures against references, add the duplicates step, then validate and
+  apply it through the cleaning service.
+
+**Checkpoint**: US7 works on its own.
+
+---
+
+## Phase 12: User Story 8 - Spot Patterns and Anomalies (P3)
+
+**Goal**: Patterns and Anomalies (FR-041, FR-042).
+
+**Independent Test**: As in spec.md US8.
+
+- [ ] T080 [P] [US8] Write failing tests in `tests/unit/profiling/tools/test_correlations.py`,
+  then create `correlations.py`: Pearson on pairwise-valid rows (parsed values for text-stored
+  numbers), the 20 most complete number columns plus `left_out`, `null` under 10 shared rows,
+  and the five strongest pairs. Compare with a NumPy reference in the test.
+- [ ] T081 [P] [US8] Write failing tests in `tests/unit/profiling/tools/test_formats.py`, then
+  create `formats.py`: value shape (A / 9 / other kept, cut to 30), top five per text column with
+  counts and shares, and the `mixed` flag below 90%.
+- [ ] T082 [P] [US8] Write failing tests in `tests/unit/profiling/tools/test_outliers.py`, then
+  create `outliers.py` (IQR bounds, count, share, five extremes furthest first, `no_spread` when
+  IQR is 0, sorted by count) and add `kind: "outliers"` to `rows.py` using the same bounds
+  function.
+- [ ] T083 [US8] Write failing tests, then create `PatternsTool.tsx` with
+  `charts/CorrelationGrid.tsx` (a table whose cells read "0.83 strong", shade plus word, row and
+  column headers) and the formats list, and `AnomaliesTool.tsx` (outliers table, "Show rows for
+  {column}" loading `RowsGrid` with outlier marks).
+- [ ] T084 [US8] Extend the Phase 11 integration tests with Patterns and Anomalies on
+  `tools_frame`, including a 1M-row cancel check that the job is cancelled and nothing is shown.
+
+**Checkpoint**: US8 works on its own.
+
+---
+
+## Phase 13: User Story 9 - Get Suggested Fixes and New Columns (P3)
+
+**Goal**: Recommendations and Creations (FR-043, FR-044).
+
+**Independent Test**: As in spec.md US9.
+
+- [ ] T085 [P] [US9] Write failing tests in
+  `tests/unit/transformations/test_extract_date_parts.py` and the cleaning validator tests, then
+  add `extract_date_parts` to `cleaning_operations.py` and `cleaning_validators.py` per
+  contracts/ipc.md (Int32 parts after the source column, Monday = 1, names must be new). Add it to
+  the desktop `StepType`, `stepCatalog.ts` (summary and form), and the Clean form tests.
+- [ ] T086 [P] [US9] Write failing tests in `tests/unit/profiling/tools/test_recommendations.py`,
+  then create `recommendations.py`: the five rules from FR-043 working from the latest profile,
+  stable ids, `cells_affected` ordering, and a Convert step before the fill for text-stored
+  numbers. Each produced step must pass `validate_cleaning` in the test.
+- [ ] T087 [P] [US9] Write failing tests in `tests/unit/profiling/tools/test_creations.py`, then
+  create `creations.py`: date parts for date columns (stored or detected) and splits for the
+  separators and the 95% / same-count rule in FR-044, three examples each, free names
+  (`_1`, `_2`, …). Each produced step must pass validation.
+- [ ] T088 [US9] Write failing tests, then create `SuggestionCard.tsx`, `RecommendationsTool.tsx`,
+  and `CreationsTool.tsx`: cards ordered as returned, "Add step" through `useCleaningStore.add`
+  for every step in the suggestion (notice with Undo removing them; "Added" when the steps are
+  already in the Clean steps), "Dismiss" through `profileToolStore.dismiss`, examples table.
+  Confirm in the test that the active tab stays Profile.
+- [ ] T089 [US9] Extend the integration tests: on `tools_frame`, add every suggestion, then
+  validate and apply the Clean steps through `CleaningService` with no errors (SC-012), and check
+  that the profile is out of date afterwards.
+
+**Checkpoint**: All ribbon tools are complete.
+
+---
+
+## Phase 14: Polish for the Profile Tools
+
+- [ ] T090 [P] Add tool timing to `tests/performance/test_profile_performance.py`: each tool on
+  100,000 × 25 within 3 s (SC-010), and cancel of a 10M-row Duplicates job within 2 s.
+- [ ] T091 [P] Extend `tests/ui/profile-dashboard.pw.ts`: every tool fits 1920×1040, 1536×816,
+  and 1180×820 with only its own list or grid scrolling; tools reflow at 900 and 600 px; every
+  control has an accessible name; keyboard paths for Next problem, the Bars radio group, the
+  correlation table, and Add step. Break the CSS once per new layout rule to confirm a failure.
+- [ ] T092 Check every new or changed file is ≤ 250 code lines (split by responsibility if not),
+  run Ruff, Prettier on changed files only, and `tsc --noEmit`.
+- [ ] T093 Run the full gates from quickstart.md (engine pytest, Vitest exit code,
+  `npm run test:ui`) and record results and constitution compliance in a "Constitution review
+  (T093)" section here.
 
 ---
 
@@ -523,6 +744,11 @@ compare its figures with the dashboard.
 - **US6 (Phase 8)**: needs Phase 2 and T013 (latest profile). Featured charts use US3 summaries
   when present.
 - **Polish (Phase 9)**: after the chosen stories.
+- **Tool foundation (Phase 10)**: needs Phases 2–8 (done). Blocks US7–US9.
+- **US7 (Phase 11), US8 (Phase 12), US9 (Phase 13)**: each needs Phase 10 only and can be built
+  in any order. T082's outlier rows reuse `rows.py` from T074; if US8 comes first, T082 creates
+  `rows.py` with the outlier kind only.
+- **Tool polish (Phase 14)**: after the chosen tool stories.
 
 ### Within Each Story
 
@@ -540,6 +766,9 @@ handlers, and handlers before desktop wiring.
 - T037 → T038 → T041
 - T043 → T044 → T045 → T046
 - T052 + T053 → T054 → T055
+- T064 → T065 → T066 → every engine tool task
+- T067 + T068 → T069 → T070 → every desktop tool task
+- T074 → T077 (RowsGrid) → T083 (outlier rows); T085 → T087 → T088 (date-parts step)
 
 ---
 
@@ -560,6 +789,12 @@ T034.
 
 **US6**: T052 (writer) and T053 (SVG helpers) together.
 
+**Tool foundation**: T067 (store), T068 (job hook), and T071 (demo answers) together, alongside
+the engine T065.
+
+**US7**: T072–T076 together (header, four engine modules). **US8**: T080–T082 together.
+**US9**: T085–T087 together.
+
 ---
 
 ## Implementation Strategy
@@ -576,6 +811,7 @@ T034.
 2. US3 (charts), then US4 (invalid export), then US5 (freshness): the P2 scope.
 3. US6 (report): P3.
 4. Polish.
+5. Tool foundation, then US7, US8, and US9 (P3, added 2026-11-07), then tool polish.
 
 Run only the test files for the task in progress during TDD, and run the full suites once at the
 end (T063).
@@ -585,4 +821,5 @@ end (T063).
 - Grep `src` and `tests` for every import before removing `ProfilePanel` (T019).
 - Format only the files you changed (CRLF checkout; see `.claude/CLAUDE.md`).
 - Demo mode does not implement `profile.report` or `profile.export_invalid`; they are covered by
-  Vitest with mocked IPC and by pytest.
+  Vitest with mocked IPC and by pytest. Demo mode does answer the tool methods (T071), but Add
+  step / Apply still needs the engine, so applying suggested steps is covered by pytest.

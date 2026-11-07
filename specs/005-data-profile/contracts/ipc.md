@@ -22,7 +22,9 @@ Unknown keys are ignored.
 
 Job kind: `profile`. The job emits `job.progress` events with `progress` 0–1 and `message` naming
 the phase: "Detecting types", "Computing column statistics", "Finding duplicates", or "Building
-distributions". Cancel takes effect at the next phase or batch boundary.
+distributions". `job.cancel` ends a profile job at once: the reply has `state: "cancelled"` and
+`job.cancelled` is emitted before it. Polars cannot interrupt a running query, so the worker
+stops at its next query and drops its result; nothing is stored.
 
 Result: a `Profile` (see data model). Example (trimmed):
 
@@ -92,8 +94,42 @@ Job kind: `export_invalid`. Result: the `write_safe` result
 `{ event: "job.progress", job_id, kind, state: "running", progress: number, message: string }`.
 Existing jobs that do not report keep emitting only the start and finish events.
 
+## Profile tools (new, US7–US9)
+
+Every tool method takes `dataset_id` and `data_version` (a different version returns
+`PROFILE_STALE`), validates its other parameters (`INVALID_REQUEST` on unknown columns or values
+outside the listed sets), and runs as a background job with `job.progress` and `job.cancel`.
+Tool jobs only read data, so they are submitted with `abandon_on_cancel=True` like `profile`.
+Results are bounded as listed; nothing is stored between calls.
+
+| Method | Extra parameters | Job kind | Result |
+|--------|------------------|----------|--------|
+| `profile.column_detail` | `column` | `profile_column` | `ColumnDetail` |
+| `profile.rows` | `filter`: `{kind: "problems", column: string \| null}` or `{kind: "outliers", column}`; `offset` ≥ 0; `limit` 1–100 | `profile_rows` | `RowsPage` |
+| `profile.distribution` | `column` (number or date); `bins` ∈ {10, 20, 30, 50} | `profile_distribution` | `DistributionDetail` |
+| `profile.duplicates` | `columns`: string[] \| null (null = all) | `profile_duplicates` | `DuplicateGroups` |
+| `profile.patterns` | — | `profile_patterns` | `Patterns` |
+| `profile.anomalies` | — | `profile_anomalies` | `OutlierSummary[]` |
+| `profile.suggestions` | — | `profile_suggestions` | `{ recommendations: Suggestion[], creations: Suggestion[] }` |
+
+Shapes are in data-model.md. `profile.rows` with `kind: "outliers"` uses the bounds from
+`profile.anomalies` (recomputed, not passed in), so both always agree.
+
+## `extract_date_parts` Clean operation (new)
+
+`{ "type": "extract_date_parts", "parameters": { "column": "joined", "parts": ["year", "month",
+"day", "weekday"], "names": { "year": "joined_year", ... } } }`
+
+- `column` must be a date or datetime column, or a text column whose detected type is datetime
+  (parsed with the profile's rule; unparseable values give missing parts).
+- `parts` is a non-empty subset of `year`, `month`, `day`, `weekday` (Monday = 1).
+- `names` gives a new, unused, non-empty name per part; new columns are inserted after `column`
+  as Int32.
+- Accepted by `cleaning.validate`, `cleaning.preview`, and `cleaning.apply` like the other steps.
+
 ## Demo mode
 
 `dataset.profile` returns a completed fixture profile immediately. `dataset.history` includes a
 fixed `data_version`. `profile.report` and `profile.export_invalid` are not available in demo
-mode.
+mode. The tool methods return completed fixture results (built from the demo profile) so the
+Playwright layout tests can open every tool.

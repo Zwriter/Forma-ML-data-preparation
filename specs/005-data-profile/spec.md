@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-05
 
-**Status**: Draft
+**Status**: Draft (extended 2026-11-07: ribbon tools, US7–US9)
 
 **Input**: User description: "Write the spec for the functionality of the profile tab. The image
 attached is how I would like it to look." The mockup shows a "Data profile" page with a header
@@ -23,6 +23,16 @@ quality badge, missing, examples, row menu).
   rules are out of scope for now.
 - Q: What can users do with invalid data? → A: Export it separately, with a new column stating
   the reject reason.
+
+### Session 2026-11-07
+
+- Q: What should the Profile ribbon buttons do? → A: Each one opens a tool (US7–US9) instead of
+  only moving focus: Refresh gains an automatic mode; Column details, Data quality,
+  Distribution, Duplicates, Patterns, Anomalies, Recommendations, and Creations each load a tool
+  view.
+- Q: Where do the tools appear? → A: Inside the Profile tab, in place of the dashboard. They never
+  switch to another tab; steps suggested by a tool are added to the Clean steps in the
+  background and confirmed with a notice.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -224,6 +234,103 @@ outside Forma to verify it contains the same figures as the dashboard.
 
 ---
 
+### User Story 7 - Investigate with the Profile Tools (Priority: P3)
+
+As a data analyst, I want the Profile ribbon to open focused tools for one column, problem cells,
+distributions, and duplicates so that I can dig into what the dashboard shows without leaving
+the Profile tab.
+
+**Why this priority**: The dashboard answers "how healthy is this data"; these tools answer
+"where exactly, and what do I do about it". Useful after US1–US3 are in place.
+
+**Independent Test**: With a profiled dataset, open each tool from the ribbon, check its figures
+against a reference computed in the test, return to the dashboard with "Back to dashboard",
+Escape, and the active ribbon button, and confirm the active tab never changes.
+
+**Acceptance Scenarios**:
+
+1. **Given** the dashboard, **When** the user selects a Profile tool in the ribbon, **Then** the
+   Profile content area shows that tool in place of the dashboard, the ribbon button shows as
+   pressed, and the Profile tab stays active.
+2. **Given** an open tool, **When** the user selects "Back to dashboard", presses Escape, or
+   selects the pressed ribbon button again, **Then** the dashboard returns with focus on the
+   ribbon button that opened the tool.
+3. **Given** "Refresh automatically" is on, **When** the data changes while the Profile tab is
+   shown, or the user returns to the Profile tab after a change, **Then** profiling starts on its
+   own; with it off, the profile is only marked out of date.
+4. **Given** Column details, **When** it opens, **Then** it shows the column selected in the
+   Columns table (or the first column): type, all counts, quartiles and the full histogram or
+   every top value (up to 50), text length (shortest, longest, average), and up to 10 invalid
+   values with their reasons; Previous and Next move to the neighbouring column.
+5. **Given** Data quality, **When** it opens, **Then** it lists only rows with at least one
+   missing or invalid cell, a page of up to 100 rows at a time, with missing cells shown as
+   "Missing" and invalid cells marked with a warning icon and their reason; "Next problem" and
+   "Previous problem" move focus between problem cells, and a column filter limits the list to
+   problems in one column.
+6. **Given** Distribution, **When** the user picks a number or date column, **Then** it shows a
+   large histogram with 10, 20, 30, or 50 bars, an optional log scale, and a box plot with
+   quartiles, whiskers at 1.5 × the interquartile range, and the outlier count.
+7. **Given** Duplicates, **When** the user picks the columns that identify a row (all columns by
+   default), **Then** it shows the number of duplicate rows and groups for that choice and the
+   20 largest groups with their values and sizes; "Add step: Remove duplicates" adds a remove
+   duplicates step for those columns to the Clean steps, keeping the first row of each group.
+
+---
+
+### User Story 8 - Spot Patterns and Anomalies (Priority: P3)
+
+As a data analyst, I want to see which columns move together, which text values have
+inconsistent formats, and which values are unusually far from the rest so that I find problems
+and relationships the summary statistics hide.
+
+**Why this priority**: Diagnostic depth beyond the dashboard; independent of US7 and US9.
+
+**Independent Test**: Profile a fixture with known correlated columns, mixed phone formats, and
+planted outliers; open Patterns and Anomalies and compare every figure with the reference.
+
+**Acceptance Scenarios**:
+
+1. **Given** at least two number columns, **When** Patterns opens, **Then** it shows a
+   correlation grid with the coefficient and a strength word in every cell and the five
+   strongest pairs written out (for example "MonthlyCharges ↔ TotalCharges: strong (0.83)").
+2. **Given** text columns, **When** Patterns opens, **Then** each text column lists its five most
+   common value formats with their share (letters as "A", digits as "9", other characters kept),
+   and columns whose top format covers less than 90% of values are flagged "Mixed formats".
+3. **Given** number or date columns, **When** Anomalies opens, **Then** each column lists the
+   count and share of values outside 1.5 × the interquartile range, the normal range, and the
+   five most extreme values, ordered by outlier count.
+4. **Given** an anomaly entry, **When** the user selects "Show rows", **Then** up to 100 rows with
+   an outlier in that column are shown in the tool, with the outlier cell marked.
+
+---
+
+### User Story 9 - Get Suggested Fixes and New Columns (Priority: P3)
+
+As a data analyst, I want the profile to suggest cleaning steps and useful new columns so that I
+can fix common problems and enrich the data in a few clicks.
+
+**Why this priority**: Turns findings into actions; independent of US7 and US8.
+
+**Independent Test**: Profile a fixture with text-stored numbers, a few missing values, a mostly
+empty column, a constant column, duplicates, a date column, and a delimited name column; check
+each suggestion, add them, and apply the resulting Clean steps without validation errors.
+
+**Acceptance Scenarios**:
+
+1. **Given** a profile, **When** Recommendations opens, **Then** it shows one card per finding
+   with what was found, the figures behind it, and the step it proposes, ordered by the number of
+   cells affected.
+2. **Given** a recommendation, **When** the user selects "Add step", **Then** the step is added to
+   the Clean steps for this file, the Profile tab stays active, a notice confirms it with an Undo
+   action, and the card shows "Added".
+3. **Given** a recommendation, **When** the user selects "Dismiss", **Then** it is hidden until
+   the data changes.
+4. **Given** Creations, **When** it opens, **Then** it suggests date parts (year, month, day,
+   weekday) for date columns and a split for text columns with a consistent separator, each with
+   three example results and "Add step".
+
+---
+
 ### Edge Cases
 
 - **Empty dataset** (columns but zero rows): cards show 0 rows, completeness shows "—" instead
@@ -249,6 +356,21 @@ outside Forma to verify it contains the same figures as the dashboard.
   source file and asks for another name.
 - **Invalid-rows export fails** (no permission, disk full): an actionable message names the
   cause, no partial file is left, and the dataset is unchanged.
+- **Tool opened with no profile**: the tool shows "Profile the dataset first" with a Profile now
+  button; with an out-of-date profile it shows the same "Out of date" notice as the dashboard.
+- **Nothing to show in a tool**: Data quality shows "No missing or invalid cells", Duplicates
+  "No duplicate rows for these columns", Patterns "Needs at least two number columns" for the
+  grid, Anomalies "No outliers found", Recommendations "No suggestions", Creations "No new
+  columns to suggest".
+- **No spread** (interquartile range of 0): Anomalies shows "Too little spread to judge" for that
+  column instead of flagging every other value.
+- **More than 20 number columns**: the correlation grid uses the 20 most complete and says how
+  many were left out.
+- **A recommended step already exists in the Clean steps**: its card shows "Added".
+- **A fill recommendation for a column stored as text**: adding it also adds the column's Convert
+  step first if it is not already in the Clean steps, so the fill can use the median.
+- **Generated column name already exists** (for example `joined_year`): Creations proposes the
+  next free name (`joined_year_1`).
 
 ## Requirements *(mandatory)*
 
@@ -359,9 +481,69 @@ outside Forma to verify it contains the same figures as the dashboard.
 - **FR-027**: Numbers MUST use thousands separators; percentages MUST use one decimal place.
 - **FR-028**: Profiling and report errors MUST be shown as actionable messages with a retry
   action where retrying can help.
-- **FR-029**: The ribbon's Profile commands "Refresh", "Column details", "Data quality",
-  "Distribution", and "Duplicates" MUST respectively refresh the profile, move focus to the
-  Columns table, the Data quality panel, the Distribution panel, and the Duplicate rows card.
+- **FR-029**: Each Profile ribbon command except Refresh MUST load its tool view in the Profile
+  content area in place of the dashboard, without changing the active tab. The tool view MUST
+  have a heading naming the tool and a "Back to dashboard" button; Escape and selecting the
+  pressed ribbon command also return to the dashboard, with focus on that command. The command
+  for the open tool MUST show as pressed (`aria-pressed`). Tool views follow the dashboard's fit
+  rule: only their own lists or grids scroll.
+- **FR-036**: Refresh MUST re-profile on click and offer a "Refresh automatically" switch,
+  remembered across sessions and off by default. When on, profiling starts whenever the data
+  changes while the Profile tab is shown, or when the user returns to it after a change.
+- **FR-037**: Column details MUST show one column: type, missing, invalid, and unique counts,
+  completeness, quartiles (Q1, median, Q3) for number and date columns, the full histogram or up
+  to 50 top values, text length (shortest, longest, average) for text columns, and up to 10
+  distinct invalid values with their reasons. It opens on the column selected in the Columns
+  table, otherwise the first column, and has a column picker plus Previous and Next.
+- **FR-038**: Data quality MUST list the rows that have at least one missing or invalid cell, in
+  stored row order, in pages of up to 100 rows, with the row number and total problem rows.
+  Missing cells show "Missing"; invalid cells show their value, a warning icon, and their reason
+  as the accessible description. "Next problem" and "Previous problem" move focus between
+  problem cells across pages, and a column filter limits the list to problems in one column.
+- **FR-039**: Distribution MUST show one number or date column with a choice of 10, 20, 30, or 50
+  bars, a log-scale switch, and a box plot (Q1, median, Q3, whiskers at the furthest values
+  within 1.5 × IQR, and the count of values beyond them).
+- **FR-040**: Duplicates MUST let the user choose the columns that identify a row (default all)
+  and show the duplicate row count (rows beyond the first in each group), the group count, and
+  the 20 largest groups (key values and size, ties by first appearance). "Add step: Remove
+  duplicates" MUST add a `drop_duplicates` step for the chosen columns, keeping the first row.
+- **FR-041**: Patterns MUST show Pearson correlations between up to 20 number columns (the most
+  complete first), computed on rows where both values are valid, with "—" for pairs sharing
+  fewer than 10 rows; each cell shows the coefficient (two decimals) and a word: "strong"
+  (|r| ≥ 0.7), "moderate" (≥ 0.4), "weak" (≥ 0.2), or "none". It MUST list the five strongest
+  pairs, and for each text column the five most common value formats (letters as "A", digits as
+  "9", other characters kept, cut to 30 characters) with their share, flagging "Mixed formats"
+  when the top format covers less than 90% of present values.
+- **FR-042**: Anomalies MUST, for each number or date column, count the valid values outside
+  [Q1 − 1.5 × IQR, Q3 + 1.5 × IQR], and show that count and share, the range, and the five values
+  furthest outside it; columns are ordered by outlier count. "Show rows" MUST show up to 100 rows
+  with an outlier in that column, in stored row order, with the outlier cell marked.
+- **FR-043**: Recommendations MUST be produced by these fixed rules, each with its figures:
+  - "Convert": a column stored as text whose detected type is integer, decimal, date, or boolean
+    → `convert_type` to that type, noting how many invalid values will become missing.
+  - "Fill missing": 0 < missing ≤ 20% → `fill_null` with the median for number columns, the most
+    frequent value otherwise.
+  - "Drop mostly empty column": missing > 90% → `drop_columns`.
+  - "Drop constant column": one unique value in more than one row → `drop_columns`.
+  - "Remove duplicate rows": duplicate rows > 0 → `drop_duplicates` on all columns.
+
+  Cards are ordered by cells affected. "Add step" adds the step to the Clean steps for the open
+  file without changing tab and confirms with a notice that has Undo. "Dismiss" hides a card
+  until the data version changes.
+- **FR-044**: Creations MUST suggest (a) date parts — year, month, day, and weekday — for every
+  date column, as one new `extract_date_parts` Clean step that adds `{column}_{part}` columns
+  after the source column, and (b) a split for text columns where at least 95% of present values
+  contain the same separator (", ", ",", ";", "|", "/", " - ", or a single space) the same number
+  of times (1 to 3) → `split_column` into that many parts. Each suggestion shows three example
+  results; names that already exist get the next free number. "Add step" behaves as in FR-043.
+- **FR-045**: Tool figures MUST be computed by the engine on the current data version as
+  background jobs with progress and Cancel, using the profile's invalid rule (FR-009). Only
+  bounded results reach the screen: 50 top values, 10 invalid values, 100 rows per page, 20
+  duplicate groups, a 20 × 20 correlation grid, 5 formats per column, and 5 extreme values per
+  column. A tool for an older data version shows "Out of date" and refreshes with the profile.
+- **FR-046**: Every tool control MUST be reachable by keyboard with an accessible name, grid cells
+  MUST expose their values and markers as text, and strength words, markers, and badges MUST NOT
+  rely on colour alone.
 
 ### Key Entities
 
@@ -383,6 +565,19 @@ outside Forma to verify it contains the same figures as the dashboard.
   the number of rows exported.
 - **Reject Reason**: A per-row explanation listing, for each invalid cell in scope, the column,
   the value, and the expected type.
+- **Profile Tool View**: Which tool is loaded in the Profile content area (dashboard by default)
+  and its inputs (column, bars, key columns, page).
+- **Column Detail**: Everything about one column at one data version (FR-037).
+- **Problem Rows Page**: Up to 100 rows with missing or invalid cells, their row numbers, and a
+  marker per problem cell.
+- **Duplicate Groups**: For a set of key columns: duplicate row count, group count, and the
+  largest groups.
+- **Correlation Grid**: Pairwise coefficients between up to 20 number columns, plus the strongest
+  pairs.
+- **Value Format**: A value shape (for example "999-9999") with its share in a text column.
+- **Outlier Summary**: Per column: bounds, outlier count and share, and the most extreme values.
+- **Suggestion**: A Recommendation or Creation: kind, column(s), the figures behind it, the
+  proposed Clean step, and example results.
 
 ## Success Criteria *(mandatory)*
 
@@ -407,13 +602,24 @@ outside Forma to verify it contains the same figures as the dashboard.
   the source file is byte-for-byte unchanged.
 - **SC-009**: A user can go from seeing an invalid count on the dashboard to a saved rejected
   rows file in under 30 seconds and three actions or fewer (excluding choosing the file name).
+- **SC-010**: For a dataset of 100,000 rows and 25 columns, every tool view shows its results
+  within 3 seconds of opening, and the active tab never changes while using the tools.
+- **SC-011**: Every figure in the tool views (quartiles, problem rows, duplicate groups,
+  correlations, formats, outliers) matches an independently computed reference for 100% of the
+  tool test datasets.
+- **SC-012**: For 100% of suggestion test cases, the steps added by Recommendations and Creations
+  pass Clean validation and apply without errors.
 
 ## Assumptions
 
 - The Profile tab replaces the current raw report view; the existing "Profile dataset" button
   becomes the automatic run plus the Refresh action.
-- The ribbon's Insights commands (Creations, Patterns, Anomalies, Recommendations) are out of
-  scope for this feature and stay as they are.
+- The ribbon's Insights commands (Creations, Patterns, Anomalies, Recommendations) are in scope
+  as US8 and US9 (added 2026-11-07). Recommendations use fixed rules, not machine learning.
+- Creations adds one new Clean operation, `extract_date_parts`; every other suggested step uses an
+  existing operation.
+- Dismissed recommendations and the open tool are remembered for the session only; "Refresh
+  automatically" is remembered across sessions.
 - "Invalid" uses type detection only; user-defined validation rules (ranges, patterns, allowed
   values) are out of scope and may come in a later feature.
 - Quality thresholds (99% / 90% completeness, 1% invalid) are fixed defaults in this release

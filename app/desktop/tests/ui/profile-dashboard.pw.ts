@@ -235,3 +235,69 @@ test('Profile ribbon buttons move focus to their part of the dashboard', async (
   await ribbon.getByRole('button', { name: 'Refresh' }).click();
   await expect(page.getByRole('list', { name: 'Dataset summary' })).toBeVisible();
 });
+
+test.describe('accessibility', () => {
+  test('every control in the UI contract has its accessible name', async ({ page }) => {
+    await openProfile(page, 1440);
+    const dashboard = page.locator('.profile-dashboard');
+    const named = [
+      dashboard.getByRole('region', { name: 'Data profile' }),
+      dashboard.getByRole('button', { name: 'Refresh profile' }),
+      dashboard.getByRole('button', { name: 'Generate report' }),
+      dashboard.getByRole('list', { name: 'Dataset summary' }),
+      dashboard.getByRole('region', { name: 'Data quality' }),
+      dashboard.getByRole('button', { name: 'Export invalid rows' }),
+      dashboard.getByRole('region', { name: 'Missing values by column' }),
+      dashboard.getByRole('region', { name: /^Distribution of / }),
+      dashboard.getByRole('combobox', { name: 'Distribution column' }),
+      dashboard.getByRole('region', { name: / \(categorical\)$/ }),
+      dashboard.getByRole('combobox', { name: 'Categorical column' }),
+      dashboard.getByRole('region', { name: 'Columns' }),
+      dashboard.getByRole('searchbox', { name: 'Search columns' }),
+      dashboard.getByRole('combobox', { name: 'Type filter' }),
+      dashboard.getByRole('combobox', { name: 'Quality filter' }),
+      dashboard.getByRole('button', { name: 'Table settings' }),
+      dashboard.getByRole('table', { name: 'Column profiles' }),
+    ];
+    for (const control of named) await expect(control).toBeVisible();
+    for (const label of ['Rows', 'Columns', 'Missing cells', 'Duplicate rows'])
+      await expect(dashboard.getByRole('listitem', { name: new RegExp(`^${label}`) })).toHaveCount(
+        1,
+      );
+
+    // Nothing focusable on the dashboard is left without a name.
+    const focusable = dashboard.locator('button, select, input, [tabindex="0"]');
+    expect(await focusable.count()).toBeGreaterThan(20);
+    for (const control of await focusable.all()) await expect(control).toHaveAccessibleName(/\S/);
+  });
+
+  test('chart bars are reached with Tab and show their tooltip on focus', async ({ page }) => {
+    await openProfile(page, 1440);
+    const missing = page.getByRole('region', { name: 'Missing values by column' });
+    await page.getByRole('button', { name: 'Export invalid rows' }).focus();
+
+    let onBar = false; // the panel's "Show all" button comes first, then the bars
+    for (let step = 0; step < 12 && !onBar; step++) {
+      await page.keyboard.press('Tab');
+      onBar = await missing.evaluate((node) => Boolean(node.querySelector('.hbars-row:focus')));
+    }
+    expect(onBar).toBe(true);
+    const first = page.locator(':focus');
+    const label = await first.getAttribute('aria-label');
+    expect(label).toMatch(/^.+: [\d,]+ \(\d+(\.\d)?%\)$/);
+    await expect(missing.getByRole('tooltip')).toHaveText(label!);
+
+    await page.keyboard.press('Tab');
+    const second = await page.locator(':focus').getAttribute('aria-label');
+    expect(second).not.toBe(label);
+    await expect(missing.getByRole('tooltip')).toHaveText(second!);
+  });
+
+  test('quality badges say their level in words', async ({ page }) => {
+    await openProfile(page, 1440);
+    const badges = page.getByRole('table', { name: 'Column profiles' }).locator('.quality-badge');
+    expect(await badges.count()).toBeGreaterThan(0);
+    for (const text of await badges.allInnerTexts())
+      expect(text.trim()).toMatch(/^(Good|Needs attention|Poor)$/);
+  });
+});

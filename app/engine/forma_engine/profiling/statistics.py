@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 import polars as pl
 
 from forma_engine.domain.errors import CancelledError
+from forma_engine.profiling.cancellable import collect
 from forma_engine.profiling.column_stats import NUMERIC, column_stats, examples
 from forma_engine.profiling.distributions import categories, histogram
 from forma_engine.profiling.quality import breakdown, completeness, quality_level
@@ -29,10 +30,11 @@ def _phase(token, fraction: float, message: str) -> None:
     token.report(fraction, message)
 
 
-def _duplicates(frame: pl.LazyFrame, names: list[str], rows: int) -> int:
+def _duplicates(frame: pl.LazyFrame, names: list[str], rows: int, token) -> int:
     if not names or not rows:
         return 0
-    return rows - int(frame.select(pl.struct(names).n_unique()).collect().item())
+    unique = collect(frame.select(pl.struct(names).n_unique()), token)
+    return rows - int(unique.item())
 
 
 def _summaries(frame, schema, types, stats, token) -> dict:
@@ -45,11 +47,11 @@ def _summaries(frame, schema, types, stats, token) -> dict:
             kind, dtype = types[name], schema[name]
             numeric = categories_ = None
             if kind in NUMERIC and stats[name]["numeric"]:
-                bins = histogram(frame, name, kind, dtype)
+                bins = histogram(frame, name, kind, dtype, token)
                 if bins:
                     numeric = NumericSummary(**stats[name]["numeric"], histogram=bins)
             elif kind in CATEGORICAL:
-                categories_ = categories(frame, name, kind, dtype)
+                categories_ = categories(frame, name, kind, dtype, token)
             result[name] = {"numeric": numeric, "categories": categories_}
     return result
 
@@ -58,12 +60,12 @@ def profile(frame, dataset_id, history_id, data_version, token=None) -> dict:
     token = token or _NoToken()
     schema = frame.collect_schema()
     _phase(token, 0.0, "Detecting types")
-    types = detect_types(frame)
+    types = detect_types(frame, token)
     _phase(token, 0.3, "Computing column statistics")
-    rows, stats = column_stats(frame, types)
-    samples = examples(frame, types)
+    rows, stats = column_stats(frame, types, token)
+    samples = examples(frame, types, token)
     _phase(token, 0.7, "Finding duplicates")
-    duplicates = _duplicates(frame, schema.names(), rows)
+    duplicates = _duplicates(frame, schema.names(), rows, token)
     summaries = _summaries(frame, schema, types, stats, token)
     if token():
         raise CancelledError("Profiling was cancelled.")

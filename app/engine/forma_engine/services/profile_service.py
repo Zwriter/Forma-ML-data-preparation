@@ -24,7 +24,7 @@ class ProfileService:
             self._latest[history_id] = result
             return result
 
-        return self.jobs.submit("profile", work)
+        return self.jobs.submit("profile", work, abandon_on_cancel=True)
 
     def submit_report(
         self, dataset_id, data_version, destination, distribution, category, overwrite

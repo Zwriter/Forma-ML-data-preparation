@@ -12,6 +12,7 @@ import { ColumnsSection } from './columns/ColumnsSection';
 import { useProfileExports } from './useProfileExports';
 import { useProfileJob } from './useProfileJob';
 import '../../styles/profile.css';
+import '../../styles/profile-quality.css';
 import '../../styles/profile-charts.css';
 import '../../styles/profile-table.css';
 import '../../styles/profile-responsive.css';

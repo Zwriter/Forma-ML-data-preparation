@@ -3,6 +3,8 @@ reject export so their counts always agree."""
 
 import polars as pl
 
+from forma_engine.profiling.cancellable import collect
+
 THRESHOLD = 0.95
 CANDIDATES = ("integer", "decimal", "datetime", "boolean")
 # shortcut: ISO-style formats only; add locale formats if users report misses
@@ -55,7 +57,7 @@ def invalid_mask(name: str, detected: str, dtype: pl.DataType) -> pl.Expr:
     return pl.col(name).is_not_null() & _parse_text(name, detected).is_null()
 
 
-def detect_types(frame: pl.LazyFrame) -> dict[str, str]:
+def detect_types(frame: pl.LazyFrame, token=None) -> dict[str, str]:
     schema = frame.collect_schema()
     types = {name: _stored_type(dtype) for name, dtype in schema.items()}
     text = [name for name, kind in types.items() if kind == "text"]
@@ -68,7 +70,7 @@ def detect_types(frame: pl.LazyFrame) -> dict[str, str]:
             _parse_text(name, candidate).count().alias(f"{i}:{candidate}")
             for candidate in CANDIDATES
         ]
-    row = frame.select(counts).collect().row(0, named=True)
+    row = collect(frame.select(counts), token).row(0, named=True)
     for i, name in enumerate(text):
         present = row[f"{i}:present"]
         types[name] = next(
