@@ -1,0 +1,305 @@
+/* A Profile ribbon tool fills the Profile area like the dashboard: header on top, and
+   the body takes the rest so only a tool's own list or grid scrolls. */
+.profile-tool {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.profile-tool-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 10px 0;
+}
+
+.card .profile-tool-header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.profile-tool-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.profile-tool-body {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  padding: 10px;
+}
+
+.profile-tool-toolbar {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.tool-spacer {
+  flex: 1 1 auto;
+}
+
+.tool-radios {
+  display: inline-flex;
+  font-size: 13px;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.tool-radios legend {
+  float: left;
+  margin-right: 4px;
+  padding: 0;
+  color: var(--muted);
+}
+
+.tool-radios label {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* Column details: statistics on the left, the chart on the right. */
+.tool-split {
+  display: grid;
+  flex: 1 1 0;
+  grid-template-columns: minmax(240px, 1fr) minmax(0, 2fr);
+  gap: 12px;
+  min-height: 0;
+}
+
+.tool-panel {
+  min-width: 0;
+  min-height: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  overflow: auto;
+}
+
+.card .tool-panel h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.tool-stats,
+.tool-list {
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+
+.tool-stats li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.tool-list li {
+  padding: 3px 0;
+}
+
+.tool-muted {
+  color: var(--muted);
+}
+
+.tool-distribution {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tool-distribution .vbars {
+  flex: 1 1 0;
+  min-height: 160px;
+}
+
+/* Row grids scroll inside the tool; the header row stays visible. */
+.tool-table-wrap {
+  /* Holds the cells' absolutely placed screen-reader text, or it widens the page. */
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid var(--line);
+}
+
+.tool-table {
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.tool-table th,
+.tool-table td {
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.tool-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  color: var(--muted);
+  background: #f7f8fb;
+  font-weight: 600;
+}
+
+.tool-table tbody th {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.tool-cell-missing {
+  color: var(--muted);
+  background: #f1f2f6;
+  font-style: italic;
+}
+
+.tool-cell-invalid,
+.tool-cell-outlier {
+  color: var(--alert);
+  background: #fdecef;
+}
+
+.tool-cell-invalid svg,
+.tool-cell-outlier svg {
+  width: 13px;
+  height: 13px;
+  margin-right: 4px;
+  vertical-align: -2px;
+}
+
+[data-problem]:focus {
+  outline: 2px solid var(--purple);
+  outline-offset: -2px;
+}
+
+.box-plot {
+  margin: 0;
+}
+
+.box-plot svg {
+  display: block;
+  width: 100%;
+  height: 44px;
+}
+
+.box-plot svg * {
+  vector-effect: non-scaling-stroke;
+}
+
+.box-whisker,
+.box-median {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+
+.box-body {
+  fill: var(--purple-soft);
+  stroke: var(--purple);
+}
+
+.box-plot figcaption {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+@container (max-width: 639px) {
+  .tool-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Same compact controls as the dashboard's Columns toolbar. */
+.profile-tool-header button,
+.profile-tool-toolbar button {
+  padding: 5px 10px;
+  border: 1px solid #cbd1dd;
+  border-radius: 6px;
+  color: var(--ink);
+  background: var(--surface);
+  font-size: 13px;
+}
+
+.profile-tool-header button:disabled,
+.profile-tool-toolbar button:disabled,
+.profile-tool-toolbar button[aria-disabled='true'] {
+  color: var(--muted);
+  background: #f7f8fb;
+}
+
+.workflow-card .profile-tool-toolbar select {
+  padding: 5px 8px;
+  font-size: 13px;
+}
+
+.profile-tool-toolbar [role='status'] {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Patterns: correlation cells shaded by strength; the word carries the meaning. */
+.corr-grid td {
+  text-align: right;
+}
+
+.corr-strong {
+  background: #d9d3f7;
+}
+
+.corr-moderate {
+  background: #e9e5fb;
+}
+
+.corr-weak {
+  background: #f4f2fd;
+}
+
+.corr-neg.corr-strong {
+  background: #f7d3dc;
+}
+
+.corr-neg.corr-moderate {
+  background: #fbe5ea;
+}
+
+.corr-neg.corr-weak {
+  background: #fdf2f4;
+}
+
+.corr-empty {
+  color: var(--muted);
+}
+
+.tool-formats {
+  margin: 2px 0 6px 16px;
+  padding: 0;
+  list-style: none;
+}
+
+.tool-flag {
+  color: var(--alert);
+  font-weight: 600;
+}
+
+/* Anomalies: the summary keeps its height; the outlier rows below take the rest. */
+.tool-table-fit {
+  flex: none;
+  max-height: 45%;
+}

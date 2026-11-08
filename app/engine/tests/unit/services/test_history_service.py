@@ -212,3 +212,38 @@ def test_saving_a_view_entry_marks_it_clean():
     assert history.mark_saved(sorted_entry.dataset_id)["is_dirty"] is False
     assert history.move(sorted_entry.dataset_id, "undo").view == []
     assert history.metadata(source.dataset_id)["is_dirty"] is True
+
+
+def test_each_data_change_gets_a_new_data_version():
+    history = HistoryService()
+    source = make_dataset("source.csv")
+    opened = history.open(source, object())
+    filtered = make_dataset("filtered")
+
+    committed = history.commit(
+        source.dataset_id, filtered, object(), {"type": "filter_rows"}
+    )
+
+    assert opened["data_version"] and committed["data_version"]
+    assert committed["data_version"] != opened["data_version"]
+
+
+def test_a_view_only_commit_keeps_the_data_version_and_undo_restores_it():
+    history = HistoryService()
+    source, frame = make_dataset("source.csv"), object()
+    opened = history.open(source, frame)
+    sorted_entry, cleaned = make_dataset("sorted"), make_dataset("cleaned")
+
+    after_sort = history.commit(
+        source.dataset_id, sorted_entry, frame, {"type": "sort_rows"}, SORT_CITY
+    )
+    after_clean = history.commit(
+        sorted_entry.dataset_id, cleaned, object(), {"type": "fill_null"}
+    )
+    history.move(cleaned.dataset_id, "undo")
+
+    assert after_sort["data_version"] == opened["data_version"]
+    assert after_clean["data_version"] != opened["data_version"]
+    assert (
+        history.metadata(cleaned.dataset_id)["data_version"] == opened["data_version"]
+    )

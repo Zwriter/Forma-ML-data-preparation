@@ -30,6 +30,18 @@ export function NotificationPopup() {
           <p>{notification.message}</p>
         </div>
       </div>
+      {notification.action && (
+        <button
+          className="notification-action"
+          type="button"
+          onClick={() => {
+            notification.action?.run();
+            dismiss();
+          }}
+        >
+          {notification.action.label}
+        </button>
+      )}
       <button
         className="notification-close"
         type="button"

@@ -144,6 +144,14 @@ export default function App() {
     }
   }
 
+  function changeTab(tab: string) {
+    setActiveTab(tab);
+    if (tab !== 'Data') {
+      setShowColumnSelector(false);
+      setOperationDialog(null);
+    }
+  }
+
   return (
     <div className="app-shell" id="workspace-top">
       {isDemoRuntime() && (
@@ -171,13 +179,7 @@ export default function App() {
 
       <WorkspaceChrome
         activeTab={activeTab}
-        onTabChange={(tab) => {
-          setActiveTab(tab);
-          if (tab !== 'Data') {
-            setShowColumnSelector(false);
-            setOperationDialog(null);
-          }
-        }}
+        onTabChange={changeTab}
         onReload={() => page(preview?.offset ?? 0)}
         onSelectColumns={(anchor) => {
           setPopupPosition(popupPositionFromAnchor(anchor));
@@ -228,6 +230,7 @@ export default function App() {
           operationDialog={operationDialog}
           popupPosition={popupPosition}
           onCloseOperationDialog={() => setOperationDialog(null)}
+          onTabChange={changeTab}
         />
       </div>
       {saveDialogMode && (

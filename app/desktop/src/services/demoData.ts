@@ -1,6 +1,8 @@
 import type { Operation } from '../types/cleaning';
 import type { Dataset, HistoryMetadata, Preview } from '../types/dataset';
 import { previewDemoCleaning, validateDemoCleaning } from './demoCleaning';
+import { demoProfile } from './demoProfile';
+import { DEMO_TOOL_METHODS, demoProfileTool } from './demoProfileTools';
 import { demoView, sortDemoRecords } from './demoView';
 import { DEFAULT_PAGE_SIZE } from './pageSize';
 
@@ -149,6 +151,11 @@ export async function requestDemo<T>(method: string, params: Record<string, unkn
   const current = await getTable(params.dataset_id);
   if (method === 'dataset.history') return emptyHistory(current.dataset.dataset_id) as T;
   if (method === 'dataset.preview') return previewPage(current, params) as T;
+  if (method === 'dataset.profile') {
+    const result = { ...demoProfile, dataset_id: current.dataset.dataset_id };
+    return { job_id: 'demo-profile', state: 'completed', result } as T;
+  }
+  if (DEMO_TOOL_METHODS.has(method)) return demoProfileTool(method, params) as T;
   if (method === 'cleaning.validate') {
     return validateDemoCleaning(params.operations as Operation[]) as T;
   }
@@ -191,5 +198,6 @@ function emptyHistory(datasetId: string): HistoryMetadata {
     is_dirty: false,
     can_undo: false,
     can_redo: false,
+    data_version: demoProfile.data_version,
   };
 }

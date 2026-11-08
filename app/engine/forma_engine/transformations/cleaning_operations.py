@@ -4,6 +4,8 @@ import re
 
 import polars as pl
 
+from forma_engine.profiling.type_detection import parsed
+
 TARGET_TYPES = {
     "string": pl.String,
     "integer": pl.Int64,
@@ -143,10 +145,32 @@ def merge_columns(frame: pl.LazyFrame, p: dict) -> pl.LazyFrame:
     return frame.with_columns(merged.alias(into)).select(order)
 
 
+DATE_PARTS = {
+    "year": lambda value: value.dt.year(),
+    "month": lambda value: value.dt.month(),
+    "day": lambda value: value.dt.day(),
+    "weekday": lambda value: value.dt.weekday(),  # Monday = 1
+}
+
+
+def extract_date_parts(frame: pl.LazyFrame, p: dict) -> pl.LazyFrame:
+    """New Int32 columns per date part after the source; text uses the profile's
+    date rule, so unparseable values give missing parts."""
+    column, names = p["column"], p["names"]
+    schema = frame.collect_schema()
+    value = parsed(column, "datetime", schema[column])
+    new = [names[part] for part in p["parts"]]
+    order = _insert_after(schema.names(), column, new, set(new))
+    return frame.with_columns(
+        DATE_PARTS[part](value).cast(pl.Int32).alias(names[part]) for part in p["parts"]
+    ).select(order)
+
+
 OPERATIONS = {
     "convert_type": convert_type,
     "fill_null": fill_null,
     "replace_values": replace_values,
     "split_column": split_column,
     "merge_columns": merge_columns,
+    "extract_date_parts": extract_date_parts,
 }

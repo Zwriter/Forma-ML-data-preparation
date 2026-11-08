@@ -4,18 +4,43 @@ from forma_engine.domain.entities import Job, JobState
 from forma_engine.domain.errors import JobNotFoundError, CancelledError, FormaError
 
 
+class CancelToken:
+    """Passed to workers: call it to check for cancel, `report` to show progress."""
+
+    def __init__(self, manager, job):
+        self.manager, self.job = manager, job
+
+    def __call__(self) -> bool:
+        return self.job.cancel_requested
+
+    def report(self, fraction: float, message: str) -> None:
+        with self.manager.lock:
+            if self.job.state == JobState.CANCELLED:
+                return  # abandoned: the cancel was already announced
+            self.job.progress = min(1.0, max(0.0, float(fraction)))
+            self.job.message = message
+            self.manager._emit(self.job)
+
+
 class JobManager:
     def __init__(self, publisher):
         self.publisher = publisher
         self.jobs = {}
         self.lock = RLock()
         self.pool = ThreadPoolExecutor(max_workers=2, thread_name_prefix="forma")
+        # Jobs with nothing to undo: cancel ends them at once, the worker finishes
+        # its current step in the background and its result is dropped.
+        self.abandonable = set()
 
-    def submit(self, kind, work):
+    def submit(self, kind, work, abandon_on_cancel=False):
         job = Job(kind)
         self.jobs[job.job_id] = job
+        if abandon_on_cancel:
+            self.abandonable.add(job.job_id)
+        # Build the acknowledgement first: a fast job may finish before submit returns.
+        ack = {"job_id": job.job_id, "state": job.state.value}
         self.pool.submit(self._run, job, work)
-        return {"job_id": job.job_id, "state": job.state.value}
+        return ack
 
     def _emit(self, job):
         name = "job." + (
@@ -28,14 +53,18 @@ class JobManager:
     def _run(self, job, work):
         try:
             with self.lock:
+                if job.state == JobState.CANCELLED:
+                    return
                 if job.cancel_requested:
                     job.transition(JobState.CANCELLED, "Cancelled")
                     self._emit(job)
                     return
                 job.transition(JobState.RUNNING, "Working")
             self._emit(job)
-            result = work(lambda: job.cancel_requested)
+            result = work(CancelToken(self, job))
             with self.lock:
+                if job.state == JobState.CANCELLED:
+                    return
                 committed = isinstance(result, dict) and result.pop("_committed", False)
                 if job.cancel_requested and not committed:
                     job.transition(JobState.CANCELLED, "Cancelled")
@@ -45,9 +74,13 @@ class JobManager:
                     job.transition(JobState.COMPLETED, "Completed")
         except CancelledError:
             with self.lock:
+                if job.state == JobState.CANCELLED:
+                    return
                 job.transition(JobState.CANCELLED, "Cancelled")
         except Exception as exc:
             with self.lock:
+                if job.state == JobState.CANCELLED:
+                    return
                 job.error = (
                     {"code": exc.code, "message": exc.message, "details": exc.details}
                     if isinstance(exc, FormaError)
@@ -70,6 +103,9 @@ class JobManager:
         with self.lock:
             if job.state in {JobState.PENDING, JobState.RUNNING}:
                 job.cancel_requested = True
+                if job_id in self.abandonable:
+                    job.transition(JobState.CANCELLED, "Cancelled")
+                    self._emit(job)
         return {
             "job_id": job_id,
             "state": job.state.value,

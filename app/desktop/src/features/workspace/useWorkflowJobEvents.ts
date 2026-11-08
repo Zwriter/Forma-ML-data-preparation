@@ -8,6 +8,9 @@ import { useWorkspaceStore } from '../../stores/workspaceStore';
 import { useCleaningJob } from '../cleaning/useCleaningJob';
 import { draftKey, useCleaningStore } from '../../stores/cleaningStore';
 import { useViewMaskStore } from '../../stores/viewMaskStore';
+import { applyProfileEvent } from '../profiling/useProfileJob';
+import { applyExportEvent } from '../profiling/useProfileExports';
+import { applyToolEvent, TOOL_JOB_KINDS } from '../profiling/tools/useToolJob';
 import type { SortKey } from '../../types/dataOperations';
 
 type EventJob = Job & {
@@ -24,15 +27,14 @@ const actionNames: Record<string, string> = {
   save: 'Save',
   clean: 'Cleaning',
   profile: 'Profile',
+  export_invalid: 'Invalid-rows export',
+  profile_report: 'Profile report',
   export: 'Export',
   pivot: 'Pivot',
   unpivot: 'Unpivot',
 };
 
-export function useWorkflowJobEvents(
-  onSaveComplete?: (success: boolean) => void,
-  onProfileResult?: (result: Record<string, unknown>) => void,
-) {
+export function useWorkflowJobEvents(onSaveComplete?: (success: boolean) => void) {
   const setHistory = useWorkspaceStore((state) => state.setHistory);
   const setDatasetHistory = useDatasetStore((state) => state.setHistory);
   const setSaveStatus = useWorkspaceStore((state) => state.setSaveStatus);
@@ -67,7 +69,9 @@ export function useWorkflowJobEvents(
         setHistory(job.result.history);
         if (job.kind === 'save') setSaveStatus(job.result.history.is_dirty ? 'dirty' : 'saved');
       }
-      if (job.state === 'failed') {
+      // Profile and tool failures are shown in the Profile tab itself, with Try again.
+      const shownInProfile = job.kind === 'profile' || TOOL_JOB_KINDS.has(job.kind);
+      if (job.state === 'failed' && !shownInProfile) {
         if (job.kind === 'save') setSaveStatus('failed');
         const detail = job.error?.message ?? 'The last valid state remains active.';
         setWorkspaceError(`${actionNames[job.kind] ?? job.kind} failed: ${detail}`);
@@ -78,7 +82,9 @@ export function useWorkflowJobEvents(
         if (job.kind === 'save')
           onSaveComplete?.(job.state === 'completed' && job.result?.history?.is_dirty === false);
       }
-      if (job.kind === 'profile' && job.result) onProfileResult?.(job.result);
+      applyProfileEvent(job);
+      applyExportEvent(job);
+      applyToolEvent(job);
     })
       .then((unlisten) => {
         stop = unlisten;
@@ -89,7 +95,6 @@ export function useWorkflowJobEvents(
     return () => stop?.();
   }, [
     acceptResult,
-    onProfileResult,
     onSaveComplete,
     setDatasetHistory,
     setHistory,

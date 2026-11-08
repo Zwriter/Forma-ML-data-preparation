@@ -1,0 +1,241 @@
+/* The dashboard fills the workspace instead of scrolling it: only the columns table scrolls.
+   Windows too short to hold it all fall back to scrolling the dashboard. */
+.card.profile-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  min-height: 0;
+  /* Flush with the ribbon and window edges, like the worksheet. */
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow-y: auto;
+  --good: #1e8e4f;
+  --warning: #b86e00;
+  --alert: #c4314b;
+  --track: #e6e8ef;
+}
+
+.profile-dashboard > * {
+  flex: none;
+}
+
+.profile-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 10px 0;
+}
+
+.card .profile-header h2 {
+  margin: 0;
+}
+
+.profile-subtitle {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.profile-progress {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+}
+
+.profile-progress progress {
+  width: 160px;
+  accent-color: var(--purple);
+}
+
+.profile-error {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+}
+
+.profile-empty {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.profile-summary,
+.profile-panels {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.profile-panel {
+  position: relative;
+  height: 212px;
+}
+
+/* Summary cards and chart panels each form one strip: no gaps, split by lines that stop
+   short of the strip's top and bottom. */
+.profile-dashboard .profile-summary,
+.profile-dashboard .profile-panels {
+  gap: 0;
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.profile-summary .summary-card,
+.profile-panels .profile-panel {
+  position: relative;
+  border: 0;
+  --inset: 14px;
+}
+
+.profile-summary .summary-card {
+  --inset: 10px;
+}
+
+.profile-summary .summary-card + .summary-card::before,
+.profile-panels .profile-panel + .profile-panel::before {
+  position: absolute;
+  top: var(--inset);
+  bottom: var(--inset);
+  left: 0;
+  border-left: 1px solid var(--line);
+  content: '';
+}
+
+/* Each strip hangs off the one above it and shares its line. */
+.profile-dashboard .profile-summary + .profile-panels,
+.profile-dashboard .profile-panels + .profile-columns {
+  margin-top: -12px;
+  border-top: 0;
+}
+
+.profile-panel,
+.profile-columns {
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: var(--surface);
+}
+
+.profile-panel:focus-visible,
+.profile-columns:focus-visible {
+  outline: 2px solid var(--purple);
+  outline-offset: 2px;
+}
+
+.profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-updated {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.profile-icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 6px;
+}
+
+.profile-summary {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.summary-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  background: var(--surface);
+}
+
+.summary-card-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 9px;
+  border-radius: 8px;
+  color: var(--purple);
+  background: var(--purple-soft);
+}
+
+.summary-card-warning .summary-card-icon {
+  color: var(--warning);
+  background: #fff4e0;
+}
+
+.summary-card-alert .summary-card-icon {
+  color: var(--alert);
+  background: #fde8ec;
+}
+
+.summary-card-alert .summary-card-value {
+  color: var(--alert);
+}
+
+.summary-card-value {
+  display: block;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.summary-card-label {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.profile-panel h3 {
+  margin: 0 0 10px;
+  font-size: 14px;
+}
+
+.chart-tooltip {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: #ffffff;
+  background: var(--ink);
+  font-size: 12px;
+  pointer-events: none;
+}
+
+/* Text plus a warning colour, so the notice does not rely on colour alone. */
+.profile-stale {
+  padding: 2px 8px;
+  color: var(--warning);
+  background: #fff4e0;
+  font-size: 12px;
+}
+
+.profile-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  white-space: nowrap;
+}

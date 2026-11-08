@@ -5,6 +5,8 @@ import { CleanTab } from '../../src/features/cleaning/CleanTab';
 import { useDatasetStore } from '../../src/stores/datasetStore';
 import { useCleaningStore } from '../../src/stores/cleaningStore';
 import { useWorkspaceStore } from '../../src/stores/workspaceStore';
+import { useProfileStore } from '../../src/stores/profileStore';
+import { demoProfile } from '../../src/services/demoProfile';
 
 const eventBus = vi.hoisted(() => ({
   handlers: {} as Record<string, (event: { payload: any }) => unknown>,
@@ -39,6 +41,17 @@ function ipcResult(result: unknown) {
 function emitJob(job: Record<string, unknown>) {
   return eventBus.handlers['engine-event']?.({ payload: job });
 }
+
+const profileHistory = {
+  history_id: 'history-1',
+  dataset_id: 'dataset-1',
+  current_index: 0,
+  saved_index: 0,
+  is_dirty: false,
+  can_undo: false,
+  can_redo: false,
+  data_version: 'demo-v1',
+};
 
 const sourcePreview = {
   dataset_id: 'dataset-1',
@@ -129,6 +142,7 @@ describe('profile and cleaning workflow', () => {
       applyJobId: null,
       finishedJobId: null,
     });
+    useProfileStore.setState({ entries: {} });
     useWorkspaceStore.setState({
       busy: false,
       error: null,
@@ -138,8 +152,9 @@ describe('profile and cleaning workflow', () => {
     });
   });
 
-  it('applies profile results without displaying background job status', async () => {
+  it('shows profile progress in the dashboard, not as a background job', async () => {
     useDatasetStore.getState().setDataset(dataset);
+    useDatasetStore.setState({ history: profileHistory });
     let finishProfile: ((value: unknown) => void) | undefined;
     invoke.mockImplementationOnce(
       () =>
@@ -149,8 +164,9 @@ describe('profile and cleaning workflow', () => {
     );
     render(<WorkflowActions activeTab="Profile" />);
 
-    fireEvent.click(screen.getByText('Profile dataset'));
-    expect((screen.getByText('Profile dataset') as HTMLButtonElement).disabled).toBe(true);
+    // Opening the tab profiles automatically.
+    expect(await screen.findByRole('progressbar', { name: 'Profiling progress' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Profile dataset' })).toBeNull();
     finishProfile?.(
       ipcResult({
         job_id: 'profile-1',
@@ -167,8 +183,9 @@ describe('profile and cleaning workflow', () => {
       kind: 'profile',
       state: 'running',
       progress: 0.4,
-      message: 'Profiling rows',
+      message: 'Finding duplicates',
     });
+    expect(await screen.findByText('Finding duplicates')).toBeTruthy();
     expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
 
     emitJob({
@@ -176,10 +193,11 @@ describe('profile and cleaning workflow', () => {
       kind: 'profile',
       state: 'completed',
       progress: 1,
-      message: 'Profile complete',
-      result: { row_count: 2, column_count: 1, missing_counts: { x: 0 } },
+      message: 'Completed',
+      result: { ...demoProfile, history_id: 'history-1' },
     });
-    await waitFor(() => expect(screen.getByText(/"row_count": 2/)).toBeTruthy());
+    await waitFor(() => expect(screen.getByRole('region', { name: 'Data quality' })).toBeTruthy());
+    expect(screen.queryByRole('progressbar')).toBeNull();
     expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
   });
 

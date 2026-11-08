@@ -1,0 +1,331 @@
+import { expect, test, type Locator, type Page } from '@playwright/test';
+
+async function openProfile(page: Page, width: number) {
+  await page.setViewportSize({ width, height: 900 });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Back to workspace' }).click();
+  await page.getByRole('navigation').getByText('Profile', { exact: true }).click();
+  // Demo mode answers the automatic profile run with the fixture profile at once.
+  await expect(page.getByRole('list', { name: 'Dataset summary' })).toBeVisible();
+}
+
+/** How many items share the first item's row. */
+async function perRow(items: Locator) {
+  const tops = await items.evaluateAll((nodes) =>
+    nodes.map((node) => Math.round(node.getBoundingClientRect().top)),
+  );
+  return tops.filter((top) => top === tops[0]).length;
+}
+
+for (const [width, expected] of [
+  [1180, 4],
+  [900, 2],
+  [600, 1],
+] as const) {
+  test(`summary cards and panels show ${expected} per row at ${width}px`, async ({ page }) => {
+    await openProfile(page, width);
+
+    await expect.poll(() => perRow(page.locator('.summary-card'))).toBe(expected);
+    await expect.poll(() => perRow(page.locator('.profile-panel'))).toBe(expected);
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(0);
+  });
+}
+
+test('the columns table scrolls inside its region with a sticky header', async ({ page }) => {
+  await openProfile(page, 600);
+  const wrap = page.locator('.profile-table-wrap');
+  const header = page.getByRole('columnheader', { name: 'Column name' });
+
+  // Scroll like a user: wheel over the table, not scrollIntoView.
+  await wrap.hover();
+  await page.mouse.wheel(0, 400);
+  await expect.poll(() => wrap.evaluate((node) => node.scrollTop)).toBeGreaterThan(0);
+  const [wrapBox, headerBox] = [await wrap.boundingBox(), await header.boundingBox()];
+  expect(Math.abs(headerBox!.y - wrapBox!.y)).toBeLessThanOrEqual(2);
+
+  // Wide tables scroll sideways inside the region, never the page.
+  const sideways = await wrap.evaluate((node) => node.scrollWidth > node.clientWidth);
+  expect(sideways).toBe(true);
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  expect(overflow).toBeLessThanOrEqual(0);
+});
+
+test('table controls work from the keyboard and Escape returns focus', async ({ page }) => {
+  await openProfile(page, 1440);
+  await page.getByRole('searchbox', { name: 'Search columns' }).focus();
+
+  for (const name of ['Type filter', 'Quality filter']) {
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('combobox', { name })).toBeFocused();
+  }
+  await page.keyboard.press('Tab');
+  const settings = page.getByRole('button', { name: 'Table settings' });
+  await expect(settings).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('menuitemcheckbox', { name: 'Type' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('menu')).toHaveCount(0);
+  await expect(settings).toBeFocused();
+
+  const actions = page.getByRole('button', { name: 'Actions for customerID' });
+  await actions.focus();
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('End');
+  await expect(page.getByRole('menuitem', { name: 'Copy column name' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(actions).toBeFocused();
+});
+
+for (const [width, height] of [
+  [1920, 1040],
+  [1536, 816],
+  [1180, 820],
+] as const) {
+  test(`the dashboard fits ${width}x${height} with only the table scrolling`, async ({ page }) => {
+    await page.setViewportSize({ width, height });
+    await page.goto('/');
+    await page.getByRole('button', { name: 'Back to workspace' }).click();
+    await page.getByRole('navigation').getByText('Profile', { exact: true }).click();
+    await expect(page.getByRole('table', { name: 'Column profiles' })).toBeVisible();
+
+    await expect(page.locator('.dataset-heading')).toHaveCount(0);
+    // Every scrollable box except the columns table must have nothing left to scroll.
+    const scrollers = await page.evaluate(() =>
+      [...document.querySelectorAll('*')]
+        .filter((node) => {
+          const style = getComputedStyle(node);
+          return (
+            /auto|scroll/.test(style.overflowY) &&
+            node.scrollHeight > node.clientHeight + 1 &&
+            !node.classList.contains('profile-table-wrap')
+          );
+        })
+        .map((node) => node.className || node.tagName),
+    );
+    expect(scrollers).toEqual([]);
+    const pageOverflow = await page.evaluate(
+      () => document.documentElement.scrollHeight - document.documentElement.clientHeight,
+    );
+    expect(pageOverflow).toBeLessThanOrEqual(0);
+    // The table keeps room for several rows and ends inside the window.
+    const table = (await page.locator('.profile-table-wrap').boundingBox())!;
+    expect(table.height).toBeGreaterThanOrEqual(140);
+    expect(table.y + table.height).toBeLessThanOrEqual(height);
+    // ...and uses the spare height instead of leaving a gap under the dashboard.
+    expect(height - (table.y + table.height)).toBeLessThan(60);
+  });
+}
+
+test('no tab shows a dataset heading or breadcrumb', async ({ page }) => {
+  await page.setViewportSize({ width: 1180, height: 820 });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Back to workspace' }).click();
+  for (const tab of ['Data', 'Clean', 'Profile', 'Pipelines', 'Export']) {
+    await page.getByRole('navigation').getByText(tab, { exact: true }).click();
+    await expect(page.getByText(/Datasets\s*›/)).toHaveCount(0);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveCount(0);
+  }
+});
+
+test('the dashboard sits flush with the ribbon and window edges', async ({ page }) => {
+  await openProfile(page, 1180);
+  const [body, dashboard] = await Promise.all([
+    page.locator('.workspace-body').boundingBox(),
+    page.locator('.profile-dashboard').boundingBox(),
+  ]);
+  expect(dashboard).toEqual(body);
+});
+
+test('the table frame runs to the Columns card edges', async ({ page }) => {
+  await openProfile(page, 1180);
+  const [card, frame] = await Promise.all([
+    page.locator('.profile-columns').boundingBox(),
+    page.locator('.profile-table-wrap').boundingBox(),
+  ]);
+  const border = 1;
+  expect(frame!.x).toBeCloseTo(card!.x + border, 0);
+  expect(frame!.x + frame!.width).toBeCloseTo(card!.x + card!.width - border, 0);
+  expect(frame!.y + frame!.height).toBeCloseTo(card!.y + card!.height - border, 0);
+});
+
+test('chart panels touch, split by inset lines, with the Columns card attached below', async ({
+  page,
+}) => {
+  await openProfile(page, 1180);
+  const panels = page.locator('.profile-panel');
+  const boxes = await panels.evaluateAll((nodes) =>
+    nodes.map((node) => node.getBoundingClientRect().toJSON()),
+  );
+  for (let i = 1; i < boxes.length; i += 1)
+    expect(boxes[i].x).toBeCloseTo(boxes[i - 1].x + boxes[i - 1].width, 0);
+
+  const lines = await panels.evaluateAll((nodes) =>
+    nodes.map((node) => {
+      const line = getComputedStyle(node, '::before');
+      return {
+        shown: line.content !== 'none',
+        top: parseFloat(line.top),
+        bottom: parseFloat(line.bottom),
+      };
+    }),
+  );
+  expect(lines[0].shown).toBe(false);
+  for (const line of lines.slice(1)) {
+    expect(line.shown).toBe(true);
+    expect(line.top).toBeGreaterThan(0);
+    expect(line.bottom).toBeGreaterThan(0);
+  }
+
+  const row = (await page.locator('.profile-panels').boundingBox())!;
+  const columns = (await page.locator('.profile-columns').boundingBox())!;
+  expect(columns.y).toBeLessThanOrEqual(row.y + row.height);
+});
+
+test('summary cards touch, split by inset lines, with the chart strip attached below', async ({
+  page,
+}) => {
+  await openProfile(page, 1180);
+  const cards = page.locator('.summary-card');
+  const boxes = await cards.evaluateAll((nodes) =>
+    nodes.map((node) => node.getBoundingClientRect().toJSON()),
+  );
+  for (let i = 1; i < boxes.length; i += 1)
+    expect(boxes[i].x).toBeCloseTo(boxes[i - 1].x + boxes[i - 1].width, 0);
+
+  const lines = await cards.evaluateAll((nodes) =>
+    nodes.map((node) => {
+      const line = getComputedStyle(node, '::before');
+      return {
+        shown: line.content !== 'none',
+        top: parseFloat(line.top),
+        bottom: parseFloat(line.bottom),
+      };
+    }),
+  );
+  expect(lines[0].shown).toBe(false);
+  for (const line of lines.slice(1)) {
+    expect(line.shown).toBe(true);
+    expect(line.top).toBeGreaterThan(0);
+    expect(line.bottom).toBeGreaterThan(0);
+  }
+
+  const summary = (await page.locator('.profile-summary').boundingBox())!;
+  const panels = (await page.locator('.profile-panels').boundingBox())!;
+  expect(panels.y).toBeLessThanOrEqual(summary.y + summary.height);
+});
+
+test('Profile ribbon tools open in place of the dashboard and never switch tabs', async ({
+  page,
+}) => {
+  await openProfile(page, 1180);
+  const ribbon = page.getByRole('region', { name: 'Profile toolbar' });
+  const profileTab = page.getByRole('navigation').getByText('Profile', { exact: true });
+  const summary = page.getByRole('list', { name: 'Dataset summary' });
+
+  for (const command of [
+    'Column details',
+    'Data quality',
+    'Distribution',
+    'Duplicates',
+    'Patterns',
+    'Anomalies',
+    'Recommendations',
+    'Creations',
+  ]) {
+    const button = ribbon.getByRole('button', { name: command, exact: true });
+    await button.click();
+    await expect(page.getByRole('region', { name: command, exact: true })).toBeVisible();
+    await expect(button).toHaveAttribute('aria-pressed', 'true');
+    await expect(summary).toHaveCount(0);
+    await expect(profileTab).toHaveAttribute('aria-current', 'page');
+    await button.click(); // the pressed command closes its tool
+    await expect(summary).toBeVisible();
+    await expect(button).toBeFocused();
+  }
+
+  const patterns = ribbon.getByRole('button', { name: 'Patterns', exact: true });
+  await patterns.click();
+  await page.getByRole('button', { name: 'Back to dashboard' }).click();
+  await expect(summary).toBeVisible();
+  await expect(patterns).toBeFocused();
+
+  await patterns.click();
+  await page.keyboard.press('Escape');
+  await expect(summary).toBeVisible();
+  await expect(patterns).toHaveAttribute('aria-pressed', 'false');
+
+  // Refresh re-profiles (demo mode answers at once) and keeps the dashboard.
+  await ribbon.getByRole('button', { name: 'Refresh' }).click();
+  await expect(summary).toBeVisible();
+});
+
+test.describe('accessibility', () => {
+  test('every control in the UI contract has its accessible name', async ({ page }) => {
+    await openProfile(page, 1440);
+    const dashboard = page.locator('.profile-dashboard');
+    const named = [
+      dashboard.getByRole('region', { name: 'Data profile' }),
+      dashboard.getByRole('button', { name: 'Refresh profile' }),
+      dashboard.getByRole('button', { name: 'Generate report' }),
+      dashboard.getByRole('list', { name: 'Dataset summary' }),
+      dashboard.getByRole('region', { name: 'Data quality' }),
+      dashboard.getByRole('button', { name: 'Export invalid rows' }),
+      dashboard.getByRole('region', { name: 'Missing values by column' }),
+      dashboard.getByRole('region', { name: /^Distribution of / }),
+      dashboard.getByRole('combobox', { name: 'Distribution column' }),
+      dashboard.getByRole('region', { name: / \(categorical\)$/ }),
+      dashboard.getByRole('combobox', { name: 'Categorical column' }),
+      dashboard.getByRole('region', { name: 'Columns' }),
+      dashboard.getByRole('searchbox', { name: 'Search columns' }),
+      dashboard.getByRole('combobox', { name: 'Type filter' }),
+      dashboard.getByRole('combobox', { name: 'Quality filter' }),
+      dashboard.getByRole('button', { name: 'Table settings' }),
+      dashboard.getByRole('table', { name: 'Column profiles' }),
+    ];
+    for (const control of named) await expect(control).toBeVisible();
+    for (const label of ['Rows', 'Columns', 'Missing cells', 'Duplicate rows'])
+      await expect(dashboard.getByRole('listitem', { name: new RegExp(`^${label}`) })).toHaveCount(
+        1,
+      );
+
+    // Nothing focusable on the dashboard is left without a name.
+    const focusable = dashboard.locator('button, select, input, [tabindex="0"]');
+    expect(await focusable.count()).toBeGreaterThan(20);
+    for (const control of await focusable.all()) await expect(control).toHaveAccessibleName(/\S/);
+  });
+
+  test('chart bars are reached with Tab and show their tooltip on focus', async ({ page }) => {
+    await openProfile(page, 1440);
+    const missing = page.getByRole('region', { name: 'Missing values by column' });
+    await page.getByRole('button', { name: 'Export invalid rows' }).focus();
+
+    let onBar = false; // the panel's "Show all" button comes first, then the bars
+    for (let step = 0; step < 12 && !onBar; step++) {
+      await page.keyboard.press('Tab');
+      onBar = await missing.evaluate((node) => Boolean(node.querySelector('.hbars-row:focus')));
+    }
+    expect(onBar).toBe(true);
+    const first = page.locator(':focus');
+    const label = await first.getAttribute('aria-label');
+    expect(label).toMatch(/^.+: [\d,]+ \(\d+(\.\d)?%\)$/);
+    await expect(missing.getByRole('tooltip')).toHaveText(label!);
+
+    await page.keyboard.press('Tab');
+    const second = await page.locator(':focus').getAttribute('aria-label');
+    expect(second).not.toBe(label);
+    await expect(missing.getByRole('tooltip')).toHaveText(second!);
+  });
+
+  test('quality badges say their level in words', async ({ page }) => {
+    await openProfile(page, 1440);
+    const badges = page.getByRole('table', { name: 'Column profiles' }).locator('.quality-badge');
+    expect(await badges.count()).toBeGreaterThan(0);
+    for (const text of await badges.allInnerTexts())
+      expect(text.trim()).toMatch(/^(Good|Needs attention|Poor)$/);
+  });
+});

@@ -1,80 +1,105 @@
 import polars as pl
+
 from forma_engine.domain.errors import CancelledError
-from forma_engine.profiling.report import ProfileReport
+from forma_engine.profiling.cancellable import collect
+from forma_engine.profiling.column_stats import NUMERIC, column_stats, examples
+from forma_engine.profiling.distributions import categories, histogram
+from forma_engine.profiling.quality import breakdown, completeness, quality_level
+from forma_engine.profiling.report import (
+    ColumnProfile,
+    NumericSummary,
+    Profile,
+    utc_now,
+)
+from forma_engine.profiling.type_detection import detect_types
+
+CATEGORICAL = {"text", "boolean"}
+BATCH = 10  # columns summarised between progress reports and cancel checks
 
 
-def profile(
-    frame: pl.LazyFrame,
-    dataset_id: str,
-    frequencies: bool = True,
-    cancelled=lambda: False,
-) -> dict:
-    if cancelled():
+class _NoToken:
+    """Lets scripts call profile() without a job: never cancelled, no progress."""
+
+    def __call__(self) -> bool:
+        return False
+
+    def report(self, fraction: float, message: str) -> None:
+        pass
+
+
+def _phase(token, fraction: float, message: str) -> None:
+    if token():
         raise CancelledError("Profiling was cancelled.")
-    schema = frame.collect_schema()
+    token.report(fraction, message)
+
+
+def _duplicates(frame: pl.LazyFrame, names: list[str], rows: int, token) -> int:
+    if not names or not rows:
+        return 0
+    unique = collect(frame.select(pl.struct(names).n_unique()), token)
+    return rows - int(unique.item())
+
+
+def _summaries(frame, schema, types, stats, token) -> dict:
+    """Histogram or top values per column, in batches with progress and cancel checks"""
     names = schema.names()
-    expressions = []
-    for name, dtype in schema.items():
-        expressions.extend(
-            [
-                pl.col(name).null_count().alias(f"missing::{name}"),
-                pl.col(name).n_unique().alias(f"distinct::{name}"),
-            ]
+    result = {}
+    for start in range(0, len(names), BATCH):
+        _phase(token, 0.8 + 0.19 * start / len(names), "Building distributions")
+        for name in names[start : start + BATCH]:
+            kind, dtype = types[name], schema[name]
+            numeric = categories_ = None
+            if kind in NUMERIC and stats[name]["numeric"]:
+                bins = histogram(frame, name, kind, dtype, token)
+                if bins:
+                    numeric = NumericSummary(**stats[name]["numeric"], histogram=bins)
+            elif kind in CATEGORICAL:
+                categories_ = categories(frame, name, kind, dtype, token)
+            result[name] = {"numeric": numeric, "categories": categories_}
+    return result
+
+
+def profile(frame, dataset_id, history_id, data_version, token=None) -> dict:
+    token = token or _NoToken()
+    schema = frame.collect_schema()
+    _phase(token, 0.0, "Detecting types")
+    types = detect_types(frame, token)
+    _phase(token, 0.3, "Computing column statistics")
+    rows, stats = column_stats(frame, types, token)
+    samples = examples(frame, types, token)
+    _phase(token, 0.7, "Finding duplicates")
+    duplicates = _duplicates(frame, schema.names(), rows, token)
+    summaries = _summaries(frame, schema, types, stats, token)
+    if token():
+        raise CancelledError("Profiling was cancelled.")
+    columns = [
+        ColumnProfile(
+            position=index + 1,
+            name=name,
+            stored_type=str(dtype),
+            detected_type=types[name],
+            missing_count=stats[name]["missing"],
+            invalid_count=stats[name]["invalid"],
+            unique_count=stats[name]["unique"],
+            completeness=completeness(
+                rows, stats[name]["missing"], stats[name]["invalid"]
+            ),
+            quality=quality_level(rows, stats[name]["missing"], stats[name]["invalid"]),
+            examples=samples[name],
+            **summaries[name],
         )
-        if dtype.is_numeric():
-            expressions.extend(
-                [
-                    pl.col(name).min().alias(f"min::{name}"),
-                    pl.col(name).max().alias(f"max::{name}"),
-                    pl.col(name).mean().alias(f"mean::{name}"),
-                    pl.col(name).median().alias(f"median::{name}"),
-                ]
-            )
-    aggregate = (
-        frame.select(expressions).collect().row(0, named=True) if expressions else {}
-    )
-    if cancelled():
-        raise CancelledError("Profiling was cancelled.")
-    rows = int(frame.select(pl.len()).collect().item())
-    missing = {name: int(aggregate[f"missing::{name}"]) for name in names}
-    distinct = {name: int(aggregate[f"distinct::{name}"]) for name in names}
-    numeric = {
-        name: {
-            key: aggregate[f"{key}::{name}"] for key in ("min", "max", "mean", "median")
-        }
-        for name, dtype in schema.items()
-        if dtype.is_numeric()
-    }
-    cats = {}
-    if frequencies:
-        for name, dtype in schema.items():
-            if cancelled():
-                raise CancelledError("Profiling was cancelled.")
-            if not dtype.is_numeric():
-                cats[name] = (
-                    frame.group_by(name)
-                    .len()
-                    .sort("len", descending=True)
-                    .head(20)
-                    .collect()
-                    .to_dicts()
-                )
-    unique_rows = (
-        int(frame.select(pl.struct(names).n_unique()).collect().item())
-        if names
-        else rows
-    )
-    if cancelled():
-        raise CancelledError("Profiling was cancelled.")
-    duplicates = rows - unique_rows
-    return ProfileReport(
-        dataset_id,
-        rows,
-        len(names),
-        missing,
-        distinct,
-        {k: str(v) for k, v in schema.items()},
-        numeric,
-        cats,
-        duplicates,
+        for index, (name, dtype) in enumerate(schema.items())
+    ]
+    cells = breakdown(rows, [(c.missing_count, c.invalid_count) for c in columns])
+    return Profile(
+        dataset_id=dataset_id,
+        history_id=history_id,
+        data_version=data_version,
+        computed_at=utc_now(),
+        row_count=rows,
+        column_count=len(columns),
+        missing_cells=cells["missing_cells"],
+        duplicate_rows=duplicates,
+        quality=cells,
+        columns=columns,
     ).to_dict()

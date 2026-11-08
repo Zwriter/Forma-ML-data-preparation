@@ -29,6 +29,17 @@ export const targetLabels: Record<string, string> = {
   date: 'Date',
 };
 
+export const datePartLabels: Record<string, string> = {
+  year: 'Year',
+  month: 'Month',
+  day: 'Day',
+  weekday: 'Weekday',
+};
+
+/** "{column}_{part}" for each part, the default names of new date part columns. */
+export const datePartNames = (column: string, parts: string[]) =>
+  Object.fromEntries(parts.map((part) => [part, `${column}_${part}`]));
+
 const names = (value: unknown) => (Array.isArray(value) ? value.join(', ') : '');
 const quoted = (value: unknown) => `"${String(value ?? '')}"`;
 
@@ -97,6 +108,24 @@ export const stepCatalog: Record<StepType, StepDefinition> = {
       `Separator: ${quoted(p.separator)}`,
       `Into: ${p.into}`,
     ],
+  },
+  extract_date_parts: {
+    title: 'Extract date parts',
+    icon: 'split',
+    defaults: (columns) => {
+      const column = (columns.find((item) => /date/i.test(item.type)) ?? columns[0])?.name ?? '';
+      const parts = Object.keys(datePartLabels);
+      return { column, parts, names: datePartNames(column, parts) };
+    },
+    summary: (p) => {
+      const parts = (p.parts as string[]) ?? [];
+      const into = (p.names as Record<string, string>) ?? {};
+      return [
+        `Column: ${p.column}`,
+        `Parts: ${parts.map((part) => datePartLabels[part] ?? part).join(', ')}`,
+        `Into: ${parts.map((part) => into[part]).join(', ')}`,
+      ];
+    },
   },
   drop_duplicates: {
     title: 'Remove duplicate rows',

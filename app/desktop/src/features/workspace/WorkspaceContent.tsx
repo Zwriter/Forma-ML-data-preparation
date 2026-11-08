@@ -46,8 +46,6 @@ export function WorkspaceContent({
   const [showColumnDetails, setShowColumnDetails] = useState(false);
   const startDataOperation = useDataOperation();
   const column = dataset?.schema.find((item) => item.name === selectedColumn);
-  const fileName = dataset?.source_path.split(/[\\/]/).pop() ?? '';
-  const title = fileName.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ') || 'Dataset';
 
   // Data and Clean share one worksheet, including its column selector and details.
   const worksheetTab = activeTab === 'Data' || activeTab === 'Clean';
@@ -60,6 +58,9 @@ export function WorkspaceContent({
       onShowColumnSelector(false);
     }
   }, [worksheetTab, showColumnSelector, operationDialogOpen, onShowColumnSelector]);
+
+  // Other tabs (Profile, Pipelines, Export) render their own panel in the workspace body.
+  if (dataset && activeTab !== 'File' && !worksheetTab) return null;
 
   function worksheet(page: Preview | null, markers?: WorksheetMarkers) {
     if (!dataset) return null;
@@ -129,22 +130,10 @@ export function WorkspaceContent({
             {busy ? 'Importing…' : 'Import file'}
           </button>
         </section>
-      ) : activeTab !== 'File' && dataset ? (
-        <>
-          <div className="dataset-heading">
-            <div>
-              <h1>{title}</h1>
-              <p className="breadcrumb">
-                Local <span>›</span> Datasets <span>›</span> {fileName}
-              </p>
-            </div>
-          </div>
-          {activeTab === 'Data' ? (
-            worksheet(preview)
-          ) : activeTab === 'Clean' ? (
-            <CleanTab worksheet={worksheet} />
-          ) : null}
-        </>
+      ) : activeTab === 'Data' ? (
+        worksheet(preview)
+      ) : activeTab === 'Clean' ? (
+        <CleanTab worksheet={worksheet} />
       ) : null}
     </main>
   );

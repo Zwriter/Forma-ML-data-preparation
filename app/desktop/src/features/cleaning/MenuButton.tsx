@@ -4,7 +4,13 @@ import { Icon } from '../../components/Icon';
 import type { IconName } from '../../components/Icon';
 import '../../styles/menu-button.css';
 
-export type MenuItem = { label: string; icon?: IconName; onSelect: () => void };
+export type MenuItem = {
+  label: string;
+  icon?: IconName;
+  onSelect: () => void;
+  /** Makes the item a checkbox that toggles without closing the menu. */
+  checked?: boolean;
+};
 
 const ITEM_HEIGHT = 36;
 
@@ -103,11 +109,12 @@ export function MenuButton({
                 refs.current[index] = element;
               }}
               type="button"
-              role="menuitem"
+              role={item.checked === undefined ? 'menuitem' : 'menuitemcheckbox'}
+              aria-checked={item.checked}
               tabIndex={-1}
               onKeyDown={(event) => onKeyDown(event, index)}
               onClick={() => {
-                close();
+                if (item.checked === undefined) close();
                 item.onSelect();
               }}
             >

@@ -51,6 +51,8 @@ class HistoryService:
         if history.saved_index > history.current_index:
             history.saved_index = -1
         entry = WorkingStateEntry(dataset, frame, operation, view)
+        if frame is history.current.frame:  # view-only change (sort): same data
+            entry.data_version = history.current.data_version
         history.states.append(entry)
         history.current_index += 1
         self._trim(history)

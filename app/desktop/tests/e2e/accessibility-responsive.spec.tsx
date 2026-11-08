@@ -174,13 +174,26 @@ describe('desktop accessibility and responsive shell', () => {
 
   it('keeps background profile jobs out of the worksheet', async () => {
     useDatasetStore.getState().setDataset(dataset);
+    // Opening a file always loads its history with it; profiles are kept per history.
+    useDatasetStore.setState({
+      history: {
+        history_id: 'history-1',
+        dataset_id: 'dataset-1',
+        current_index: 0,
+        saved_index: 0,
+        is_dirty: false,
+        can_undo: false,
+        can_redo: false,
+        data_version: 'v1',
+      },
+    });
     invoke.mockImplementation(async (_command: string, args: { request: { method: string } }) =>
       response(args.request.method),
     );
     render(<WorkflowActions activeTab="Profile" />);
     const started = performance.now();
 
-    fireEvent.click(screen.getByText('Profile dataset'));
+    // Opening the tab profiles automatically.
     await waitFor(() => expect(invoke).toHaveBeenCalled());
     expect(screen.queryByRole('region', { name: 'Processing jobs' })).toBeNull();
     expect(screen.queryByRole('status')).toBeNull();

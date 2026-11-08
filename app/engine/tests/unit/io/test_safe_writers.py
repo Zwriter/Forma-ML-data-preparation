@@ -42,3 +42,31 @@ def test_cancelled_writer_removes_temporary_output(tmp_path):
         )
     assert not target.exists()
     assert list(tmp_path.glob(".forma-*")) == []
+
+
+def test_write_text_safe_writes_reports_and_follows_the_same_rules(tmp_path):
+    from forma_engine.domain.errors import FileAccessError
+    from forma_engine.io.writers import write_text_safe
+
+    target = tmp_path / "report.html"
+    result = write_text_safe("<p>héllo</p>", str(target), False)
+    assert target.read_text(encoding="utf-8") == "<p>héllo</p>"
+    assert result == {
+        "destination": str(target.resolve()),
+        "bytes": len("<p>héllo</p>".encode()),
+        "replaced_existing": False,
+    }
+
+    with pytest.raises(FileAccessError, match="already exists"):
+        write_text_safe("x", str(target), False)
+    assert write_text_safe("new", str(target), True)["replaced_existing"] is True
+    with pytest.raises(FileAccessError):
+        write_text_safe("x", str(tmp_path / "missing" / "r.html"), False)
+
+
+def test_write_text_safe_leaves_nothing_when_cancelled(tmp_path):
+    from forma_engine.io.writers import write_text_safe
+
+    with pytest.raises(InterruptedError):
+        write_text_safe("x", str(tmp_path / "r.html"), False, lambda: True)
+    assert list(tmp_path.iterdir()) == []

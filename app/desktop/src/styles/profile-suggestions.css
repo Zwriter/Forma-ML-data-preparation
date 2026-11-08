@@ -1,0 +1,59 @@
+/* Recommendations and Creations: a scrolling list of cards. */
+.suggestion-list {
+  display: grid;
+  flex: 1 1 0;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  align-content: start;
+  gap: 12px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+}
+
+.suggestion-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  font-size: 13px;
+}
+
+.card .suggestion-card h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.suggestion-card p {
+  margin: 0;
+}
+
+.suggestion-examples {
+  flex: none;
+}
+
+.suggestion-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.suggestion-actions button {
+  padding: 5px 10px;
+  border: 1px solid #cbd1dd;
+  border-radius: 6px;
+  color: var(--ink);
+  background: var(--surface);
+  font-size: 13px;
+}
+
+.suggestion-actions button[aria-disabled='true'] {
+  color: var(--muted);
+  background: #f7f8fb;
+}

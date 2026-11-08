@@ -163,6 +163,49 @@ describe('structure step forms', () => {
     );
   });
 
+  it('extracts date parts into new named columns', () => {
+    const onSave = open('extract_date_parts', {
+      column: 'city',
+      parts: ['year', 'month', 'day', 'weekday'],
+      names: { year: 'city_year', month: 'city_month', day: 'city_day', weekday: 'city_weekday' },
+    });
+    type('Column', 'country');
+    expect((screen.getByLabelText('Year column name') as HTMLInputElement).value).toBe(
+      'country_year',
+    );
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Month' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Day' }));
+    expect(screen.queryByLabelText('Month column name')).toBeNull();
+
+    type('Weekday column name', 'city');
+    save();
+    expectFieldError(
+      screen.getByLabelText('Weekday column name'),
+      'Column name "city" is already used.',
+    );
+    type('Weekday column name', 'country_year');
+    save();
+    expect(alertText()).toBe('Column name "country_year" is already used.');
+
+    type('Weekday column name', 'dow');
+    save();
+    expect(onSave).toHaveBeenLastCalledWith(
+      {
+        column: 'country',
+        parts: ['year', 'weekday'],
+        names: { year: 'country_year', weekday: 'dow' },
+      },
+      'extract_date_parts',
+    );
+  });
+
+  it('needs at least one date part', () => {
+    open('extract_date_parts', { column: 'city', parts: ['year'], names: { year: 'y' } });
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Year' }));
+    save();
+    expect(alertText()).toBe('Choose at least one date part.');
+  });
+
   it('suggests part names for the chosen split column', () => {
     open('split_column');
     type('Column', 'city');

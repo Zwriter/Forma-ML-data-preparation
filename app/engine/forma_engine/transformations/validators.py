@@ -19,6 +19,7 @@ SUPPORTED = {
     "replace_values",
     "split_column",
     "merge_columns",
+    "extract_date_parts",
 }
 
 
