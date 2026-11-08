@@ -7,6 +7,7 @@ export type StepType =
   | 'convert_type'
   | 'split_column'
   | 'merge_columns'
+  | 'extract_date_parts'
   | 'drop_duplicates'
   | 'drop_null_rows'
   | 'drop_columns'

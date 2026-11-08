@@ -3,7 +3,9 @@
 import polars as pl
 
 from forma_engine.domain.errors import InvalidTransformationError
+from forma_engine.profiling.type_detection import detect_types
 from forma_engine.transformations.cleaning_operations import (
+    DATE_PARTS,
     TARGET_TYPES,
     TYPE_LABELS,
     converted,
@@ -120,12 +122,32 @@ def _merge(params, columns, schema):
     _require_new_name(params.get("into"), set(columns) - removed)
 
 
+def _date_parts(params, columns, schema):
+    column = _require_column(params, columns)
+    if schema and not (schema[column].is_temporal() or schema[column] == pl.String):
+        _fail("Date parts work only on date columns.")
+    parts, names = params.get("parts"), params.get("names")
+    if (
+        not isinstance(parts, list)
+        or not parts
+        or any(part not in DATE_PARTS for part in parts)
+        or len(set(parts)) != len(parts)
+    ):
+        _fail("Choose at least one of year, month, day, and weekday.")
+    if not isinstance(names, dict) or any(part not in names for part in parts):
+        _fail("Enter a name for each new column.")
+    taken = set(columns)
+    for part in parts:
+        taken.add(_require_new_name(names[part], taken))
+
+
 RULES = {
     "fill_null": _fill,
     "convert_type": _convert,
     "replace_values": _replace,
     "split_column": _split,
     "merge_columns": _merge,
+    "extract_date_parts": _date_parts,
 }
 
 
@@ -141,6 +163,11 @@ def check_preconditions(frame: pl.LazyFrame, operation: dict) -> None:
         values = frame.select(pl.col(column).drop_nulls().len()).collect().item()
         if not values:
             _fail(f"'{column}' has no values to calculate a fill value from.")
+    if kind == "extract_date_parts":
+        column = params["column"]
+        text = frame.collect_schema()[column] == pl.String
+        if text and detect_types(frame.select(column))[column] != "datetime":
+            _fail(f"'{column}' does not hold dates.")
     if kind == "convert_type" and params.get("on_error", "fail") == "fail":
         column, target = params["column"], params["to"]
         source = frame.collect_schema()[column]

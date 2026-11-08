@@ -127,3 +127,31 @@ def test_cancelling_patterns_on_a_large_file_returns_nothing(profile_file):
 
     assert status["state"] == "cancelled"
     assert status.get("result") is None
+
+
+def test_every_suggestion_validates_and_applies(profile_file, tools_frame):
+    """SC-012: adding every suggestion gives Clean steps that apply without errors."""
+    router, jobs, open_profiled = profile_file
+    dataset_id, base, run, frame = open_profiled(tools_frame, "tools.csv")
+    found = run("profile.suggestions")
+    cards = found["recommendations"] + found["creations"]
+    assert {card["kind"] for card in cards} >= {
+        "drop_constant",
+        "drop_empty",
+        "date_parts",
+        "split",
+    }
+    steps = [step for card in cards for step in card["steps"]]
+    request = {"dataset_id": dataset_id, "operations": steps}
+
+    checked = router.dispatch("cleaning.validate", request)
+    assert checked["valid"], checked["steps"]
+    status = finished(jobs, router.dispatch("cleaning.apply", request)["job_id"])
+    assert status["state"] == "completed", status
+    columns = status["result"]["dataset"]["schema"]
+    names = [column["name"] for column in columns]
+    assert "flat" not in names and "notes" not in names
+    assert {"joined_year", "full_name_1"} <= set(names)
+
+    with pytest.raises(ProfileStaleError):
+        run("profile.suggestions")

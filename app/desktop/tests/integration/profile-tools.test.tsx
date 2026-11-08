@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { WorkflowActions } from '../../src/features/workspace/WorkflowActions';
 import { demoProfile } from '../../src/services/demoProfile';
 import { demoProfileTool } from '../../src/services/demoProfileTools';
@@ -120,6 +120,19 @@ describe('Profile tools in the workspace', () => {
     await waitFor(() => expect(calls('profile.rows')).toHaveLength(1));
     await finish('profile.rows', 'profile_rows', 'job-1');
     expect(screen.getByRole('table', { name: 'Outlier rows' })).toBeTruthy();
+  });
+
+  it('adds a recommendation to Clean from an engine result and stays in the tool', async () => {
+    render(<WorkflowActions activeTab="Profile" />);
+    act(() => useProfileToolStore.getState().open('recommendations'));
+    await waitFor(() => expect(calls('profile.suggestions')).toHaveLength(1));
+    await finish('profile.suggestions', 'profile_suggestions', 'job-1');
+
+    const list = screen.getByRole('list', { name: 'Recommendations' });
+    fireEvent.click(within(list).getAllByRole('button', { name: 'Add step' })[0]);
+    expect(useCleaningStore.getState().drafts['dataset-1']?.length).toBeGreaterThan(0);
+    expect(screen.getByRole('region', { name: 'Recommendations' })).toBeTruthy();
+    expect(useWorkspaceStore.getState().notification?.action?.label).toBe('Undo');
   });
 
   it('shows nothing for a cancelled anomalies job', async () => {

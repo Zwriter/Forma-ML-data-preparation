@@ -33,6 +33,8 @@ def track(lineage: Lineage, operation: dict) -> Lineage:
     if kind == "merge_columns":
         removed = set(p["columns"]) if p["drop_sources"] else set()
         return _with_new_columns(lineage, removed, [p["into"]])
+    if kind == "extract_date_parts":
+        return _with_new_columns(lineage, set(), [p["names"][x] for x in p["parts"]])
     return dict(lineage)
 
 

@@ -5,12 +5,16 @@ import type { StepForm, StepType } from '../../types/cleaning';
 import type { Column } from '../../types/dataset';
 import { FieldError } from './forms/formControls';
 import type { Parameters, Submission } from './forms/formControls';
+import { datePartsForm } from './forms/datePartsForm';
 import { structureForms } from './forms/structureForms';
 import { valueForms } from './forms/valueForms';
 import { stepCatalog } from './stepCatalog';
 import '../../styles/step-form.css';
 
-const stepForms = { ...valueForms, ...structureForms } satisfies Record<StepType, unknown>;
+const stepForms = { ...valueForms, ...structureForms, ...datePartsForm } satisfies Record<
+  StepType,
+  unknown
+>;
 
 export function StepFormDialog({
   form,

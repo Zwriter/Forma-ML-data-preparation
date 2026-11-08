@@ -73,46 +73,54 @@ export function anomalies(): OutlierSummary[] {
     .sort((a, b) => b.count - a.count);
 }
 
+/** Same rules and step shapes as the engine's recommendations.py (FR-043). */
 export function suggestions() {
   const found: Suggestion[] = [];
   for (const column of columns) {
     const share = column.missing_count / ROWS;
-    if (column.stored_type === 'String' && column.numeric)
+    const convert =
+      column.stored_type === 'String' && column.numeric
+        ? {
+            type: 'convert_type',
+            parameters: { column: column.name, to: 'float', on_error: 'null' },
+          }
+        : null;
+    if (convert)
       found.push({
         id: `convert:${column.name}`,
         kind: 'convert',
-        title: `Convert ${column.name} to numbers`,
-        detail: `${column.name} holds numbers stored as text; ${column.invalid_count} invalid values will become missing.`,
+        title: `Convert ${column.name} to decimal number`,
+        detail: `${ROWS - column.missing_count} values are stored as text but hold decimal numbers; ${column.invalid_count} invalid values will become missing.`,
         cells_affected: ROWS - column.missing_count,
-        steps: [
-          { type: 'convert_type', parameters: { column: column.name, target_type: 'float' } },
-        ],
+        steps: [convert],
         examples: null,
       });
     if (share > 0 && share <= 0.2) {
       const strategy = column.numeric ? 'median' : 'mode';
+      const fill = { type: 'fill_null', parameters: { column: column.name, strategy } };
       found.push({
         id: `fill_missing:${column.name}`,
         kind: 'fill_missing',
         title: `Fill missing values in ${column.name}`,
-        detail: `${column.missing_count} missing values (${round(share * 100)}%), filled with the ${strategy === 'median' ? 'median' : 'most frequent value'}.`,
+        detail: `${column.missing_count} missing (${round(share * 100)}%); fill with the ${strategy === 'median' ? 'median' : 'most frequent value'}.`,
         cells_affected: column.missing_count,
-        steps: [{ type: 'fill_null', parameters: { column: column.name, strategy } }],
+        steps: convert ? [convert, fill] : [fill],
         examples: null,
       });
     }
   }
   found.push({
-    id: 'remove_duplicates:*',
+    id: 'remove_duplicates',
     kind: 'remove_duplicates',
     title: 'Remove duplicate rows',
     detail: `${demoProfile.duplicate_rows} rows repeat an earlier row in every column.`,
     cells_affected: demoProfile.duplicate_rows * demoProfile.column_count,
-    steps: [{ type: 'drop_duplicates', parameters: { columns: null } }],
+    steps: [{ type: 'drop_duplicates', parameters: {} }],
     examples: null,
   });
+  // The demo dataset has no date column and no text column with one shared separator.
   return {
     recommendations: found.sort((a, b) => b.cells_affected - a.cells_affected),
-    creations: [],
+    creations: [] as Suggestion[],
   };
 }

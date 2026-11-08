@@ -730,29 +730,47 @@ Notes (Phase 12, 2026-11-08):
 
 **Independent Test**: As in spec.md US9.
 
-- [ ] T085 [P] [US9] Write failing tests in
+- [x] T085 [P] [US9] Write failing tests in
   `tests/unit/transformations/test_extract_date_parts.py` and the cleaning validator tests, then
   add `extract_date_parts` to `cleaning_operations.py` and `cleaning_validators.py` per
   contracts/ipc.md (Int32 parts after the source column, Monday = 1, names must be new). Add it to
   the desktop `StepType`, `stepCatalog.ts` (summary and form), and the Clean form tests.
-- [ ] T086 [P] [US9] Write failing tests in `tests/unit/profiling/tools/test_recommendations.py`,
+- [x] T086 [P] [US9] Write failing tests in `tests/unit/profiling/tools/test_recommendations.py`,
   then create `recommendations.py`: the five rules from FR-043 working from the latest profile,
   stable ids, `cells_affected` ordering, and a Convert step before the fill for text-stored
   numbers. Each produced step must pass `validate_cleaning` in the test.
-- [ ] T087 [P] [US9] Write failing tests in `tests/unit/profiling/tools/test_creations.py`, then
+- [x] T087 [P] [US9] Write failing tests in `tests/unit/profiling/tools/test_creations.py`, then
   create `creations.py`: date parts for date columns (stored or detected) and splits for the
   separators and the 95% / same-count rule in FR-044, three examples each, free names
   (`_1`, `_2`, …). Each produced step must pass validation.
-- [ ] T088 [US9] Write failing tests, then create `SuggestionCard.tsx`, `RecommendationsTool.tsx`,
+- [x] T088 [US9] Write failing tests, then create `SuggestionCard.tsx`, `RecommendationsTool.tsx`,
   and `CreationsTool.tsx`: cards ordered as returned, "Add step" through `useCleaningStore.add`
   for every step in the suggestion (notice with Undo removing them; "Added" when the steps are
   already in the Clean steps), "Dismiss" through `profileToolStore.dismiss`, examples table.
   Confirm in the test that the active tab stays Profile.
-- [ ] T089 [US9] Extend the integration tests: on `tools_frame`, add every suggestion, then
+- [x] T089 [US9] Extend the integration tests: on `tools_frame`, add every suggestion, then
   validate and apply the Clean steps through `CleaningService` with no errors (SC-012), and check
   that the profile is out of date afterwards.
 
 **Checkpoint**: All ribbon tools are complete.
+
+Notes (Phase 13, 2026-11-08):
+- T085: text columns are parsed with the profile's date rule (`type_detection.parsed`); whether a
+  text column holds dates needs the data, so it is checked in `check_preconditions`, not the
+  schema validator. Lineage tracks the new columns. Desktop form: `forms/datePartsForm.tsx`.
+- T086: Convert uses `on_error: "null"` (the card says how many invalid values become missing).
+  A column that a Drop card removes gets no other card (`dropped_columns`), so every card can be
+  added in order and applied together. Remove duplicates uses `{}` (all columns).
+- T087: examples come from running the step itself on the first three present values. Split
+  names take the lowest free numbers (`name_1` taken → `name_2`, `name_3`); date part names get
+  a `_1` suffix. Names are reserved across all creations.
+- T088: `SuggestionCard.tsx` also holds the shared `SuggestionsView`; Recommendations and
+  Creations are thin wrappers. The ToolHost placeholder is gone, since every tool now has a view.
+  Card styles are in `styles/profile-suggestions.css` (`profile-tools.css` is at the size limit).
+  The demo suggestions now use the engine's step shapes (`to`/`on_error`, Convert before a text
+  fill, `drop_duplicates` with `{}`); the demo dataset has no creations.
+- T089: `test_every_suggestion_validates_and_applies` (engine) runs `cleaning.validate` and
+  `cleaning.apply` over every card's steps on `tools_frame`, then checks `PROFILE_STALE`.
 
 ---
 

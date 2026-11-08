@@ -12,13 +12,14 @@ const columns = [
 ];
 
 describe('step catalog', () => {
-  it('describes all nine step types with a title, icon, and defaults', () => {
+  it('describes all ten step types with a title, icon, and defaults', () => {
     expect(Object.keys(stepCatalog).sort()).toEqual(
       [
         'convert_type',
         'drop_columns',
         'drop_duplicates',
         'drop_null_rows',
+        'extract_date_parts',
         'fill_null',
         'merge_columns',
         'rename_columns',
@@ -53,7 +54,26 @@ describe('step catalog', () => {
     expect(stepCatalog.convert_type.defaults([])).toMatchObject({ column: '', on_error: 'fail' });
   });
 
+  it('suggests date part names from the first date column', () => {
+    const dated = [...columns, { name: 'joined', type: 'Date', nullable: true }];
+    expect(stepCatalog.extract_date_parts.defaults(dated)).toEqual({
+      column: 'joined',
+      parts: ['year', 'month', 'day', 'weekday'],
+      names: {
+        year: 'joined_year',
+        month: 'joined_month',
+        day: 'joined_day',
+        weekday: 'joined_weekday',
+      },
+    });
+  });
+
   it.each([
+    [
+      'extract_date_parts',
+      { column: 'joined', parts: ['year', 'weekday'], names: { year: 'y', weekday: 'w' } },
+      'Column: joined • Parts: Year, Weekday • Into: y, w',
+    ],
     [
       'fill_null',
       { column: 'TotalCharges', strategy: 'median' },

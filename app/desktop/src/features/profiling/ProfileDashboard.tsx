@@ -19,6 +19,7 @@ import '../../styles/profile-charts.css';
 import '../../styles/profile-table.css';
 import '../../styles/profile-responsive.css';
 import '../../styles/profile-tools.css';
+import '../../styles/profile-suggestions.css';
 
 /** Shows a column in the chart that fits it and moves focus to that chart. */
 function showDistribution(historyId: string, column: ColumnProfile) {

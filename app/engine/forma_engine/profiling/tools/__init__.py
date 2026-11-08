@@ -8,6 +8,7 @@ from forma_engine.profiling.tools.duplicates import duplicates
 from forma_engine.profiling.tools.outliers import anomalies
 from forma_engine.profiling.tools.patterns import patterns
 from forma_engine.profiling.tools.rows import rows
+from forma_engine.profiling.tools.suggestions import suggestions
 
 TOOLS: dict = {
     "column_detail": column_detail,
@@ -16,4 +17,5 @@ TOOLS: dict = {
     "duplicates": duplicates,
     "patterns": patterns,
     "anomalies": anomalies,
+    "suggestions": suggestions,
 }
