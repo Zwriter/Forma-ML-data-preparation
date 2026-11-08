@@ -9,7 +9,8 @@ import { useLatestProfile, useTool } from './useTool';
 /** Anomalies (FR-042): outliers per number or date column, and the rows that hold them. */
 export function AnomaliesTool() {
   const column = useProfileToolStore((state) => state.inputs.anomalies?.column) as
-    string | undefined;
+    | string
+    | undefined;
   const profile = useLatestProfile();
   const { result, view } = useTool<Anomalies>(
     'anomalies',

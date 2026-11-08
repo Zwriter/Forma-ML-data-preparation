@@ -21,7 +21,8 @@ export function toggleKey(keys: string[] | null, name: string, all: string[]) {
 /** Duplicate finder (FR-040): duplicates for the chosen key columns. */
 export function DuplicatesTool() {
   const keys = (useProfileToolStore((state) => state.inputs.duplicates?.columns) ?? null) as
-    string[] | null;
+    | string[]
+    | null;
   const profile = useLatestProfile();
   const all = (profile?.columns ?? []).map((column) => column.name);
   const { result, view } = useTool<DuplicateGroups>(
