@@ -58,6 +58,7 @@ export function AnomaliesTool() {
                     <td>
                       <button
                         type="button"
+                        className="btn btn-secondary btn-sm"
                         disabled={!item.count}
                         aria-pressed={column === item.column}
                         onClick={() =>

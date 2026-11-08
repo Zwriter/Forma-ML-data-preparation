@@ -1,7 +1,7 @@
 @media (max-width: 620px) {
   .column-selector {
     max-height: 90vh;
-    padding: 18px;
+    padding: var(--space-4);
   }
 
   .column-selector-list small {
@@ -10,7 +10,7 @@
 
   .data-operation-dialog {
     max-height: 92vh;
-    padding: 18px;
+    padding: var(--space-4);
   }
 
   .filter-rule,

@@ -1,0 +1,108 @@
+/*
+ * Colour theme: Paper: warm stone, terracotta accent.
+ * Generated from design/chosen-theme.md. Edit the palette there first, then here.
+ * [data-theme-preview] scopes the theme to one element (Settings swatches).
+ * The --paper-* primitives are private: only the semantic --color-* tokens below may use them.
+ * Every role passes WCAG AA (tests/unit/styles/designTokens.test.ts).
+ */
+:root {
+  --paper-amber-33: #3f3322;
+  --paper-amber-53: #766b5c;
+  --paper-amber-62: #8f8576;
+  --paper-amber-78: #c2b7a8;
+  --paper-amber-80: #e8b45a;
+  --paper-amber-91: #e6dfd4;
+  --paper-amber-94: #f1ebe2;
+  --paper-amber-95: #f3ece0;
+  --paper-blue-32: #2e3337;
+  --paper-blue-49: #2a6496;
+  --paper-blue-75: #7fb3e0;
+  --paper-gray-95: #eaeeef;
+  --paper-gray-97: #f6f3ee;
+  --paper-gray-99: #fffdf9;
+  --paper-gray-100: #ffffff;
+  --paper-green-32: #2e3629;
+  --paper-green-52: #2f7a3a;
+  --paper-green-76: #7cc68a;
+  --paper-green-95: #eaf0e6;
+  --paper-orange-19: #171411;
+  --paper-orange-20: #1f1208;
+  --paper-orange-22: #1f1a14;
+  --paper-orange-23: #1f1b17;
+  --paper-orange-26: #28231e;
+  --paper-orange-29: #3a2418;
+  --paper-orange-33: #3a332b;
+  --paper-orange-44: #5a5046;
+  --paper-orange-50: #6b6155;
+  --paper-orange-50-0: #8a5600;
+  --paper-orange-68: #a3978a;
+  --paper-orange-94: #f7e6dc;
+  --paper-red-32: #412d28;
+  --paper-red-47: #933b19;
+  --paper-red-50: #b3261e;
+  --paper-red-52: #a8441f;
+  --paper-red-73: #ee8a5f;
+  --paper-red-75: #f28b82;
+  --paper-red-79: #f4a27e;
+  --paper-red-94: #f7e8e3;
+}
+
+:root[data-theme='paper'],
+[data-theme-preview='paper'] {
+  color-scheme: light;
+  --color-bg: var(--paper-gray-97);
+  --color-surface: var(--paper-gray-99);
+  --color-surface-raised: var(--paper-gray-100);
+  --color-border: var(--paper-amber-91);
+  --color-border-strong: var(--paper-amber-62);
+  --color-text: var(--paper-orange-22);
+  --color-text-muted: var(--paper-orange-44);
+  --color-text-subtle: var(--paper-orange-50);
+  --color-accent: var(--paper-red-52);
+  --color-accent-hover: var(--paper-red-47);
+  --color-accent-contrast: var(--paper-gray-100);
+  --color-accent-soft: var(--paper-orange-94);
+  --color-success: var(--paper-green-52);
+  --color-success-soft: var(--paper-green-95);
+  --color-warning: var(--paper-orange-50-0);
+  --color-warning-soft: var(--paper-amber-95);
+  --color-danger: var(--paper-red-50);
+  --color-danger-soft: var(--paper-red-94);
+  --color-info: var(--paper-blue-49);
+  --color-info-soft: var(--paper-gray-95);
+  --color-chrome: var(--paper-gray-99);
+  --color-chrome-text: var(--paper-orange-22);
+  --color-chrome-muted: var(--paper-orange-44);
+  --color-chrome-border: var(--paper-amber-91);
+  --color-chart-2: var(--paper-orange-50);
+}
+
+:root[data-theme='paper'][data-mode='dark'],
+:root[data-mode='dark'] [data-theme-preview='paper'] {
+  color-scheme: dark;
+  --color-bg: var(--paper-orange-19);
+  --color-surface: var(--paper-orange-23);
+  --color-surface-raised: var(--paper-orange-26);
+  --color-border: var(--paper-orange-33);
+  --color-border-strong: var(--paper-amber-53);
+  --color-text: var(--paper-amber-94);
+  --color-text-muted: var(--paper-amber-78);
+  --color-text-subtle: var(--paper-orange-68);
+  --color-accent: var(--paper-red-73);
+  --color-accent-hover: var(--paper-red-79);
+  --color-accent-contrast: var(--paper-orange-20);
+  --color-accent-soft: var(--paper-orange-29);
+  --color-success: var(--paper-green-76);
+  --color-success-soft: var(--paper-green-32);
+  --color-warning: var(--paper-amber-80);
+  --color-warning-soft: var(--paper-amber-33);
+  --color-danger: var(--paper-red-75);
+  --color-danger-soft: var(--paper-red-32);
+  --color-info: var(--paper-blue-75);
+  --color-info-soft: var(--paper-blue-32);
+  --color-chrome: var(--paper-orange-23);
+  --color-chrome-text: var(--paper-amber-94);
+  --color-chrome-muted: var(--paper-amber-78);
+  --color-chrome-border: var(--paper-orange-33);
+  --color-chart-2: var(--paper-orange-68);
+}

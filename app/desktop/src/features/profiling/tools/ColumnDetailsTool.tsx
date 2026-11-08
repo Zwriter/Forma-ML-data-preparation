@@ -105,10 +105,16 @@ export function ColumnDetailsTool() {
           <option key={column.name}>{column.name}</option>
         ))}
       </select>
-      <button type="button" disabled={index <= 0} onClick={() => pick(columns[index - 1].name)}>
+      <button
+        className="btn btn-secondary btn-sm"
+        type="button"
+        disabled={index <= 0}
+        onClick={() => pick(columns[index - 1].name)}
+      >
         Previous column
       </button>
       <button
+        className="btn btn-secondary btn-sm"
         type="button"
         disabled={index >= columns.length - 1}
         onClick={() => pick(columns[index + 1].name)}

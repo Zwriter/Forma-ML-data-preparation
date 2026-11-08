@@ -115,6 +115,7 @@ export function SortBuilder({ columns, onApply, onClose, popupPosition, active =
                 </select>
               </label>
               <button
+                className="btn btn-icon btn-bare btn-sm"
                 type="button"
                 aria-label={`Move sort key ${index + 1} up`}
                 title="Move up"
@@ -124,6 +125,7 @@ export function SortBuilder({ columns, onApply, onClose, popupPosition, active =
                 ↑
               </button>
               <button
+                className="btn btn-icon btn-bare btn-sm"
                 type="button"
                 aria-label={`Move sort key ${index + 1} down`}
                 title="Move down"
@@ -133,6 +135,7 @@ export function SortBuilder({ columns, onApply, onClose, popupPosition, active =
                 ↓
               </button>
               <button
+                className="btn btn-ghost btn-sm"
                 type="button"
                 aria-label={`Remove sort key ${index + 1}`}
                 disabled={keys.length === 1}
@@ -146,6 +149,7 @@ export function SortBuilder({ columns, onApply, onClose, popupPosition, active =
           ))}
         </div>
         <button
+          className="btn btn-ghost"
           type="button"
           disabled={keys.length >= columns.length}
           onClick={() =>
@@ -168,16 +172,16 @@ export function SortBuilder({ columns, onApply, onClose, popupPosition, active =
           {active.length > 0 && (
             <button
               type="button"
-              className="quiet-button"
+              className="btn btn-ghost"
               onClick={() => onApply({ type: 'sort_rows', parameters: { keys: [] } })}
             >
               Clear sort
             </button>
           )}
-          <button type="button" className="quiet-button" onClick={onClose}>
+          <button type="button" className="btn btn-secondary" onClick={onClose}>
             Cancel
           </button>
-          <button type="button" onClick={apply}>
+          <button className="btn btn-primary" type="button" onClick={apply}>
             Apply sort
           </button>
         </footer>

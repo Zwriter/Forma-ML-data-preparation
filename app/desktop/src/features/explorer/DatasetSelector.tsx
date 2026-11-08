@@ -18,8 +18,10 @@ export function DatasetSelector({ path, busy, setPath, onBrowse, onOpen }: Props
           onChange={(event) => setPath(event.target.value)}
           placeholder="C:\\data\\sample.csv"
         />
-        <button onClick={onBrowse}>Browse files</button>
-        <button disabled={busy || !path.trim()} onClick={onOpen}>
+        <button className="btn btn-secondary" onClick={onBrowse}>
+          Browse files
+        </button>
+        <button className="btn btn-primary" disabled={busy || !path.trim()} onClick={onOpen}>
           {busy ? 'Opening…' : 'Open dataset'}
         </button>
       </div>

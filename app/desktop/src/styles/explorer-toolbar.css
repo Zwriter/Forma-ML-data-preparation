@@ -1,8 +1,9 @@
+/* Worksheet card and its toolbar (DESIGN_RULES.md: Worksheet). Edge-to-edge, no card chrome. */
 .data-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 286px;
   align-items: start;
-  gap: 12px;
+  gap: var(--space-3);
 }
 
 .data-primary {
@@ -16,109 +17,65 @@
   min-height: 0;
   flex-direction: column;
   overflow: hidden;
-  background: #fff;
-  border: 1px solid #c9d0d9;
-  border-radius: 0;
+  background: var(--color-surface);
 }
 
 .table-toolbar {
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-height: 58px;
-  padding: 9px 12px;
-  border-bottom: 1px solid var(--line);
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--border-width) solid var(--color-border);
 }
 
 .search-box {
   display: flex;
   flex: 1 1 240px;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-1-5);
   min-width: 120px;
-  min-height: 36px;
-  padding: 0 10px;
-  border: 1px solid #cfd5e1;
-  border-radius: 6px;
+  height: var(--size-control);
+  padding: 0 var(--space-2);
+  color: var(--color-text-subtle);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard);
 }
 
-.search-mark {
-  color: #687590;
-  font-size: 22px;
-  line-height: 1;
+.search-box:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 var(--focus-halo-width) var(--color-accent-soft);
 }
 
-.search-box input {
-  width: 100%;
+.search-box .icon {
+  width: var(--size-icon-sm);
+  height: var(--size-icon-sm);
+}
+
+.search-box input,
+.search-box input:focus {
+  flex: 1;
+  height: auto;
   min-width: 0;
-  padding: 7px 0;
-  color: var(--ink);
-  border: 0;
-  outline: 0;
-  font-size: 12px;
-}
-
-.search-box input:focus-visible {
-  outline: 0;
-}
-
-.search-box input::placeholder {
-  color: #8b95a9;
-}
-
-.preview-selection {
-  color: var(--muted);
-  font-size: 11px;
-  white-space: nowrap;
-}
-
-@media (max-width: 900px) {
-  .table-toolbar .preview-selection {
-    display: none;
-  }
-}
-
-.toolbar-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 9px;
-  color: #394663;
+  padding: 0;
   background: transparent;
   border: 0;
-  border-radius: 5px;
-  font-size: 12px;
-  white-space: nowrap;
+  box-shadow: none;
 }
 
-.toolbar-link:hover {
-  color: var(--purple);
-  background: #f4f3ff;
+.btn .btn-count {
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-small-size);
+  font-weight: var(--weight-regular);
 }
 
-.toolbar-link:focus-visible,
-.column-heading:focus-visible {
-  outline: 2px solid var(--purple);
-  outline-offset: -2px;
-}
-
-.toolbar-link .icon {
-  width: 16px;
-  height: 16px;
-}
-
-.spreadsheet-cell-address {
-  flex: 0 0 64px;
-  min-width: 0;
-  overflow: hidden;
-  padding: 4px 7px;
-  color: #35415c;
-  border: 1px solid #d6dbe2;
-  border-radius: 2px;
-  font-size: 11px;
-  text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.btn .icon {
+  width: var(--size-icon-sm);
+  height: var(--size-icon-sm);
 }
 
 .table-wrap {
@@ -129,11 +86,18 @@
 }
 
 .table-toolbar .dataset-meta {
+  display: flex;
   flex: 0 0 auto;
-  gap: 5px;
+  gap: var(--space-1);
 }
 
 .table-toolbar .meta-chip {
-  padding: 4px 7px;
-  font-size: 10px;
+  padding: var(--space-0-5) var(--space-1-5);
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-caption-size);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
 }

@@ -7,6 +7,7 @@ import { Icon } from '../../components/Icon';
 import { ColumnHeading } from './ColumnHeading';
 import { SchemaSummary } from './SchemaSummary';
 import { TablePager } from './TablePager';
+import { columnTypeKind } from './ColumnTypeIcon';
 import { DEFAULT_PAGE_SIZE } from '../../services/pageSize';
 
 type Props = {
@@ -63,21 +64,11 @@ export function DatasetPreview({
 
   const activeRowIndex = activeCell?.row ?? offset;
   const activeColumn = activeCell?.column ?? preview?.columns[0]?.name;
-  const activeColumnIndex =
-    preview?.columns.findIndex((column) => column.name === activeColumn) ?? -1;
-  const activeAddress =
-    activeColumnIndex >= 0 ? `${columnLetter(activeColumnIndex)}${activeRowIndex + 2}` : '';
-
-  function columnLetter(index: number) {
-    let value = index + 1;
-    let label = '';
-    while (value > 0) {
-      value -= 1;
-      label = String.fromCharCode(65 + (value % 26)) + label;
-      value = Math.floor(value / 26);
-    }
-    return label;
-  }
+  const numeric = new Set(
+    preview?.columns
+      .filter((column) => columnTypeKind(column.type) === 'number')
+      .map((column) => column.name),
+  );
 
   function requestPage(offset: number, limit?: number) {
     if (searchTimer.current) clearTimeout(searchTimer.current);
@@ -93,11 +84,9 @@ export function DatasetPreview({
         Record preview
       </h2>
       <div className="table-toolbar">
-        <span className="spreadsheet-cell-address">{activeAddress || '—'}</span>
         <label className="search-box" htmlFor="preview-search">
-          <span className="search-mark" aria-hidden="true">
-            ⌕
-          </span>
+          <Icon name="search" />
+          <span className="sr-only">Search preview rows or columns</span>
           <input
             id="preview-search"
             value={query}
@@ -113,16 +102,21 @@ export function DatasetPreview({
                 250,
               );
             }}
-            placeholder="Search preview rows or columns..."
+            placeholder="Search rows or columns…"
           />
         </label>
-        <span className="preview-selection">
-          {`${selectedColumns.length} of ${dataset.columns} columns visible`}
-        </span>
-        <button type="button" className="toolbar-link" onClick={onOpenColumnSelector}>
+        <button
+          type="button"
+          className="btn btn-ghost btn-sm"
+          aria-label={`Columns, ${selectedColumns.length} of ${dataset.columns} visible`}
+          onClick={onOpenColumnSelector}
+        >
           <Icon name="columns" /> Columns
+          <span className="btn-count" aria-hidden="true">
+            {selectedColumns.length}/{dataset.columns}
+          </span>
         </button>
-        <SchemaSummary dataset={dataset} visibleColumns={selectedColumns.length} />
+        <SchemaSummary dataset={dataset} />
       </div>
       {records.length ? (
         <div
@@ -136,12 +130,6 @@ export function DatasetPreview({
         >
           <table>
             <thead>
-              <tr className="spreadsheet-column-letters">
-                <th className="row-number-heading" aria-label="Select all cells" />
-                {preview?.columns.map((column, index) => (
-                  <th key={column.name}>{columnLetter(index)}</th>
-                ))}
-              </tr>
               <tr>
                 <th className="row-number-heading" aria-label="Row number" />
                 {preview?.columns.map((column) => (
@@ -165,14 +153,21 @@ export function DatasetPreview({
               {records.map((record, index) => (
                 <tr
                   key={`${offset}-${index}`}
-                  className={markers?.removed.has(index) ? 'worksheet-removed' : undefined}
+                  className={
+                    [
+                      markers?.removed.has(index) && 'worksheet-removed',
+                      activeRowIndex === offset + index && 'current-row',
+                    ]
+                      .filter(Boolean)
+                      .join(' ') || undefined
+                  }
                 >
-                  <td className="row-number">{offset + index + 2}</td>
+                  <td className="row-number">{offset + index + 1}</td>
                   {preview?.columns.map((column, position) => (
                     <td
                       key={column.name}
                       role="gridcell"
-                      className={`${selectedColumn === column.name ? 'selected-column' : ''}${activeRowIndex === offset + index && activeColumn === column.name ? ' active-cell' : ''}${markers?.changed.has(`${index}:${column.name}`) ? ' cell-changed' : ''}`}
+                      className={`${numeric.has(column.name) ? 'numeric ' : ''}${selectedColumn === column.name ? 'selected-column' : ''}${activeRowIndex === offset + index && activeColumn === column.name ? ' active-cell' : ''}${markers?.changed.has(`${index}:${column.name}`) ? ' cell-changed' : ''}`}
                       tabIndex={0}
                       aria-selected={
                         activeRowIndex === offset + index && activeColumn === column.name

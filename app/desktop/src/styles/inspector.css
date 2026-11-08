@@ -1,6 +1,7 @@
-﻿.inspector {
+﻿/* Column details inspector (worksheet popover) and legacy workflow cards. */
+.inspector {
   position: sticky;
-  top: 12px;
+  top: var(--space-3);
   max-height: calc(100vh - 220px);
   overflow: auto;
   background: transparent;
@@ -10,88 +11,93 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 0 2px 12px;
+  padding: 0 0 var(--space-3);
 }
 
-.inspector-heading h2 {
-  margin: 0 0 21px;
-  font-size: 15px;
-}
-
+.inspector-heading h2,
 .inspector-heading h3 {
-  margin: 0 0 4px;
-  font-size: 15px;
+  margin: 0 0 var(--space-1);
+  font-family: var(--font-display);
+  font-size: var(--text-title-size);
+  font-weight: var(--weight-semibold);
 }
 
 .column-kind {
   margin: 0;
-  color: var(--muted);
-  font-size: 12px;
+  color: var(--color-text-muted);
+  font-size: var(--text-small-size);
 }
 
+/* View tabs: text + accent bottom bar (DESIGN_RULES.md: Segmented control / inline tabs). */
 .inspector-tabs {
   display: flex;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--line);
+  gap: var(--space-1);
+  border-bottom: var(--border-width) solid var(--color-border);
 }
 
 .inspector-tabs button {
   position: relative;
-  padding: 10px 5px;
-  color: #5f6b85;
+  padding: var(--space-2) var(--space-2);
+  color: var(--color-text-muted);
   background: transparent;
   border: 0;
-  font-size: 11px;
+  font-size: var(--text-small-size);
+  font-weight: var(--weight-medium);
+}
+
+.inspector-tabs button:hover {
+  color: var(--color-text);
 }
 
 .inspector-tabs button.active {
-  color: var(--purple);
-  font-weight: 650;
+  color: var(--color-text);
 }
 
 .inspector-tabs button.active::after {
   position: absolute;
-  right: 4px;
-  bottom: -1px;
-  left: 4px;
-  height: 2px;
-  background: var(--purple);
+  right: 0;
+  bottom: calc(var(--border-width) * -1);
+  left: 0;
+  height: var(--border-width-strong);
+  background: var(--color-accent);
   content: '';
 }
 
 .sample-note {
-  margin: 9px 2px;
-  color: #8791a4;
-  font-size: 10px;
+  margin: var(--space-2) 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small-size);
 }
 
 .inspector-card {
-  padding: 12px 13px;
-  margin: 9px 0;
-  background: #fff;
-  border: 1px solid #e5e8ef;
-  border-radius: 8px;
+  padding: var(--space-3) 0;
+  margin: 0;
+  border-bottom: var(--border-width) solid var(--color-border);
 }
 
 .inspector-card h4 {
-  margin: 0 0 10px;
-  font-size: 13px;
+  margin: 0 0 var(--space-2);
+  color: var(--color-text-subtle);
+  font-size: var(--text-caption-size);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--text-caps-tracking);
+  text-transform: uppercase;
 }
 
 .metric {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: 12px;
-  padding: 5px 0;
-  color: #66728b;
-  font-size: 11px;
+  gap: var(--space-3);
+  padding: var(--space-1) 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-small-size);
 }
 
 .metric strong {
-  color: #293653;
-  font-size: 11px;
-  font-weight: 500;
+  color: var(--color-text);
+  font-weight: var(--weight-medium);
+  font-variant-numeric: tabular-nums;
   text-align: right;
 }
 
@@ -99,60 +105,49 @@
   display: flex;
   height: 114px;
   align-items: flex-end;
-  gap: 4px;
-  padding: 7px 3px 0;
-  border-bottom: 1px solid #dfe3ec;
-  background: repeating-linear-gradient(to bottom, transparent 0 27px, #edf0f5 28px);
+  gap: var(--space-0-5);
+  padding-top: var(--space-1-5);
+  border-bottom: var(--border-width) solid var(--color-border-strong);
 }
 
 .histogram span {
   flex: 1;
   min-width: 5px;
-  background: linear-gradient(180deg, #b66bd1, var(--purple));
-  border-radius: 2px 2px 0 0;
+  background: var(--color-chart-1);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
 
 .range-labels {
   display: flex;
   justify-content: space-between;
-  padding-top: 5px;
-  color: #8791a4;
-  font-size: 10px;
+  padding-top: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-small-size);
+  font-variant-numeric: tabular-nums;
 }
 
 .empty-inspector {
-  padding: 12px;
-  color: var(--muted);
-  font-size: 12px;
+  padding: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--text-small-size);
 }
 
 .workflow-card {
-  scroll-margin-top: 14px;
+  scroll-margin-top: var(--space-3);
 }
 
 .workflow-card label {
   display: block;
-  margin: 10px 0 7px;
-  font-size: 12px;
+  margin: var(--space-2) 0 var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-small-size);
+  font-weight: var(--weight-medium);
 }
 
 .workflow-card input,
 .workflow-card select,
 .workflow-card textarea {
   max-width: 100%;
-  padding: 9px 10px;
-  border: 1px solid #cbd1dd;
-  border-radius: 6px;
-}
-
-.workflow-card > button,
-.workflow-card .row > button {
-  padding: 8px 11px;
-  color: #fff;
-  background: var(--purple);
-  border: 0;
-  border-radius: 6px;
-  font-size: 12px;
 }
 
 .workflow-card .row {
@@ -160,65 +155,28 @@
 }
 
 .workflow-card .report {
-  margin-top: 12px;
+  margin-top: var(--space-3);
 }
 
-.data-primary > [role='status'] {
-  padding: 10px 2px;
-  color: #45526e;
-  font-size: 12px;
-}
-
-@media (max-width: 1000px) {
-  .data-layout {
-    grid-template-columns: minmax(0, 1fr) 250px;
-  }
-
+@media (max-width: 900px) {
   .table-toolbar {
     flex-wrap: wrap;
   }
 }
 
-@media (max-width: 760px) {
-  .data-layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .inspector {
-    position: static;
-    max-height: none;
-    padding: 12px;
-    background: #fff;
-    border: 1px solid var(--line);
-    border-radius: 9px;
-  }
-
+@media (max-width: 620px) {
   .table-footer {
     align-items: flex-start;
     flex-direction: column;
-  }
-}
-
-@media (max-width: 500px) {
-  .preview-selection {
-    display: none;
   }
 
   .search-box {
     flex-basis: 100%;
   }
 
-  .table-footer {
-    padding: 8px;
-  }
-
   .pagination-controls {
     width: 100%;
     justify-content: space-between;
-  }
-
-  .pagination-controls label {
-    max-width: 70px;
   }
 
   .compare {

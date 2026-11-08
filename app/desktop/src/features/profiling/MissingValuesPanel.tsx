@@ -36,7 +36,7 @@ export function MissingValuesPanel({
           <button
             ref={trigger}
             type="button"
-            className="profile-link-button"
+            className="btn btn-link"
             onClick={() => setShowAll(true)}
           >
             Show all ({missing.length})
@@ -60,7 +60,7 @@ export function MissingValuesPanel({
         >
           <div className="profile-panel-heading">
             <h3>All missing values</h3>
-            <button type="button" className="profile-link-button" onClick={close}>
+            <button type="button" className="btn btn-link" onClick={close}>
               Close
             </button>
           </div>

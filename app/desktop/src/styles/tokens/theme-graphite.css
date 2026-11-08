@@ -1,0 +1,114 @@
+/*
+ * Colour theme: Graphite (default): true grays, dark title bar, teal accent.
+ * Generated from design/chosen-theme.md. Edit the palette there first, then here.
+ * [data-theme-preview] scopes the theme to one element (Settings swatches).
+ * The --graphite-* primitives are private: only the semantic --color-* tokens below may use them.
+ * Every role passes WCAG AA (tests/unit/styles/designTokens.test.ts).
+ */
+:root {
+  --graphite-amber-29: #322916;
+  --graphite-amber-54: #946300;
+  --graphite-amber-72: #d29922;
+  --graphite-amber-95: #f4efe6;
+  --graphite-blue-29: #1f2b3a;
+  --graphite-blue-54: #0969da;
+  --graphite-blue-72: #58a6ff;
+  --graphite-blue-95: #e6f0fb;
+  --graphite-gray-0: #000000;
+  --graphite-gray-15: #0a0a0a;
+  --graphite-gray-18: #111111;
+  --graphite-gray-19: #141414;
+  --graphite-gray-21: #18181b;
+  --graphite-gray-23: #1c1c1c;
+  --graphite-gray-29: #2b2b2b;
+  --graphite-gray-41: #4a4a4a;
+  --graphite-gray-50: #636363;
+  --graphite-gray-54: #6e6e6e;
+  --graphite-gray-60: #7f7f7f;
+  --graphite-gray-65: #8f8f8f;
+  --graphite-gray-76: #b0b0b0;
+  --graphite-gray-89: #d9d9d9;
+  --graphite-gray-95: #ededed;
+  --graphite-gray-96: #f2f2f2;
+  --graphite-gray-97: #f4f4f5;
+  --graphite-gray-99: #fafafa;
+  --graphite-gray-100: #ffffff;
+  --graphite-green-28: #1b2e1e;
+  --graphite-green-49: #177432;
+  --graphite-green-70: #3fb950;
+  --graphite-green-95: #e8f1eb;
+  --graphite-purple-71: #a1a1aa;
+  --graphite-red-27: #381e1c;
+  --graphite-red-55: #cf222e;
+  --graphite-red-67: #f85149;
+  --graphite-red-95: #fae9ea;
+  --graphite-teal-22: #04201e;
+  --graphite-teal-28: #0f2e2c;
+  --graphite-teal-43: #075b57;
+  --graphite-teal-50: #0a726d;
+  --graphite-teal-75: #2fc7bd;
+  --graphite-teal-81: #5ad6ce;
+  --graphite-teal-95: #e2f2f1;
+}
+
+:root,
+:root[data-theme='graphite'],
+[data-theme-preview='graphite'] {
+  color-scheme: light;
+  --color-bg: var(--graphite-gray-96);
+  --color-surface: var(--graphite-gray-100);
+  --color-surface-raised: var(--graphite-gray-99);
+  --color-border: var(--graphite-gray-89);
+  --color-border-strong: var(--graphite-gray-60);
+  --color-text: var(--graphite-gray-18);
+  --color-text-muted: var(--graphite-gray-41);
+  --color-text-subtle: var(--graphite-gray-50);
+  --color-accent: var(--graphite-teal-50);
+  --color-accent-hover: var(--graphite-teal-43);
+  --color-accent-contrast: var(--graphite-gray-100);
+  --color-accent-soft: var(--graphite-teal-95);
+  --color-success: var(--graphite-green-49);
+  --color-success-soft: var(--graphite-green-95);
+  --color-warning: var(--graphite-amber-54);
+  --color-warning-soft: var(--graphite-amber-95);
+  --color-danger: var(--graphite-red-55);
+  --color-danger-soft: var(--graphite-red-95);
+  --color-info: var(--graphite-blue-54);
+  --color-info-soft: var(--graphite-blue-95);
+  --color-chrome: var(--graphite-gray-21);
+  --color-chrome-text: var(--graphite-gray-97);
+  --color-chrome-muted: var(--graphite-purple-71);
+  --color-chrome-border: var(--graphite-gray-21);
+  --color-chart-2: var(--graphite-gray-50);
+}
+
+:root[data-mode='dark']:not([data-theme]),
+:root[data-theme='graphite'][data-mode='dark'],
+:root[data-mode='dark'] [data-theme-preview='graphite'] {
+  color-scheme: dark;
+  --color-bg: var(--graphite-gray-15);
+  --color-surface: var(--graphite-gray-19);
+  --color-surface-raised: var(--graphite-gray-23);
+  --color-border: var(--graphite-gray-29);
+  --color-border-strong: var(--graphite-gray-54);
+  --color-text: var(--graphite-gray-95);
+  --color-text-muted: var(--graphite-gray-76);
+  --color-text-subtle: var(--graphite-gray-65);
+  --color-accent: var(--graphite-teal-75);
+  --color-accent-hover: var(--graphite-teal-81);
+  --color-accent-contrast: var(--graphite-teal-22);
+  --color-accent-soft: var(--graphite-teal-28);
+  --color-success: var(--graphite-green-70);
+  --color-success-soft: var(--graphite-green-28);
+  --color-warning: var(--graphite-amber-72);
+  --color-warning-soft: var(--graphite-amber-29);
+  --color-danger: var(--graphite-red-67);
+  --color-danger-soft: var(--graphite-red-27);
+  --color-info: var(--graphite-blue-72);
+  --color-info-soft: var(--graphite-blue-29);
+  --color-chrome: var(--graphite-gray-0);
+  --color-chrome-text: var(--graphite-gray-95);
+  --color-chrome-muted: var(--graphite-purple-71);
+  --color-chrome-border: var(--graphite-gray-0);
+  --color-chart-2: var(--graphite-gray-65);
+}

@@ -3,7 +3,7 @@
   display: flex;
   flex: 1 1 0;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2);
   min-height: 210px;
   /* The toolbar keeps its padding; the table frame runs to the card edges. */
   padding: 0;
@@ -13,13 +13,13 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  padding: 8px 10px 0;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2) 0;
 }
 
 .profile-table-toolbar h3 {
-  margin: 0 8px 0 0;
-  font-size: 14px;
+  margin: 0 var(--space-2) 0 0;
+  font-size: var(--text-body-lg-size);
 }
 
 .profile-table-toolbar input[type='search'] {
@@ -29,8 +29,8 @@
 
 .profile-table-count {
   margin-left: auto;
-  color: var(--muted);
-  font-size: 12px;
+  color: var(--color-text-muted);
+  font-size: var(--text-small-size);
 }
 
 /* The table scrolls inside its region; the page itself never scrolls sideways. */
@@ -38,20 +38,20 @@
   flex: 1 1 0;
   min-height: 0;
   overflow: auto;
-  border-top: 1px solid var(--line);
+  border-top: var(--border-width) solid var(--color-border);
 }
 
 .profile-table {
   width: 100%;
   min-width: 860px;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: var(--text-body-size);
 }
 
 .profile-table th,
 .profile-table td {
-  padding: 6px 10px;
-  border-bottom: 1px solid var(--line);
+  padding: var(--space-1-5) var(--space-2);
+  border-bottom: var(--border-width) solid var(--color-border);
   text-align: left;
   white-space: nowrap;
 }
@@ -59,10 +59,10 @@
 .profile-table th {
   position: sticky;
   top: 0;
-  z-index: 1;
-  color: var(--muted);
-  background: #f7f8fb;
-  font-weight: 600;
+  z-index: var(--z-sticky);
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  font-weight: var(--weight-semibold);
 }
 
 .profile-table th button {
@@ -84,19 +84,21 @@
 .type-tag {
   display: inline-block;
   min-width: 30px;
-  margin-right: 6px;
-  padding: 1px 4px;
-  border-radius: 4px;
-  color: var(--purple);
-  background: var(--purple-soft);
-  font-size: 11px;
+  margin-right: var(--space-1-5);
+  padding: 0 var(--space-1);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption-size);
   text-align: center;
 }
 
 .profile-cell-completeness {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .completeness-value {
@@ -109,46 +111,46 @@
   min-width: 60px;
   height: 6px;
   overflow: hidden;
-  border-radius: 3px;
-  background: var(--track);
+  border-radius: var(--radius-control);
+  background: var(--color-border);
 }
 
 .completeness-bar span {
   display: block;
   height: 100%;
-  background: var(--good);
+  background: var(--color-success);
 }
 
 .quality-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 12px;
+  gap: var(--space-1-5);
+  padding: var(--space-0-5) var(--space-2);
+  border-radius: var(--radius-panel);
+  font-size: var(--text-small-size);
 }
 
 .quality-badge::before {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: var(--radius-round);
   background: currentColor;
   content: '';
 }
 
 .quality-badge-good {
-  color: var(--good);
-  background: #e6f4ec;
+  color: var(--color-success);
+  background: var(--color-bg);
 }
 
 .quality-badge-needs_attention {
-  color: var(--warning);
-  background: #fff4e0;
+  color: var(--color-warning);
+  background: var(--color-warning-soft);
 }
 
 .quality-badge-poor {
-  color: var(--alert);
-  background: #fde8ec;
+  color: var(--color-danger);
+  background: var(--color-bg);
 }
 
 .profile-cell-menu {
@@ -158,13 +160,7 @@
 .profile-table-empty {
   display: grid;
   justify-items: start;
-  gap: 8px;
-  padding: 16px;
-  color: var(--muted);
-}
-
-.workflow-card .profile-table-toolbar input,
-.workflow-card .profile-table-toolbar select {
-  padding: 5px 8px;
-  font-size: 13px;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  color: var(--color-text-muted);
 }

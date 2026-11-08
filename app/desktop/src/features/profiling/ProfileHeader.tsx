@@ -43,7 +43,7 @@ export function ProfileHeader({
           <div className="profile-progress">
             <progress aria-label="Profiling progress" max={1} value={progress ?? 0} />
             <span>{message || 'Profiling…'}</span>
-            <button type="button" onClick={onCancel}>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={onCancel}>
               Cancel
             </button>
           </div>
@@ -61,7 +61,7 @@ export function ProfileHeader({
         )}
         <button
           type="button"
-          className="profile-icon-button"
+          className="btn btn-icon"
           aria-label="Refresh profile"
           title="Refresh profile"
           disabled={running}
@@ -80,6 +80,7 @@ export function ProfileHeader({
         </label>
         <button
           type="button"
+          className="btn btn-primary"
           disabled={reportHint !== null}
           title={reportHint ?? 'Save this profile as an HTML file you can share'}
           onClick={onReport}

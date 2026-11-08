@@ -52,7 +52,7 @@ export function StepCard({
       <button
         type="button"
         role="switch"
-        className="step-switch"
+        className="switch step-switch"
         aria-checked={step.enabled}
         aria-label={`Enable step ${position}`}
         title={step.enabled ? 'Turn this step off' : 'Turn this step on'}

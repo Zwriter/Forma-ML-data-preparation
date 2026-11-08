@@ -1,0 +1,120 @@
+/* Button: the one shared implementation (DESIGN_RULES.md section 7, Button). */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1-5);
+  height: var(--size-control);
+  padding: 0 var(--space-3);
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text);
+  font-size: var(--text-body-size);
+  font-weight: var(--weight-semibold);
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+}
+
+.btn svg {
+  flex: none;
+  width: var(--size-icon-sm);
+  height: var(--size-icon-sm);
+}
+
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+.btn[aria-busy='true'] {
+  cursor: progress;
+  pointer-events: none;
+}
+
+.btn-sm {
+  height: var(--size-control-sm);
+  padding: 0 var(--space-2);
+  font-size: var(--text-small-size);
+}
+
+.btn-primary {
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.btn-secondary {
+  background: var(--color-surface);
+  border-color: var(--color-border-strong);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--color-bg);
+}
+
+.btn-ghost {
+  font-weight: var(--weight-medium);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--color-accent-soft);
+}
+
+.btn-danger {
+  background: var(--color-surface);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--color-danger-soft);
+}
+
+.btn-icon {
+  width: var(--size-control);
+  padding: 0;
+  border-color: var(--color-border-strong);
+  color: var(--color-text-muted);
+}
+
+.btn-icon.btn-sm {
+  width: var(--size-control-sm);
+}
+
+.btn-icon:hover:not(:disabled) {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.btn-icon.btn-bare {
+  border-color: transparent;
+}
+
+.btn-link {
+  height: auto;
+  padding: 0;
+  color: var(--color-accent);
+  font-weight: var(--weight-medium);
+}
+
+.btn-link:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+/* Toggle buttons (aria-pressed) read as selected with the accent. */
+.btn[aria-pressed='true']:not(.btn-primary) {
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+}

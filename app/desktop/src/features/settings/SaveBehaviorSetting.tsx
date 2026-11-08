@@ -6,7 +6,7 @@ export function SaveBehaviorSetting() {
   const setBehavior = useSettingsStore((state) => state.setSaveBehavior);
 
   return (
-    <fieldset className="save-behavior-setting">
+    <fieldset className="setting-group save-behavior-setting">
       <legend>Save behavior</legend>
       <p>Choose where Save writes your changes.</p>
       <label>

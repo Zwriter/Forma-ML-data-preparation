@@ -1,0 +1,25 @@
+/* A group of related settings: fieldset with a legend, short help text and its controls. */
+.setting-group {
+  display: grid;
+  max-width: 560px;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  margin: var(--space-6) 0 0;
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-panel);
+}
+
+.setting-group legend {
+  padding: 0 var(--space-1-5);
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size: var(--text-title-size);
+  font-weight: var(--weight-semibold);
+}
+
+.setting-group > p {
+  margin: 0 0 var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-small-size);
+}

@@ -178,7 +178,7 @@ describe('import-clean-export desktop flow', () => {
     render(<App />);
     importFile('source.csv');
     await screen.findByText('Dataset overview');
-    expect(screen.getAllByRole('row')).toHaveLength(4);
+    expect(screen.getAllByRole('row')).toHaveLength(3); // 2 records + one header row
     const sourceSnapshot = useDatasetStore.getState().sourceDataset;
 
     fireEvent.click(screen.getByRole('link', { name: 'Clean' }));
@@ -259,7 +259,7 @@ describe('import-clean-export desktop flow', () => {
     await waitFor(() =>
       expect(useDatasetStore.getState().dataset?.dataset_id).toBe('csv-output-1'),
     );
-    expect(screen.getAllByRole('row')).toHaveLength(3);
+    expect(screen.getAllByRole('row')).toHaveLength(2); // 1 record + one header row
 
     fireEvent.click(screen.getByRole('link', { name: 'Export' }));
     fireEvent.change(screen.getByLabelText('Destination path'), {

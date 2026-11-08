@@ -63,6 +63,7 @@ export function SuggestionCard({
       {suggestion.examples?.length ? <Examples suggestion={suggestion} /> : null}
       <div className="suggestion-actions">
         <button
+          className="btn btn-primary btn-sm"
           type="button"
           aria-disabled={added}
           onClick={() => !added && addCleanSteps(suggestion.steps, suggestion.title)}
@@ -70,7 +71,7 @@ export function SuggestionCard({
           {added ? 'Added' : 'Add step'}
         </button>
         {onDismiss && (
-          <button type="button" onClick={onDismiss}>
+          <button className="btn btn-ghost btn-sm" type="button" onClick={onDismiss}>
             Dismiss
           </button>
         )}

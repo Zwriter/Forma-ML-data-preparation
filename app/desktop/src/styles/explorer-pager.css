@@ -1,0 +1,94 @@
+/* Worksheet empty state, pager strip and the column details popover. */
+.table-empty {
+  min-height: 120px;
+  padding: var(--space-8) var(--space-4);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.table-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-3);
+  color: var(--color-text-muted);
+  border-top: var(--border-width) solid var(--color-border);
+  font-size: var(--text-small-size);
+  font-variant-numeric: tabular-nums;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+}
+
+.pagination-controls label {
+  white-space: nowrap;
+}
+
+.pagination-controls select {
+  height: var(--size-control-sm);
+  font-size: var(--text-small-size);
+}
+
+.pagination-controls button {
+  display: grid;
+  width: var(--size-control-sm);
+  height: var(--size-control-sm);
+  place-items: center;
+  padding: 0;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  font-size: var(--text-title-size);
+  line-height: 1;
+}
+
+.pagination-controls button:hover:not(:disabled) {
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+.page-number {
+  display: grid;
+  min-width: var(--size-control-sm);
+  height: var(--size-control-sm);
+  place-items: center;
+  padding: 0 var(--space-1);
+  color: var(--color-accent-contrast);
+  background: var(--color-accent);
+  border-radius: var(--radius-sm);
+  font-weight: var(--weight-semibold);
+}
+
+.spreadsheet-stage {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+.column-details-popover {
+  position: fixed;
+  z-index: var(--z-popup);
+  top: 200px;
+  right: var(--space-3);
+  width: min(300px, calc(100% - var(--space-6)));
+  max-height: min(70vh, 620px);
+  overflow: auto;
+  padding: var(--space-3);
+  background: var(--color-surface-raised);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-popup);
+}
+
+.column-details-popover .inspector {
+  position: static;
+  max-height: none;
+  overflow: visible;
+}

@@ -126,7 +126,7 @@ export function WorkspaceContent({
           <p className="eyebrow">LOCAL DATA WORKSPACE</p>
           <h1>Start with a dataset</h1>
           <p>Open a CSV or Parquet file to explore its schema and records.</p>
-          <button type="button" disabled={busy} onClick={onBrowse}>
+          <button className="btn btn-primary" type="button" disabled={busy} onClick={onBrowse}>
             {busy ? 'Importing…' : 'Import file'}
           </button>
         </section>

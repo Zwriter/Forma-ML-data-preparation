@@ -1,47 +1,25 @@
-.history-limit-setting {
-  display: grid;
-  max-width: 520px;
-  gap: 8px;
-  padding: 16px;
-  margin: 18px 0 0;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  background: #fbfcfe;
-}
-
-.history-limit-setting legend {
-  padding: 0 6px;
-  color: var(--ink);
-  font-size: 14px;
-  font-weight: 650;
-}
-
-.history-limit-setting p,
-.history-limit-setting small {
-  margin: 0;
-  color: var(--muted);
-  font-size: 12px;
-}
-
+/* Number settings (undo history, rows per page) inside a .setting-group. */
 .history-limit-setting label {
-  color: var(--ink);
-  font-size: 12px;
-  font-weight: 600;
+  color: var(--color-text-muted);
+  font-size: var(--text-small-size);
+  font-weight: var(--weight-medium);
 }
 
 .history-limit-setting input {
-  width: 100px;
-  padding: 7px 9px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  color: var(--ink);
-  font: inherit;
+  width: 120px;
+}
+
+.history-limit-setting small {
+  color: var(--color-text-muted);
+  font-size: var(--text-small-size);
 }
 
 .history-limit-setting .setting-warning {
-  padding: 8px 10px;
-  border: 1px solid #e8c77a;
-  border-radius: 6px;
-  background: #fff8e6;
-  color: #6b4a00;
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width) solid var(--color-warning);
+  border-radius: var(--radius-control);
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
+  font-size: var(--text-small-size);
 }

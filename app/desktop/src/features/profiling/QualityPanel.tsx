@@ -44,7 +44,7 @@ export function QualityPanel({
         {exporting ? (
           <span className="profile-panel-status">
             Exporting…{' '}
-            <button type="button" className="profile-link-button" onClick={onCancelExport}>
+            <button type="button" className="btn btn-link" onClick={onCancelExport}>
               Cancel export
             </button>
           </span>
@@ -52,7 +52,7 @@ export function QualityPanel({
           onExport && (
             <button
               type="button"
-              className="profile-link-button"
+              className="btn btn-link"
               disabled={exportHint !== null}
               title={exportHint ?? 'Save the rows with invalid values, with a reject reason'}
               onClick={onExport}

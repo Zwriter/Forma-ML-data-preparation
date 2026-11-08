@@ -33,15 +33,19 @@ export function SaveConfirmDialog({ mode, destination, onSave, onDiscard, onCanc
               : 'Saving will replace the file at its current location.'}
         </p>
         <div className="dialog-actions">
-          <button type="button" onClick={() => onSave(mode === 'overwrite')}>
+          <button
+            className="btn btn-primary"
+            type="button"
+            onClick={() => onSave(mode === 'overwrite')}
+          >
             {closing ? 'Save' : 'Replace file'}
           </button>
           {closing && (
-            <button type="button" className="quiet-button" onClick={onDiscard}>
+            <button type="button" className="btn btn-danger" onClick={onDiscard}>
               Discard changes
             </button>
           )}
-          <button type="button" className="quiet-button" onClick={onCancel}>
+          <button type="button" className="btn btn-secondary" onClick={onCancel}>
             Cancel
           </button>
         </div>

@@ -97,7 +97,9 @@ describe('Clean tab workflow', () => {
     expect(screen.getByText('N/A')).toBeTruthy();
 
     rerender(<Workspace activeTab="Clean" />);
-    expect((screen.getByPlaceholderText(/Search preview/) as HTMLInputElement).value).toBe('Oslo');
+    expect((screen.getByPlaceholderText(/Search rows or columns/) as HTMLInputElement).value).toBe(
+      'Oslo',
+    );
     act(() => useCleaningStore.getState().openForm('replace_values'));
     const dialog = within(screen.getByRole('dialog', { name: 'Replace values' }));
     fireEvent.click(dialog.getByLabelText('code'));

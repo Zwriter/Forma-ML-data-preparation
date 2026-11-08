@@ -33,10 +33,14 @@ export function ExportDialog({
           onChange={(event) => setDestination(event.target.value)}
           placeholder="Choose output path"
         />
-        <button disabled={busy} onClick={() => void browse('csv')}>
+        <button className="btn btn-secondary" disabled={busy} onClick={() => void browse('csv')}>
           Browse CSV
         </button>
-        <button disabled={busy} onClick={() => void browse('parquet')}>
+        <button
+          className="btn btn-secondary"
+          disabled={busy}
+          onClick={() => void browse('parquet')}
+        >
           Browse Parquet
         </button>
       </div>
@@ -50,12 +54,14 @@ export function ExportDialog({
       </label>
       <div className="row">
         <button
+          className="btn btn-primary"
           disabled={busy || !destination}
           onClick={() => onExport(destination, 'csv', overwrite)}
         >
           Export CSV
         </button>
         <button
+          className="btn btn-secondary"
           disabled={busy || !destination}
           onClick={() => onExport(destination, 'parquet', overwrite)}
         >

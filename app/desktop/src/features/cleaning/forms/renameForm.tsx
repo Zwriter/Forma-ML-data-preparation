@@ -35,7 +35,7 @@ export function RenameForm({ parameters: p, columns, onChange, errorFor }: StepF
           {rows.length > 1 && (
             <button
               type="button"
-              className="rename-remove"
+              className="btn btn-icon btn-bare btn-sm rename-remove"
               aria-label={`Remove rename ${index + 1}`}
               title="Remove"
               onClick={() => update(rows.filter((_, at) => at !== index))}
@@ -46,6 +46,7 @@ export function RenameForm({ parameters: p, columns, onChange, errorFor }: StepF
         </fieldset>
       ))}
       <button
+        className="btn btn-ghost btn-sm"
         type="button"
         disabled={!unused.length}
         onClick={() => update([...rows, [unused[0].name, '']])}

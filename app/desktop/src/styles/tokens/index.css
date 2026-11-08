@@ -1,0 +1,10 @@
+/*
+ * Design tokens entry point. Rules: DESIGN_RULES.md (repo root).
+ * Colour theme: data-theme on <html> (graphite default, ledger, paper, orchid).
+ * Mode: data-mode='dark' on <html>; absent means light. "System" is resolved in JS.
+ */
+@import './scale.css';
+@import './theme-graphite.css';
+@import './theme-ledger.css';
+@import './theme-paper.css';
+@import './theme-orchid.css';

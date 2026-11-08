@@ -26,7 +26,7 @@ function Body({ entry, hasProfile, onRetry, onProfile, children }: Props) {
     return (
       <div className="profile-empty">
         <p>Profile the dataset first</p>
-        <button type="button" onClick={onProfile}>
+        <button className="btn btn-primary" type="button" onClick={onProfile}>
           Profile now
         </button>
       </div>
@@ -35,7 +35,7 @@ function Body({ entry, hasProfile, onRetry, onProfile, children }: Props) {
     return (
       <p className="profile-error" role="alert">
         {entry.error?.message ?? 'The tool could not run.'}{' '}
-        <button type="button" onClick={onRetry}>
+        <button className="btn btn-secondary" type="button" onClick={onRetry}>
           Try again
         </button>
       </p>
@@ -65,7 +65,7 @@ export function ToolView(props: Props) {
   return (
     <section className="profile-tool" role="region" aria-label={title}>
       <header className="profile-tool-header">
-        <button type="button" className="profile-tool-back" onClick={onBack}>
+        <button type="button" className="btn btn-ghost btn-sm profile-tool-back" onClick={onBack}>
           <Icon name="back" />
           Back to dashboard
         </button>
@@ -79,7 +79,7 @@ export function ToolView(props: Props) {
           <div className="profile-progress">
             <progress aria-label="Tool progress" max={1} value={entry.progress ?? 0} />
             <span>{entry.message || 'Working…'}</span>
-            <button type="button" onClick={onCancel}>
+            <button className="btn btn-secondary" type="button" onClick={onCancel}>
               Cancel
             </button>
           </div>

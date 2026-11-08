@@ -25,18 +25,18 @@ export function DraftActions({
     <div className="draft-actions">
       <button
         type="button"
-        className="quiet-button"
+        className="btn btn-ghost"
         disabled={!stepCount || running}
         onClick={() => setConfirming(true)}
       >
         Cancel
       </button>
       {running ? (
-        <button type="button" onClick={onStop}>
+        <button className="btn btn-secondary" type="button" onClick={onStop}>
           Stop
         </button>
       ) : (
-        <button type="button" disabled={!canApply} onClick={onApply}>
+        <button className="btn btn-primary" type="button" disabled={!canApply} onClick={onApply}>
           Apply {plural(enabledCount)}
         </button>
       )}
@@ -60,6 +60,7 @@ export function DraftActions({
             <p>The dataset stays unchanged.</p>
             <div className="dialog-actions">
               <button
+                className="btn btn-danger"
                 type="button"
                 onClick={() => {
                   setConfirming(false);
@@ -70,7 +71,7 @@ export function DraftActions({
               </button>
               <button
                 type="button"
-                className="quiet-button"
+                className="btn btn-secondary"
                 autoFocus
                 onClick={() => setConfirming(false)}
               >

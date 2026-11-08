@@ -52,7 +52,7 @@ export function StepsPanel({
         />
         <button
           type="button"
-          className="quiet-button steps-panel-collapse"
+          className="btn btn-icon btn-bare btn-sm steps-panel-collapse"
           aria-label="Collapse steps panel"
           title="Collapse"
           aria-expanded={true}

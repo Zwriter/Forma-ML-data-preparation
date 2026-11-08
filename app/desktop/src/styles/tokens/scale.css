@@ -1,0 +1,130 @@
+/*
+ * Theme-independent tokens: type, spacing, sizes, radius, elevation, motion, layering.
+ * Shape and density are fixed (Graphite shape, Ledger worksheet); see DESIGN_RULES.md.
+ * Primitives (--prim-*) are private to this folder. Components use the semantic tokens.
+ */
+:root {
+  /* Primitives */
+  --prim-px-2: 2px;
+  --prim-px-3: 3px;
+  --prim-px-4: 4px;
+  --prim-px-6: 6px;
+  --prim-px-8: 8px;
+  --prim-px-11: 11px;
+  --prim-px-12: 12px;
+  --prim-px-13: 13px;
+  --prim-px-14: 14px;
+  --prim-px-16: 16px;
+  --prim-px-18: 18px;
+  --prim-px-20: 20px;
+  --prim-px-24: 24px;
+  --prim-px-26: 26px;
+  --prim-px-28: 28px;
+  --prim-px-30: 30px;
+  --prim-px-32: 32px;
+  --prim-px-34: 34px;
+  --prim-px-36: 36px;
+
+  /* Font families (bundled woff2, system fallback) */
+  --font-display: 'Space Grotesk', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Geist Variable', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'Geist Mono Variable', 'Cascadia Mono', Consolas, monospace;
+
+  /* Type roles: size / line height */
+  --text-caption-size: var(--prim-px-11);
+  --text-caption-leading: 1.4;
+  --text-small-size: var(--prim-px-12);
+  --text-small-leading: 1.4;
+  --text-body-size: var(--prim-px-13);
+  --text-body-leading: 1.45;
+  --text-body-lg-size: var(--prim-px-14);
+  --text-body-lg-leading: 1.45;
+  --text-title-size: var(--prim-px-16);
+  --text-title-leading: 1.3;
+  --text-heading-size: var(--prim-px-20);
+  --text-heading-leading: 1.25;
+  --text-display-size: var(--prim-px-26);
+  --text-display-leading: 1.2;
+  --text-caps-tracking: 0.08em;
+
+  /* Weights */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  /* Spacing: 4px base */
+  --space-0-5: var(--prim-px-2);
+  --space-1: var(--prim-px-4);
+  --space-1-5: var(--prim-px-6);
+  --space-2: var(--prim-px-8);
+  --space-3: var(--prim-px-12);
+  --space-4: var(--prim-px-16);
+  --space-5: var(--prim-px-20);
+  --space-6: var(--prim-px-24);
+  --space-8: var(--prim-px-32);
+
+  /* Sizes */
+  --size-control: var(--prim-px-28);
+  --size-control-sm: var(--prim-px-24);
+  --size-row: var(--prim-px-30);
+  --size-header-row: var(--prim-px-36);
+  --size-titlebar: var(--prim-px-34);
+  --size-icon: var(--prim-px-20);
+  --size-icon-sm: var(--prim-px-16);
+  --size-checkbox: var(--prim-px-16);
+  --size-switch-width: var(--prim-px-32);
+  --size-switch-height: var(--prim-px-18);
+  --size-row-number: 44px;
+  --size-ribbon-button-min: 48px;
+  --size-popup-width: 320px;
+
+  /* Borders and radius: sharp */
+  --border-width: 1px;
+  --border-width-strong: var(--prim-px-2);
+  --radius-sm: var(--prim-px-2);
+  --radius-control: var(--prim-px-2);
+  --radius-panel: var(--prim-px-3);
+  --radius-round: 50%;
+
+  /* Elevation: borders only, one shadow for floating layers */
+  --shadow-none: none;
+  --shadow-popup: 0 0 0 1px rgb(0 0 0 / 6%), 0 8px 20px rgb(0 0 0 / 18%);
+
+  /* Motion: colour changes only */
+  --duration-instant: 0ms;
+  --duration-fast: 80ms;
+  --duration-slow: 120ms;
+  --ease-standard: linear;
+
+  /* Focus */
+  --focus-ring-width: var(--prim-px-2);
+  --focus-ring-offset: var(--prim-px-2);
+  --focus-halo-width: var(--prim-px-3);
+
+  /* States */
+  --opacity-disabled: 0.45;
+
+  /* Layering */
+  --z-raised: 1;
+  --z-sticky: 2;
+  --z-overlay: 20;
+  --z-popup: 1000;
+  --z-toast: 1100;
+
+  /* Derived colour roles, identical formula in every colour theme */
+  --color-row-hover: color-mix(in srgb, var(--color-accent-soft) 55%, transparent);
+  --color-focus: var(--color-accent);
+  --color-chart-1: var(--color-accent);
+  --color-scrim: rgb(0 0 0 / 40%);
+}
+
+:root[data-mode='dark'] {
+  --shadow-popup: 0 0 0 1px rgb(0 0 0 / 40%), 0 8px 24px rgb(0 0 0 / 50%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-slow: 0ms;
+  }
+}

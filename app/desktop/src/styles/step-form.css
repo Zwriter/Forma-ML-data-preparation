@@ -2,16 +2,16 @@
 .step-form-dialog > label.check {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-weight: 500;
+  gap: var(--space-1-5);
+  font-weight: var(--weight-medium);
   cursor: pointer;
 }
 
 .step-form-dialog legend {
-  padding: 0 4px;
-  color: #4c5874;
-  font-size: 12px;
-  font-weight: 600;
+  padding: 0 0 var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-small-size);
+  font-weight: var(--weight-medium);
 }
 
 .column-checklist {
@@ -23,13 +23,13 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
   align-items: end;
-  gap: 0.55rem;
+  gap: var(--space-2);
 }
 
 .step-form-dialog .rename-row label {
   display: grid;
-  gap: 0.3rem;
-  font-weight: 600;
+  gap: var(--space-1);
+  font-weight: var(--weight-medium);
   cursor: default;
 }
 
@@ -41,8 +41,5 @@
 .step-form-dialog .rename-remove {
   grid-row: 1;
   grid-column: 3;
-  min-width: 38px;
-  min-height: 38px;
-  padding: 0;
-  font-size: 16px;
+  margin-bottom: var(--space-0-5);
 }

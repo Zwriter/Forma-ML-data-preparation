@@ -1,0 +1,109 @@
+/*
+ * Colour theme: Orchid: lavender-tinted, Forma purple accent, mint second chart series.
+ * Generated from design/chosen-theme.md. Edit the palette there first, then here.
+ * [data-theme-preview] scopes the theme to one element (Settings swatches).
+ * The --orchid-* primitives are private: only the semantic --color-* tokens below may use them.
+ * Every role passes WCAG AA (tests/unit/styles/designTokens.test.ts).
+ */
+:root {
+  --orchid-amber-81: #f0b75a;
+  --orchid-blue-31: #283337;
+  --orchid-blue-32: #2a3145;
+  --orchid-blue-52: #0f6fa8;
+  --orchid-blue-79: #7cc4f2;
+  --orchid-blue-95: #e7f1f6;
+  --orchid-gray-100: #ffffff;
+  --orchid-green-50: #1a7548;
+  --orchid-green-79: #6fd39c;
+  --orchid-orange-52: #965600;
+  --orchid-orange-95: #f5eee6;
+  --orchid-purple-18: #120e1a;
+  --orchid-purple-19: #1a0b28;
+  --orchid-purple-21: #1a1524;
+  --orchid-purple-22: #1d1530;
+  --orchid-purple-25: #231c30;
+  --orchid-purple-28: #2f1d45;
+  --orchid-purple-31: #342b44;
+  --orchid-purple-31-2: #3f2839;
+  --orchid-purple-42: #66249a;
+  --orchid-purple-44: #554b6b;
+  --orchid-purple-49: #7e2fb5;
+  --orchid-purple-50: #675d7d;
+  --orchid-purple-55: #756b8c;
+  --orchid-purple-63: #8d84a3;
+  --orchid-purple-68: #9d93b1;
+  --orchid-purple-73: #c38bf0;
+  --orchid-purple-78: #bdb3d0;
+  --orchid-purple-80: #d4a8f5;
+  --orchid-purple-92: #e7e2f2;
+  --orchid-purple-94: #f1e8fa;
+  --orchid-purple-95: #efeaf7;
+  --orchid-purple-97: #f6f4fb;
+  --orchid-red-32: #3c2f2d;
+  --orchid-red-54: #c1264f;
+  --orchid-red-77: #ff8aa5;
+  --orchid-red-95: #f9e9ed;
+  --orchid-teal-57: #0e8a77;
+  --orchid-teal-80: #5fd6bd;
+  --orchid-teal-95: #e8f1ed;
+}
+
+:root[data-theme='orchid'],
+[data-theme-preview='orchid'] {
+  color-scheme: light;
+  --color-bg: var(--orchid-purple-97);
+  --color-surface: var(--orchid-gray-100);
+  --color-surface-raised: var(--orchid-gray-100);
+  --color-border: var(--orchid-purple-92);
+  --color-border-strong: var(--orchid-purple-63);
+  --color-text: var(--orchid-purple-22);
+  --color-text-muted: var(--orchid-purple-44);
+  --color-text-subtle: var(--orchid-purple-50);
+  --color-accent: var(--orchid-purple-49);
+  --color-accent-hover: var(--orchid-purple-42);
+  --color-accent-contrast: var(--orchid-gray-100);
+  --color-accent-soft: var(--orchid-purple-94);
+  --color-success: var(--orchid-green-50);
+  --color-success-soft: var(--orchid-teal-95);
+  --color-warning: var(--orchid-orange-52);
+  --color-warning-soft: var(--orchid-orange-95);
+  --color-danger: var(--orchid-red-54);
+  --color-danger-soft: var(--orchid-red-95);
+  --color-info: var(--orchid-blue-52);
+  --color-info-soft: var(--orchid-blue-95);
+  --color-chrome: var(--orchid-gray-100);
+  --color-chrome-text: var(--orchid-purple-22);
+  --color-chrome-muted: var(--orchid-purple-44);
+  --color-chrome-border: var(--orchid-purple-92);
+  --color-chart-2: var(--orchid-teal-57);
+}
+
+:root[data-theme='orchid'][data-mode='dark'],
+:root[data-mode='dark'] [data-theme-preview='orchid'] {
+  color-scheme: dark;
+  --color-bg: var(--orchid-purple-18);
+  --color-surface: var(--orchid-purple-21);
+  --color-surface-raised: var(--orchid-purple-25);
+  --color-border: var(--orchid-purple-31);
+  --color-border-strong: var(--orchid-purple-55);
+  --color-text: var(--orchid-purple-95);
+  --color-text-muted: var(--orchid-purple-78);
+  --color-text-subtle: var(--orchid-purple-68);
+  --color-accent: var(--orchid-purple-73);
+  --color-accent-hover: var(--orchid-purple-80);
+  --color-accent-contrast: var(--orchid-purple-19);
+  --color-accent-soft: var(--orchid-purple-28);
+  --color-success: var(--orchid-green-79);
+  --color-success-soft: var(--orchid-blue-31);
+  --color-warning: var(--orchid-amber-81);
+  --color-warning-soft: var(--orchid-red-32);
+  --color-danger: var(--orchid-red-77);
+  --color-danger-soft: var(--orchid-purple-31-2);
+  --color-info: var(--orchid-blue-79);
+  --color-info-soft: var(--orchid-blue-32);
+  --color-chrome: var(--orchid-purple-21);
+  --color-chrome-text: var(--orchid-purple-95);
+  --color-chrome-muted: var(--orchid-purple-78);
+  --color-chrome-border: var(--orchid-purple-31);
+  --color-chart-2: var(--orchid-teal-80);
+}

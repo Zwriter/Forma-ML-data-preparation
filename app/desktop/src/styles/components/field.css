@@ -1,0 +1,134 @@
+/* Text inputs, selects, checkboxes, radios and switches (DESIGN_RULES.md section 7). */
+.field {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.field > label,
+.field-label {
+  color: var(--color-text-muted);
+  font-size: var(--text-small-size);
+  font-weight: var(--weight-medium);
+}
+
+.input,
+.select,
+input[type='text'],
+input[type='search'],
+input[type='number'],
+input[type='email'],
+input:not([type]),
+select,
+textarea {
+  height: var(--size-control);
+  min-width: 0;
+  padding: 0 var(--space-2);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  color: var(--color-text);
+  font-size: var(--text-body-size);
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    box-shadow var(--duration-fast) var(--ease-standard);
+}
+
+textarea {
+  height: auto;
+  padding: var(--space-1-5) var(--space-2);
+}
+
+select,
+.select {
+  appearance: none;
+  padding-right: var(--space-6);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--color-text-muted) 50%),
+    linear-gradient(135deg, var(--color-text-muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 10px) 50%;
+  background-size: 4px 4px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+:is(input, select, textarea):hover:not(:disabled, :focus) {
+  border-color: var(--color-text-muted);
+}
+
+:is(.input, .select, input, select, textarea):focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 var(--focus-halo-width) var(--color-accent-soft);
+}
+
+:is(input, select, textarea)[aria-invalid='true'] {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 var(--focus-halo-width) var(--color-danger-soft);
+}
+
+:is(input, select, textarea):disabled {
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
+}
+
+:is(input, textarea)[readonly] {
+  background: var(--color-bg);
+}
+
+.field-error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-danger);
+  font-size: var(--text-small-size);
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+  width: var(--size-checkbox);
+  height: var(--size-checkbox);
+  margin: 0;
+  flex: none;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+input[type='checkbox']:focus,
+input[type='radio']:focus {
+  box-shadow: none;
+}
+
+.switch {
+  position: relative;
+  flex: none;
+  width: var(--size-switch-width);
+  height: var(--size-switch-height);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--color-border-strong);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-standard);
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: var(--space-0-5);
+  left: var(--space-0-5);
+  width: calc(var(--size-switch-height) - var(--space-1));
+  height: calc(var(--size-switch-height) - var(--space-1));
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+.switch[aria-checked='true'] {
+  background: var(--color-accent);
+}
+
+.switch[aria-checked='true']::after {
+  left: auto;
+  right: var(--space-0-5);
+}

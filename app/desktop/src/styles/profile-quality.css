@@ -2,7 +2,7 @@
 .ring-chart {
   position: relative;
   width: min(100px, 100%);
-  margin: 0 auto 6px;
+  margin: 0 auto var(--space-1-5);
 }
 
 .ring-chart svg {
@@ -18,22 +18,22 @@
 }
 
 .ring-track {
-  stroke: var(--track);
+  stroke: var(--color-border);
 }
 
 .quality-valid {
-  stroke: var(--good);
-  background: var(--good);
+  stroke: var(--color-success);
+  background: var(--color-success);
 }
 
 .quality-missing {
-  stroke: #9aa3b5;
-  background: #9aa3b5;
+  stroke: var(--color-warning);
+  background: var(--color-warning);
 }
 
 .quality-invalid {
-  stroke: var(--alert);
-  background: var(--alert);
+  stroke: var(--color-danger);
+  background: var(--color-danger);
 }
 
 .ring-center {
@@ -45,38 +45,38 @@
 }
 
 .ring-center strong {
-  font-size: 18px;
+  font-size: var(--text-title-size);
 }
 
 .ring-center span {
-  color: var(--muted);
-  font-size: 12px;
+  color: var(--color-text-muted);
+  font-size: var(--text-small-size);
 }
 
 .quality-legend {
   display: grid;
-  gap: 2px;
+  gap: var(--space-0-5);
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: 12px;
+  font-size: var(--text-small-size);
 }
 
 .quality-legend li {
   display: grid;
   grid-template-columns: 10px 1fr auto;
   align-items: center;
-  gap: 8px;
-  padding: 2px 4px;
-  border-radius: 4px;
+  gap: var(--space-2);
+  padding: var(--space-0-5) var(--space-1);
+  border-radius: var(--radius-control);
 }
 
 .quality-legend li:focus-visible {
-  outline: 2px solid var(--purple);
+  outline: var(--focus-ring-width) solid var(--color-focus);
 }
 
 .legend-swatch {
   width: 10px;
   height: 10px;
-  border-radius: 50%;
+  border-radius: var(--radius-round);
 }

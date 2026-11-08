@@ -149,6 +149,7 @@ export function GroupBuilder({ columns, onApply, onClose, busy = false, popupPos
                 />
               </label>
               <button
+                className="btn btn-ghost btn-sm"
                 type="button"
                 aria-label={`Remove calculation ${index + 1}`}
                 disabled={aggregations.length === 1}
@@ -162,6 +163,7 @@ export function GroupBuilder({ columns, onApply, onClose, busy = false, popupPos
           ))}
         </div>
         <button
+          className="btn btn-ghost"
           type="button"
           onClick={() =>
             setAggregations((current) => [
@@ -180,10 +182,10 @@ export function GroupBuilder({ columns, onApply, onClose, busy = false, popupPos
         </button>
         {error && <p role="alert">{error}</p>}
         <footer className="dialog-actions">
-          <button type="button" className="quiet-button" disabled={busy} onClick={onClose}>
+          <button type="button" className="btn btn-secondary" disabled={busy} onClick={onClose}>
             Cancel
           </button>
-          <button type="button" disabled={busy} onClick={apply}>
+          <button className="btn btn-primary" type="button" disabled={busy} onClick={apply}>
             {busy ? 'Applying…' : 'Apply summary'}
           </button>
         </footer>

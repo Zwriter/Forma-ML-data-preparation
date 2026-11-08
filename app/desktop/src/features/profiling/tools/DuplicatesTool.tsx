@@ -57,6 +57,7 @@ export function DuplicatesTool() {
       </span>
       <span className="tool-spacer" />
       <button
+        className="btn btn-primary"
         type="button"
         disabled={!result?.duplicate_rows}
         aria-disabled={added}

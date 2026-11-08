@@ -1,0 +1,107 @@
+/*
+ * Colour theme: Ledger: cool slate, cobalt accent.
+ * Generated from design/chosen-theme.md. Edit the palette there first, then here.
+ * [data-theme-preview] scopes the theme to one element (Settings swatches).
+ * The --ledger-* primitives are private: only the semantic --color-* tokens below may use them.
+ * Every role passes WCAG AA (tests/unit/styles/designTokens.test.ts).
+ */
+:root {
+  --ledger-amber-33: #38342a;
+  --ledger-amber-81: #f0b54a;
+  --ledger-amber-95: #f5efe6;
+  --ledger-blue-18: #0d1117;
+  --ledger-blue-18-3: #0b1220;
+  --ledger-blue-21: #0f172a;
+  --ledger-blue-22: #151b24;
+  --ledger-blue-26: #1c2430;
+  --ledger-blue-29: #1a2a4a;
+  --ledger-blue-31-6: #203445;
+  --ledger-blue-32: #2a3442;
+  --ledger-blue-45: #475569;
+  --ledger-blue-45-0: #194db0;
+  --ledger-blue-51: #0b6aa8;
+  --ledger-blue-52: #1f5fd1;
+  --ledger-blue-53: #5f6b7e;
+  --ledger-blue-55: #64718a;
+  --ledger-blue-62: #7d889b;
+  --ledger-blue-66: #8994a6;
+  --ledger-blue-70: #6b9bff;
+  --ledger-blue-74: #5bb6f0;
+  --ledger-blue-75: #a3aebf;
+  --ledger-blue-76: #8ab0ff;
+  --ledger-blue-91: #dde2ea;
+  --ledger-blue-94: #e6ebf2;
+  --ledger-blue-95: #e8effc;
+  --ledger-blue-95-0: #e7f0f6;
+  --ledger-gray-97: #f4f6f9;
+  --ledger-gray-100: #ffffff;
+  --ledger-green-51: #127a45;
+  --ledger-green-74: #4cc38a;
+  --ledger-green-95: #e7f2ec;
+  --ledger-orange-53: #975a00;
+  --ledger-red-31: #3a2a32;
+  --ledger-red-53: #c0292f;
+  --ledger-red-74: #ff7a7a;
+  --ledger-red-95: #f9eaea;
+  --ledger-teal-31: #1e3634;
+}
+
+:root[data-theme='ledger'],
+[data-theme-preview='ledger'] {
+  color-scheme: light;
+  --color-bg: var(--ledger-gray-97);
+  --color-surface: var(--ledger-gray-100);
+  --color-surface-raised: var(--ledger-gray-100);
+  --color-border: var(--ledger-blue-91);
+  --color-border-strong: var(--ledger-blue-62);
+  --color-text: var(--ledger-blue-21);
+  --color-text-muted: var(--ledger-blue-45);
+  --color-text-subtle: var(--ledger-blue-53);
+  --color-accent: var(--ledger-blue-52);
+  --color-accent-hover: var(--ledger-blue-45-0);
+  --color-accent-contrast: var(--ledger-gray-100);
+  --color-accent-soft: var(--ledger-blue-95);
+  --color-success: var(--ledger-green-51);
+  --color-success-soft: var(--ledger-green-95);
+  --color-warning: var(--ledger-orange-53);
+  --color-warning-soft: var(--ledger-amber-95);
+  --color-danger: var(--ledger-red-53);
+  --color-danger-soft: var(--ledger-red-95);
+  --color-info: var(--ledger-blue-51);
+  --color-info-soft: var(--ledger-blue-95-0);
+  --color-chrome: var(--ledger-gray-100);
+  --color-chrome-text: var(--ledger-blue-21);
+  --color-chrome-muted: var(--ledger-blue-45);
+  --color-chrome-border: var(--ledger-blue-91);
+  --color-chart-2: var(--ledger-blue-53);
+}
+
+:root[data-theme='ledger'][data-mode='dark'],
+:root[data-mode='dark'] [data-theme-preview='ledger'] {
+  color-scheme: dark;
+  --color-bg: var(--ledger-blue-18);
+  --color-surface: var(--ledger-blue-22);
+  --color-surface-raised: var(--ledger-blue-26);
+  --color-border: var(--ledger-blue-32);
+  --color-border-strong: var(--ledger-blue-55);
+  --color-text: var(--ledger-blue-94);
+  --color-text-muted: var(--ledger-blue-75);
+  --color-text-subtle: var(--ledger-blue-66);
+  --color-accent: var(--ledger-blue-70);
+  --color-accent-hover: var(--ledger-blue-76);
+  --color-accent-contrast: var(--ledger-blue-18-3);
+  --color-accent-soft: var(--ledger-blue-29);
+  --color-success: var(--ledger-green-74);
+  --color-success-soft: var(--ledger-teal-31);
+  --color-warning: var(--ledger-amber-81);
+  --color-warning-soft: var(--ledger-amber-33);
+  --color-danger: var(--ledger-red-74);
+  --color-danger-soft: var(--ledger-red-31);
+  --color-info: var(--ledger-blue-74);
+  --color-info-soft: var(--ledger-blue-31-6);
+  --color-chrome: var(--ledger-blue-22);
+  --color-chrome-text: var(--ledger-blue-94);
+  --color-chrome-muted: var(--ledger-blue-75);
+  --color-chrome-border: var(--ledger-blue-32);
+  --color-chart-2: var(--ledger-blue-66);
+}

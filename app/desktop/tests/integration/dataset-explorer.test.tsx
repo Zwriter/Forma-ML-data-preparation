@@ -176,7 +176,7 @@ describe('dataset explorer workflow', () => {
     await waitFor(() => expect(screen.getByText('Dataset overview')).toBeTruthy());
     expect(screen.getByText('source.csv')).toBeTruthy();
     expect(screen.getAllByText('Int64').length).toBeGreaterThan(0);
-    expect(screen.getAllByRole('row')).toHaveLength(502);
+    expect(screen.getAllByRole('row')).toHaveLength(501); // 500 records + one header row
     expect(invoke).toHaveBeenCalledTimes(3);
     expect(invoke.mock.calls[1][1].request.params).toMatchObject({ offset: 0, limit: 500 });
   });

@@ -171,9 +171,11 @@ export function WorkspaceChrome({
       <section className="ribbon" aria-label={`${activeTab} toolbar`}>
         {groups.map(({ group, commands }) => (
           <div className="ribbon-group" key={group}>
-            {commands.map((label) => (
-              <ToolButton key={label} action={toolFor(label)} onTabChange={onTabChange} />
-            ))}
+            <div className="ribbon-group-actions">
+              {commands.map((label) => (
+                <ToolButton key={label} action={toolFor(label)} onTabChange={onTabChange} />
+              ))}
+            </div>
             <span className="group-caption">{group}</span>
           </div>
         ))}
@@ -189,11 +191,12 @@ export function WorkspaceChrome({
           </label>
           <button
             type="button"
+            className="btn btn-primary"
             onClick={() => setConnectionMessage('Connection testing is not available yet.')}
           >
             Test connection
           </button>
-          <button type="button" className="quiet-button" onClick={() => setShowDbPanel(false)}>
+          <button type="button" className="btn btn-ghost" onClick={() => setShowDbPanel(false)}>
             Close
           </button>
           {connectionMessage && <span role="status">{connectionMessage}</span>}

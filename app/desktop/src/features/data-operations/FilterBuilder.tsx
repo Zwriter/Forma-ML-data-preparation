@@ -142,6 +142,7 @@ export function FilterBuilder({ columns, onApply, onClose, popupPosition }: Prop
                     </label>
                   )}
                 <button
+                  className="btn btn-ghost btn-sm"
                   type="button"
                   aria-label={`Remove condition ${index + 1}`}
                   disabled={rules.length === 1}
@@ -157,6 +158,7 @@ export function FilterBuilder({ columns, onApply, onClose, popupPosition }: Prop
         </div>
         <div className="filter-builder-actions">
           <button
+            className="btn btn-ghost"
             type="button"
             onClick={() => {
               const column = columns[0]?.name ?? '';
@@ -169,6 +171,7 @@ export function FilterBuilder({ columns, onApply, onClose, popupPosition }: Prop
             Add condition
           </button>
           <button
+            className="btn btn-ghost"
             type="button"
             onClick={() => {
               setRules([]);
@@ -180,10 +183,10 @@ export function FilterBuilder({ columns, onApply, onClose, popupPosition }: Prop
         </div>
         {error && <p role="alert">{error}</p>}
         <footer className="dialog-actions">
-          <button type="button" className="quiet-button" onClick={onClose}>
+          <button type="button" className="btn btn-secondary" onClick={onClose}>
             Cancel
           </button>
-          <button type="button" onClick={apply}>
+          <button className="btn btn-primary" type="button" onClick={apply}>
             Apply filter
           </button>
         </footer>

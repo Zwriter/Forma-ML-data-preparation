@@ -86,15 +86,16 @@ export function DataQualityTool() {
           <option key={item.name}>{item.name}</option>
         ))}
       </select>
-      <button type="button" onClick={() => moveProblem(-1)}>
+      <button className="btn btn-secondary btn-sm" type="button" onClick={() => moveProblem(-1)}>
         Previous problem
       </button>
-      <button type="button" onClick={() => moveProblem(1)}>
+      <button className="btn btn-secondary btn-sm" type="button" onClick={() => moveProblem(1)}>
         Next problem
       </button>
       <span className="tool-spacer" />
       <span role="status">{pageStatus(result)}</span>
       <button
+        className="btn btn-secondary btn-sm"
         type="button"
         disabled={offset === 0}
         onClick={() => set('offset', Math.max(0, offset - PAGE_ROWS))}
@@ -102,6 +103,7 @@ export function DataQualityTool() {
         Previous page
       </button>
       <button
+        className="btn btn-secondary btn-sm"
         type="button"
         disabled={offset + PAGE_ROWS >= total}
         onClick={() => set('offset', offset + PAGE_ROWS)}

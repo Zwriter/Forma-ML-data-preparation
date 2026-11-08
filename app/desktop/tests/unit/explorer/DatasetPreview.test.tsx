@@ -73,7 +73,7 @@ describe('dataset preview', () => {
       />,
     );
 
-    expect(screen.getAllByRole('row')).toHaveLength(102);
+    expect(screen.getAllByRole('row')).toHaveLength(101); // 100 records + one header row
     fireEvent.click(screen.getByText('Next'));
 
     expect(onPage).toHaveBeenCalledWith(100);
@@ -153,7 +153,7 @@ describe('dataset preview', () => {
       />,
     );
 
-    fireEvent.change(screen.getByPlaceholderText('Search preview rows or columns...'), {
+    fireEvent.change(screen.getByPlaceholderText(/Search rows or columns/), {
       target: { value: 'needle' },
     });
 
@@ -173,7 +173,7 @@ describe('schema summary', () => {
       schema: [column],
     };
 
-    render(<SchemaSummary dataset={dataset} visibleColumns={1} />);
+    render(<SchemaSummary dataset={dataset} />);
 
     expect(screen.getByText(/Unknown rows/)).toBeTruthy();
     expect(screen.getByText('CSV')).toBeTruthy();
@@ -193,8 +193,12 @@ describe('schema summary', () => {
         onPage={vi.fn()}
       />,
     );
-    expect((screen.getByPlaceholderText(/Search preview/) as HTMLInputElement).value).toBe('kept');
-    fireEvent.change(screen.getByPlaceholderText(/Search preview/), { target: { value: 'new' } });
+    expect((screen.getByPlaceholderText(/Search rows or columns/) as HTMLInputElement).value).toBe(
+      'kept',
+    );
+    fireEvent.change(screen.getByPlaceholderText(/Search rows or columns/), {
+      target: { value: 'new' },
+    });
     expect(useDatasetStore.getState().search).toBe('new');
     fireEvent.click(screen.getAllByRole('gridcell')[1]);
     expect(useDatasetStore.getState().activeCell).toEqual({ row: 1, column: 'value' });

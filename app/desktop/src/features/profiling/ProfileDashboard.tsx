@@ -92,7 +92,7 @@ export function ProfileDashboard({ onTabChange }: { onTabChange?: (tab: string) 
       {entry?.status === 'failed' && (
         <p className="profile-error" role="alert">
           {entry.error?.message ?? 'Profiling failed.'}{' '}
-          <button type="button" onClick={() => void run()}>
+          <button className="btn btn-primary" type="button" onClick={() => void run()}>
             Try again
           </button>
         </p>
@@ -100,7 +100,7 @@ export function ProfileDashboard({ onTabChange }: { onTabChange?: (tab: string) 
       {!profile && entry?.status === 'idle' && (
         <div className="profile-empty">
           <p>No profile yet for this dataset.</p>
-          <button type="button" onClick={() => void run()}>
+          <button className="btn btn-primary" type="button" onClick={() => void run()}>
             Profile dataset
           </button>
         </div>

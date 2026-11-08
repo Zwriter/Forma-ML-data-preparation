@@ -1,11 +1,12 @@
+/* Backdrops, confirm dialogs and the column selector popup (DESIGN_RULES.md: Popup). */
 .dialog-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: var(--z-popup);
   display: grid;
   place-items: center;
-  padding: 1rem;
-  background: rgb(18 16 28 / 48%);
+  padding: var(--space-4);
+  background: var(--color-scrim);
 }
 
 .data-operation-backdrop,
@@ -20,8 +21,8 @@
 
 .drag-grip {
   flex: 0 0 auto;
-  color: #9aa3b5;
-  font-size: 17px;
+  color: var(--color-text-subtle);
+  font-size: var(--text-body-size);
   line-height: 1;
 }
 
@@ -41,17 +42,23 @@
 
 .confirm-dialog {
   width: min(28rem, 100%);
-  padding: 1.5rem;
-  background: var(--surface, white);
-  box-shadow: 0 1rem 3rem rgb(18 16 28 / 24%);
+  margin: 0;
+  padding: var(--space-4);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-popup);
+}
+
+.confirm-dialog h2 {
+  font-family: var(--font-display);
+  font-size: var(--text-title-size);
 }
 
 .dialog-actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: 0.5rem;
-  margin-top: 1.25rem;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
 }
 
 .worksheet-work-area {
@@ -62,23 +69,24 @@
 }
 
 .column-selector-backdrop {
-  z-index: 1100;
+  z-index: var(--z-popup);
 }
 
 .column-selector {
   position: fixed;
   translate: var(--popup-x) var(--popup-y);
   display: flex;
-  width: min(350px, calc(100vw - 16px));
+  width: min(var(--size-popup-width), calc(100vw - var(--space-4)));
   max-height: min(82vh, 46rem);
   flex-direction: column;
+  gap: var(--space-3);
   overflow: auto;
-  padding: 18px;
-  border: 1px solid #d9deea;
-  border-radius: 9px;
-  background: #fff;
-  color: var(--ink);
-  box-shadow: 0 14px 34px #1c2d4b2b;
+  padding: var(--space-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-panel);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  box-shadow: var(--shadow-popup);
   pointer-events: auto;
 }
 
@@ -88,19 +96,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.column-selector .column-selector-title {
-  margin: 0;
-  font-size: 15px;
-  letter-spacing: -0.02em;
+  gap: var(--space-2);
 }
 
 .column-selector header {
   justify-content: flex-start;
-  gap: 0.5rem;
-  margin-bottom: 0.25rem;
   cursor: grab;
   touch-action: none;
   user-select: none;
@@ -110,31 +110,23 @@
   cursor: grabbing;
 }
 
+.column-selector .column-selector-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-title-size);
+  font-weight: var(--weight-semibold);
+}
+
 .column-selector-search {
   display: grid;
-  gap: 0.35rem;
-  margin-top: 1rem;
-}
-
-.column-selector-search input {
-  min-height: 38px;
-  padding: 0 10px;
-  border: 1px solid #d4d9e4;
-  border-radius: 7px;
-  background: #f8f9fc;
-  color: #34415f;
-  font-size: 12px;
-}
-
-.column-selector-search input:focus {
-  border-color: var(--purple);
-  background: #fff;
-  box-shadow: 0 0 0 3px #8b2fba20;
+  gap: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-small-size);
+  font-weight: var(--weight-medium);
 }
 
 .column-selector-actions {
   justify-content: flex-start;
-  margin: 0.75rem 0;
 }
 
 .column-selector-list {
@@ -143,19 +135,17 @@
   padding: 0;
   overflow: auto;
   list-style: none;
-  border: 1px solid #e3e7ef;
-  border-radius: 8px;
-  background: #fbfcfe;
+  border-top: var(--border-width) solid var(--color-border);
 }
 
 .column-selector-list li {
-  min-height: 42px;
-  padding: 0.4rem 0.65rem;
-  border-bottom: 1px solid #edf0f5;
+  min-height: var(--size-row);
+  padding: 0 var(--space-1);
+  border-bottom: var(--border-width) solid var(--color-border);
 }
 
-.column-selector-list li:last-child {
-  border-bottom: 0;
+.column-selector-list li:hover {
+  background: var(--color-row-hover);
 }
 
 .column-selector-list label {
@@ -163,15 +153,9 @@
   min-width: 0;
   flex: 1;
   align-items: center;
-  gap: 0.55rem;
-  color: #34415f;
-  font-size: 12px;
-  font-weight: 500;
+  gap: var(--space-2);
+  color: var(--color-text);
   cursor: pointer;
-}
-
-.column-selector-list input {
-  accent-color: var(--purple);
 }
 
 .column-selector-list label span {
@@ -181,69 +165,27 @@
 
 .column-selector-list small {
   margin-left: auto;
-  color: var(--muted);
+  color: var(--color-text-muted);
+  font-size: var(--text-small-size);
 }
 
 .column-order-controls {
   display: flex;
-  gap: 0.25rem;
+  gap: var(--space-0-5);
 }
 
 .column-selector-empty,
 .column-selector-error {
-  padding: 0.6rem;
-  color: var(--muted);
+  padding: var(--space-2);
+  color: var(--color-text-muted);
 }
 
 .column-selector-error {
-  color: #a12622;
-}
-
-.column-selector button:focus-visible,
-.column-selector input:focus-visible {
-  outline: 2px solid var(--purple);
-  outline-offset: 2px;
+  color: var(--color-danger);
 }
 
 .column-selector .dialog-actions {
-  gap: 8px;
   margin-top: 0;
-  padding-top: 13px;
-  border-top: 1px solid #edf0f5;
-}
-
-.column-selector .dialog-actions button {
-  min-height: 33px;
-  padding: 0 12px;
-  border: 1px solid var(--purple);
-  border-radius: 6px;
-  background: var(--purple);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.column-selector .dialog-actions .quiet-button {
-  border-color: #d4d9e4;
-  background: #fff;
-  color: #43506e;
-}
-
-.column-selector .dialog-actions .quiet-button:hover {
-  background: #f7f8fb;
-}
-
-.column-selector button {
-  min-height: 34px;
-  padding: 0 10px;
-  border: 1px solid #d4d9e4;
-  border-radius: 7px;
-  background: #fff;
-  color: #43506e;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.column-selector button:hover {
-  background: #f7f8fb;
+  padding-top: var(--space-3);
+  border-top: var(--border-width) solid var(--color-border);
 }

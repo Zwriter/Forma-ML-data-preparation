@@ -76,6 +76,7 @@ export function ColumnSelector({
         </label>
         <div className="column-selector-actions">
           <button
+            className="btn btn-ghost btn-sm"
             type="button"
             onClick={() =>
               setDraft((current) => [
@@ -85,7 +86,7 @@ export function ColumnSelector({
           >
             Select all
           </button>
-          <button type="button" onClick={() => setDraft([])}>
+          <button className="btn btn-ghost btn-sm" type="button" onClick={() => setDraft([])}>
             Clear all
           </button>
         </div>
@@ -104,6 +105,7 @@ export function ColumnSelector({
               {draft.includes(column.name) && (
                 <span className="column-order-controls" aria-label={`Order ${column.name}`}>
                   <button
+                    className="btn btn-icon btn-bare btn-sm"
                     type="button"
                     aria-label={`Move ${column.name} up`}
                     disabled={draft.indexOf(column.name) === 0}
@@ -112,6 +114,7 @@ export function ColumnSelector({
                     ↑
                   </button>
                   <button
+                    className="btn btn-icon btn-bare btn-sm"
                     type="button"
                     aria-label={`Move ${column.name} down`}
                     disabled={draft.indexOf(column.name) === draft.length - 1}
@@ -131,10 +134,10 @@ export function ColumnSelector({
           </p>
         )}
         <footer className="dialog-actions">
-          <button type="button" className="quiet-button" onClick={onClose}>
+          <button type="button" className="btn btn-secondary" onClick={onClose}>
             Cancel
           </button>
-          <button type="button" onClick={confirm}>
+          <button className="btn btn-primary" type="button" onClick={confirm}>
             Apply columns
           </button>
         </footer>

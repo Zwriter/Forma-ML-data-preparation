@@ -10,9 +10,9 @@
   flex: none;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--space-2);
   min-width: 0;
-  margin-bottom: 6px;
+  margin-bottom: var(--space-1-5);
 }
 
 .card .profile-panel-heading h3 {
@@ -22,26 +22,10 @@
   white-space: nowrap;
 }
 
-.workflow-card .profile-panel-heading select {
-  max-width: 45%;
-  padding: 2px 4px;
-  font-size: 12px;
-}
-
-.profile-link-button {
-  flex: none;
-  padding: 0;
-  border: 0;
-  color: var(--purple);
-  background: none;
-  font-size: 12px;
-  cursor: pointer;
-}
-
 .profile-panel-note {
   margin: auto 0;
-  color: var(--muted);
-  font-size: 12px;
+  color: var(--color-text-muted);
+  font-size: var(--text-small-size);
   text-align: center;
 }
 
@@ -51,7 +35,7 @@
   flex: 1;
   flex-direction: column;
   min-height: 0;
-  font-size: 11px;
+  font-size: var(--text-caption-size);
 }
 
 .hbars-list {
@@ -67,12 +51,12 @@
   display: grid;
   grid-template-columns: minmax(0, 34%) 1fr auto;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-1-5);
 }
 
 .hbars-row:focus-visible,
 .vbars-column:focus-visible {
-  outline: 2px solid var(--purple);
+  outline: var(--focus-ring-width) solid var(--color-focus);
 }
 
 .hbars-label {
@@ -90,12 +74,11 @@
 .hbars-bar {
   display: block;
   height: 100%;
-  background: var(--purple);
-  opacity: 0.75;
+  background: var(--color-chart-1);
 }
 
 .hbars-value {
-  color: var(--muted);
+  color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
 }
 
@@ -103,9 +86,9 @@
   position: relative;
   flex: none;
   height: 14px;
-  margin: 2px 0 0 calc(34% + 6px);
+  margin: var(--space-0-5) 0 0 calc(34% + var(--space-1-5));
   margin-right: 60px;
-  color: var(--muted);
+  color: var(--color-text-muted);
 }
 
 .hbars-axis span,
@@ -122,22 +105,22 @@
   flex: 1;
   grid-template-columns: auto 1fr;
   min-height: 0;
-  padding-top: 20px;
-  font-size: 10px;
+  padding-top: var(--space-5);
+  font-size: var(--text-caption-size);
 }
 
 .vbars-y-label {
   position: absolute;
   top: 0;
   left: 0;
-  color: var(--muted);
+  color: var(--color-text-muted);
 }
 
 .vbars-axis {
   position: relative;
   width: 30px;
-  margin-bottom: 14px;
-  color: var(--muted);
+  margin-bottom: var(--space-3);
+  color: var(--color-text-muted);
 }
 
 .vbars-axis span {
@@ -147,11 +130,11 @@
 
 .vbars-list {
   display: flex;
-  gap: 2px;
+  gap: var(--space-0-5);
   min-width: 0;
   margin: 0;
   padding: 0;
-  border-left: 1px solid var(--line);
+  border-left: var(--border-width) solid var(--color-border);
   list-style: none;
 }
 
@@ -165,7 +148,7 @@
 .vbars-plot {
   position: relative;
   flex: 1;
-  border-bottom: 1px solid var(--line);
+  border-bottom: var(--border-width) solid var(--color-border);
 }
 
 .vbars-bar {
@@ -173,15 +156,14 @@
   right: 0;
   bottom: 0;
   left: 0;
-  background: var(--purple);
-  opacity: 0.75;
+  background: var(--color-chart-1);
 }
 
 .vbars-value {
   position: absolute;
   bottom: 100%;
   left: 50%;
-  color: var(--ink);
+  color: var(--color-text);
   transform: translateX(-50%);
   white-space: nowrap;
 }
@@ -189,7 +171,7 @@
 .vbars-label {
   overflow: hidden;
   height: 14px;
-  color: var(--muted);
+  color: var(--color-text-muted);
   text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -199,31 +181,31 @@
   display: grid;
   flex: none;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  margin: 6px 0 0;
-  padding: 4px 0 0;
-  border-top: 1px solid var(--line);
+  margin: var(--space-1-5) 0 0;
+  padding: var(--space-1) 0 0;
+  border-top: var(--border-width) solid var(--color-border);
   list-style: none;
-  font-size: 10px;
+  font-size: var(--text-caption-size);
   text-align: center;
 }
 
 .profile-stats span {
   display: block;
-  color: var(--muted);
+  color: var(--color-text-muted);
 }
 
 /* "Show all" opens over the panel instead of growing it. */
 .profile-popup {
   position: absolute;
   inset: 0;
-  z-index: 5;
+  z-index: var(--z-overlay);
   display: flex;
   flex-direction: column;
-  padding: 8px 10px;
+  padding: var(--space-2) var(--space-2);
   overflow-y: auto;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  box-shadow: 0 6px 18px #1c2d4b26;
+  border: var(--border-width) solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-popup);
 }
 
 .profile-popup .hbars-list {
@@ -237,13 +219,14 @@
   text-overflow: clip;
 }
 
-.profile-link-button:disabled {
-  color: var(--muted);
-  cursor: default;
+.profile-panel-status {
+  color: var(--color-text-muted);
+  font-size: var(--text-small-size);
+  white-space: nowrap;
 }
 
-.profile-panel-status {
-  color: var(--muted);
-  font-size: 12px;
-  white-space: nowrap;
+.profile-panel-heading select {
+  max-width: 45%;
+  height: var(--size-control-sm);
+  font-size: var(--text-small-size);
 }

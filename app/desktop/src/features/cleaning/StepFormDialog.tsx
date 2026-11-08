@@ -97,10 +97,12 @@ export function StepFormDialog({
         />
         <FieldError id="step-form-error" message={error && !error.field ? error.error : ''} />
         <footer className="dialog-actions">
-          <button type="button" className="quiet-button" onClick={onClose}>
+          <button type="button" className="btn btn-secondary" onClick={onClose}>
             Cancel
           </button>
-          <button type="submit">{form.editingId ? 'Save step' : 'Add step'}</button>
+          <button className="btn btn-primary" type="submit">
+            {form.editingId ? 'Save step' : 'Add step'}
+          </button>
         </footer>
       </form>
     </div>

@@ -18,7 +18,7 @@ export function PageSizeSetting() {
   }
 
   return (
-    <fieldset className="history-limit-setting">
+    <fieldset className="setting-group history-limit-setting">
       <legend>Worksheet</legend>
       <p>Choose how many rows each worksheet page shows when a file opens.</p>
       <label htmlFor="page-size">Rows per page</label>

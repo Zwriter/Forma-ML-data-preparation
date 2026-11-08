@@ -84,6 +84,7 @@ export function MenuButton({
       <button
         ref={trigger}
         type="button"
+        className="btn btn-icon btn-bare btn-sm menu-trigger"
         aria-label={ariaLabel}
         title={title}
         aria-haspopup="menu"

@@ -65,7 +65,7 @@ export function ColumnTable({
     return (
       <div className="profile-table-empty">
         <p>No columns match</p>
-        <button type="button" onClick={onClearFilters}>
+        <button className="btn btn-ghost btn-sm" type="button" onClick={onClearFilters}>
           Clear filters
         </button>
       </div>

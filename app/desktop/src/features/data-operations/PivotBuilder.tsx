@@ -127,10 +127,10 @@ export function PivotBuilder({ columns, onApply, onClose, busy = false, popupPos
         </label>
         {error && <p role="alert">{error}</p>}
         <footer className="dialog-actions">
-          <button type="button" className="quiet-button" disabled={busy} onClick={onClose}>
+          <button type="button" className="btn btn-secondary" disabled={busy} onClick={onClose}>
             Cancel
           </button>
-          <button type="button" disabled={busy} onClick={apply}>
+          <button className="btn btn-primary" type="button" disabled={busy} onClick={apply}>
             {busy ? 'Applying…' : 'Apply pivot'}
           </button>
         </footer>

@@ -10,13 +10,14 @@ test('the active cell scrolls under the column headers, not over them', async ({
   await expect(cell).toHaveAttribute('aria-selected', 'true');
 
   // Scroll like a user until the selected cell has passed under the sticky headers.
-  const heading = page.locator('.table-wrap thead tr:nth-child(2) th').nth(3);
+  const heading = page.locator('.table-wrap thead th').nth(3);
   await page.locator('.table-wrap tbody').hover();
   const headingBox = (await heading.boundingBox())!;
-  for (let tick = 0; tick < 20; tick += 1) {
+  for (let tick = 0; tick < 40; tick += 1) {
     const box = (await cell.boundingBox())!;
     if (box.y + box.height / 2 <= headingBox.y + headingBox.height / 2) break;
-    await page.mouse.wheel(0, 20);
+    // Small steps: the single header row is only 36px tall.
+    await page.mouse.wheel(0, 10);
   }
 
   // Whatever is drawn at the middle of the hidden cell must be a header, not the cell.

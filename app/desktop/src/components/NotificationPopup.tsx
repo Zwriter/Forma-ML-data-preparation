@@ -32,7 +32,7 @@ export function NotificationPopup() {
       </div>
       {notification.action && (
         <button
-          className="notification-action"
+          className="btn btn-secondary btn-sm notification-action"
           type="button"
           onClick={() => {
             notification.action?.run();
@@ -43,7 +43,7 @@ export function NotificationPopup() {
         </button>
       )}
       <button
-        className="notification-close"
+        className="btn btn-icon btn-bare btn-sm notification-close"
         type="button"
         aria-label="Dismiss notification"
         title="Dismiss"

@@ -1,268 +1,211 @@
+/* Worksheet grid (DESIGN_RULES.md: Worksheet). Hairline rows, no column lines, no zebra. */
 .table-wrap table {
   width: max-content;
   min-width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 12px;
+  font-size: var(--text-body-size);
 }
 
 .table-wrap th,
 .table-wrap td {
   min-width: 104px;
   max-width: 220px;
-  height: 30px;
-  padding: 5px 9px;
+  height: var(--size-row);
+  padding: 0 var(--space-2);
   overflow: hidden;
-  border-right: 1px solid #e5e8ef;
-  border-bottom: 1px solid #e5e8ef;
-  text-align: right;
+  border-bottom: var(--border-width) solid var(--color-border);
+  text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* Headers stack above body cells, including the raised active cell (z-index 1). */
+/* Headers stack above body cells, including the raised active cell. */
 .table-wrap th {
   position: sticky;
-  z-index: 2;
+  z-index: var(--z-sticky);
   top: 0;
+  height: var(--size-header-row);
   padding: 0;
-  background: #f8f9fc;
-  text-align: left;
-}
-
-.table-wrap thead tr:first-child th {
-  top: 0;
-  height: 26px;
-  min-width: 42px;
-  padding: 3px 8px;
-  color: #59647d;
-  background: #edf0f3;
-  font-size: 10px;
-  font-weight: 500;
-  text-align: center;
-}
-
-.table-wrap thead tr:nth-child(2) th {
-  top: 26px;
-}
-
-.table-wrap th.selected,
-.table-wrap td.selected-column {
-  background: #f0efff;
+  background: var(--color-bg);
+  border-bottom-color: var(--color-border-strong);
+  vertical-align: middle;
 }
 
 .table-wrap th.selected {
-  box-shadow: inset 0 -2px var(--purple);
+  box-shadow: inset 0 calc(var(--border-width-strong) * -1) 0 var(--color-accent);
 }
 
 .table-wrap td {
-  color: #35415c;
-  text-align: left;
+  color: var(--color-text);
+}
+
+.table-wrap td.numeric {
+  font-family: var(--font-mono);
+  font-size: var(--text-small-size);
+  text-align: right;
+}
+
+.table-wrap td.selected-column {
+  background: var(--color-row-hover);
 }
 
 .table-wrap td.active-cell {
   position: relative;
-  z-index: 1;
-  outline: 2px solid #217346;
-  outline-offset: -2px;
-  background: #f3faf5;
+  z-index: var(--z-raised);
+  box-shadow: inset 0 0 0 var(--border-width-strong) var(--color-accent);
+}
+
+.table-wrap td:focus-visible {
+  outline: none;
 }
 
 .table-wrap tbody tr:hover td {
-  background: #f7f7ff;
+  background: var(--color-row-hover);
 }
 
-.table-wrap tbody tr:hover td.selected {
-  background: #edecff;
+.table-wrap tbody tr:hover td.active-cell,
+.table-wrap td.active-cell {
+  background: var(--color-surface);
 }
 
 .table-wrap .row-number-heading,
 .table-wrap .row-number {
   position: sticky;
   left: 0;
-  z-index: 2;
-  min-width: 42px;
-  width: 42px;
-  color: #77829a;
-  background: #fbfcfe;
-  text-align: center;
+  z-index: var(--z-sticky);
+  min-width: var(--size-row-number);
+  width: var(--size-row-number);
+  color: var(--color-text-subtle);
+  background: var(--color-surface);
+  font-family: var(--font-mono);
+  font-size: var(--text-small-size);
+  text-align: right;
 }
 
 .table-wrap .row-number-heading {
-  z-index: 3;
-  background: #f8f9fc;
+  z-index: calc(var(--z-sticky) + 1);
+  background: var(--color-bg);
+}
+
+.table-wrap tr.current-row .row-number {
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  font-weight: var(--weight-semibold);
+}
+
+.column-heading-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.table-wrap th.numeric .column-heading-row {
+  flex-direction: row-reverse;
 }
 
 .column-heading {
   display: flex;
-  width: 100%;
-  min-height: 50px;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 4px;
-  padding: 6px 10px;
-  color: #1f2a48;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-1-5);
+  height: var(--size-header-row);
+  padding: 0 var(--space-2);
+  color: var(--color-text);
   background: transparent;
   border: 0;
-  font-size: 11px;
+  font-size: var(--text-body-size);
   text-align: left;
 }
 
+.table-wrap th.numeric .column-heading {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
 .column-heading strong {
-  max-width: 100%;
+  min-width: 0;
   overflow: hidden;
+  font-weight: var(--weight-semibold);
   text-overflow: ellipsis;
 }
 
-.column-heading small {
-  color: #7b869b;
-  font-size: 10px;
-  font-weight: 400;
+.column-heading:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: calc(var(--focus-ring-width) * -1);
 }
 
-.column-heading small span {
-  padding-right: 3px;
-  color: #64718b;
-  font-weight: 700;
+.column-type-icon {
+  flex: none;
+  width: var(--size-icon-sm);
+  height: var(--size-icon-sm);
+  fill: none;
+  stroke: var(--color-text-subtle);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-/* The active sort: arrow and words, so it never relies on colour alone. */
-.column-heading .column-sort {
-  color: #2f5fb3;
-  font-weight: 600;
-  white-space: nowrap;
+.column-note {
+  display: block;
+  padding: 0 var(--space-2) var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-caption-size);
+  white-space: normal;
 }
 
-.column-heading .column-sort span {
-  color: inherit;
-}
-
-.table-empty {
-  min-height: 120px;
-  padding: 30px 18px;
-  color: var(--muted);
-  text-align: center;
-}
-
-.table-footer {
-  display: flex;
-  min-height: 48px;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 7px 12px;
-  color: var(--muted);
-  border-top: 1px solid var(--line);
-  font-size: 11px;
-}
-
-.pagination-controls {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-
-.pagination-controls label {
-  white-space: nowrap;
-}
-
-.pagination-controls select {
-  padding: 5px 8px;
-  color: #35415c;
-  background: #fff;
-  border: 1px solid #d4d9e4;
-  border-radius: 5px;
-}
-
-.pagination-controls button,
-.page-number {
-  display: grid;
-  width: 28px;
-  height: 28px;
-  place-items: center;
-  color: #4b5875;
-  background: #fff;
-  border: 0;
-  border-radius: 5px;
-  font-size: 19px;
-}
-
-.page-number {
-  color: #fff;
-  background: var(--purple);
-  font-size: 12px;
-}
-
-.spreadsheet-stage {
-  position: relative;
-  display: flex;
-  flex: 1 1 auto;
-  min-width: 0;
-  min-height: 0;
-}
-
-.column-details-popover {
-  position: fixed;
-  z-index: 1100;
-  top: 200px;
-  right: 12px;
-  width: min(300px, calc(100% - 24px));
-  max-height: min(70vh, 620px);
-  overflow: auto;
-  padding: 12px;
-  background: #fff;
-  border: 1px solid #cbd1dd;
-  border-radius: 8px;
-  box-shadow: 0 8px 24px #1c2d4b26;
-}
-
-.column-details-popover .inspector {
-  position: static;
-  max-height: none;
-  overflow: visible;
-}
-
-/* Quick-sort arrows at the right edge of each sortable column header. */
-.table-wrap th.sortable .column-heading {
-  padding-right: 30px;
-}
-
+/* Quick-sort arrows: hidden at rest, shown on hover/focus, accent and visible when sorted. */
 .column-sort-buttons {
-  position: absolute;
-  top: 50%;
-  right: 5px;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  transform: translateY(-50%);
+  flex: none;
+  align-items: center;
+  gap: var(--space-0-5);
+  padding: 0 var(--space-1);
 }
 
 .column-sort-buttons button {
   display: grid;
-  width: 20px;
-  height: 17px;
+  width: var(--size-icon);
+  height: var(--size-icon);
   padding: 0;
   place-items: center;
   border: 0;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: transparent;
-  color: #8a94a9;
-  font-size: 9px;
+  color: var(--color-text-subtle);
+  font-size: var(--text-small-size);
   line-height: 1;
+  opacity: 0;
+  transition:
+    opacity var(--duration-fast) var(--ease-standard),
+    background var(--duration-fast) var(--ease-standard);
+}
+
+.table-wrap th:hover .column-sort-buttons button,
+.column-sort-buttons button:focus-visible,
+.column-sort-buttons button.current {
+  opacity: 1;
 }
 
 .column-sort-buttons button:hover {
-  background: #e7eaf2;
-  color: #1f2a48;
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
-.column-sort-buttons button[aria-pressed='true'] {
-  background: #e3ebfa;
-  color: #2f5fb3;
+.column-sort-buttons button.current {
+  color: var(--color-accent);
+  font-weight: var(--weight-semibold);
 }
 
 .column-sort-buttons button:focus-visible {
-  outline: 2px solid #2f5fb3;
-  outline-offset: 1px;
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: 0;
+}
+
+.column-sort-priority {
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+  font-size: var(--text-caption-size);
+  font-weight: var(--weight-semibold);
 }

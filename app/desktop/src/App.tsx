@@ -23,7 +23,9 @@ import {
   runtimeMessage,
 } from './services/tauriRuntime';
 import { setDemoFile } from './services/demoData';
+import './styles/tokens/index.css';
 import './styles/globals.css';
+import './styles/components/index.css';
 import './styles/workspace.css';
 import './styles/workspace-content.css';
 import './styles/explorer.css';

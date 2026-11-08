@@ -1,14 +1,21 @@
 import { expect, test, type Locator } from '@playwright/test';
 
-async function expectReadable(heading: Locator) {
-  const label = heading.locator('.column-sort');
-  await expect(label).toBeVisible();
-  const box = (await label.boundingBox())!;
-  const cell = (await heading.boundingBox())!;
-  // Fully inside its header and wide enough to read, not clipped to a sliver.
-  expect(box.width).toBeGreaterThan(40);
-  expect(box.height).toBeGreaterThan(8);
-  expect(box.x + box.width).toBeLessThanOrEqual(cell.x + cell.width + 0.5);
+// The active sort reads as an accent arrow (plus a priority number when several keys sort), fully
+// inside the header. The words ("Descending 1") stay available to screen readers.
+async function expectReadable(heading: Locator, header: Locator) {
+  const arrow = header.locator('.column-sort-buttons button.current');
+  await expect(arrow).toBeVisible();
+  expect(await arrow.evaluate((el) => getComputedStyle(el).opacity)).toBe('1');
+  const priority = header.locator('.column-sort-priority');
+  await expect(priority).toBeVisible();
+  const cell = (await header.boundingBox())!;
+  for (const part of [arrow, priority]) {
+    const box = (await part.boundingBox())!;
+    expect(box.width).toBeGreaterThan(6);
+    expect(box.x).toBeGreaterThanOrEqual(cell.x - 0.5);
+    expect(box.x + box.width).toBeLessThanOrEqual(cell.x + cell.width + 0.5);
+  }
+  await expect(heading.locator('.column-sort')).toHaveCount(1);
 }
 
 test('sorted column headers show direction and priority at 800x600', async ({ page }) => {
@@ -24,7 +31,7 @@ test('sorted column headers show direction and priority at 800x600', async ({ pa
     name: 'Show details for units, sorted ascending, priority 2',
   });
   await expect(region.locator('.column-sort')).toHaveText(/Descending 1/);
-  await expectReadable(region);
+  await expectReadable(region, page.locator('.table-wrap thead th', { has: region }));
 
   // Scroll the worksheet sideways like a user until the second sorted column is in view.
   await page.locator('.table-wrap').hover();
@@ -32,7 +39,7 @@ test('sorted column headers show direction and priority at 800x600', async ({ pa
     await page.mouse.wheel(200, 0);
   }
   await expect(units.locator('.column-sort')).toHaveText(/Ascending 2/);
-  await expectReadable(units);
+  await expectReadable(units, page.locator('.table-wrap thead th', { has: units }));
 });
 
 test('header sort arrows are visible, inside the header, and on top at 800x600', async ({
@@ -42,7 +49,9 @@ test('header sort arrows are visible, inside the header, and on top at 800x600',
   await page.goto('/?demo-sort=region:descending');
   await page.getByRole('button', { name: 'Back to workspace' }).click();
 
-  const heading = page.locator('.table-wrap thead tr:nth-child(2) th').nth(2);
+  const heading = page.locator('.table-wrap thead th').nth(2);
+  // Arrows appear when the pointer is over the header, like a user reaching for them.
+  await heading.hover();
   for (const name of ['Sort region ascending', 'Sort region descending']) {
     const arrow = page.getByRole('button', { name });
     await expect(arrow).toBeVisible();

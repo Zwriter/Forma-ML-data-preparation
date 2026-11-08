@@ -1,59 +1,39 @@
-.save-behavior-setting {
-  display: grid;
-  max-width: 520px;
-  gap: 10px;
-  padding: 16px;
-  margin: 22px 0 0;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  background: #fbfcfe;
-}
-
-.save-behavior-setting legend {
-  padding: 0 6px;
-  color: var(--ink);
-  font-size: 14px;
-  font-weight: 650;
-}
-
-.save-behavior-setting > p {
-  margin: -2px 0 2px;
-  color: var(--muted);
-  font-size: 12px;
-}
-
+/* Save behavior choice rows inside a .setting-group. */
 .save-behavior-setting label {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 11px 12px;
-  border: 1px solid #e3e7ef;
-  border-radius: 7px;
-  background: #fff;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
   cursor: pointer;
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+
+.save-behavior-setting label:hover {
+  border-color: var(--color-border-strong);
 }
 
 .save-behavior-setting label:has(input:checked) {
-  border-color: #c7a3d8;
-  background: #f8f3fc;
+  border-color: var(--color-accent);
+  box-shadow: inset 0 0 0 var(--border-width) var(--color-accent);
 }
 
 .save-behavior-setting input {
-  margin: 3px 0 0;
-  accent-color: var(--purple);
+  margin-top: var(--space-0-5);
 }
 
 .save-behavior-setting label span {
   display: grid;
-  gap: 3px;
+  gap: var(--space-0-5);
 }
 
 .save-behavior-setting strong {
-  color: var(--ink);
-  font-size: 12px;
+  font-weight: var(--weight-semibold);
 }
 
 .save-behavior-setting small {
-  color: var(--muted);
-  font-size: 11px;
+  color: var(--color-text-muted);
+  font-size: var(--text-small-size);
 }

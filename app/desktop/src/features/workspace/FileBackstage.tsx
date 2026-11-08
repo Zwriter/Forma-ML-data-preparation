@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Icon } from '../../components/Icon';
+import { AppearanceSetting } from '../settings/AppearanceSetting';
 import { SaveBehaviorSetting } from '../settings/SaveBehaviorSetting';
 import { HistoryLimitSetting } from '../settings/HistoryLimitSetting';
 import { PageSizeSetting } from '../settings/PageSizeSetting';
@@ -94,7 +95,7 @@ export function FileBackstage({
     <section className="file-backstage" id="file">
       <nav className="file-navigation" aria-label="File menu">
         <button
-          className="file-back"
+          className="btn btn-icon file-back"
           type="button"
           aria-label="Back to workspace"
           title="Back"
@@ -126,7 +127,7 @@ export function FileBackstage({
           <>
             <h1>Forma</h1>
             <div className="recent-files-tools">
-              <div className="recent-file-filters" role="group" aria-label="Filter files">
+              <div className="segmented" role="group" aria-label="Filter files">
                 <button
                   type="button"
                   className={recentFilter === 'recent' ? 'active' : ''}
@@ -154,7 +155,7 @@ export function FileBackstage({
                 />
                 <button
                   type="button"
-                  className="file-primary-action"
+                  className="btn btn-primary"
                   disabled={busy}
                   onClick={onBrowse}
                 >
@@ -218,12 +219,13 @@ export function FileBackstage({
               />
               Show column details
             </label>
+            <AppearanceSetting />
             <SaveBehaviorSetting />
             <HistoryLimitSetting />
             <PageSizeSetting />
             <button
               type="button"
-              className="about-settings-link"
+              className="btn btn-link about-settings-link"
               onClick={() => setFilePage('settings-about')}
             >
               About Forma
@@ -232,7 +234,7 @@ export function FileBackstage({
         )}
         {filePage === 'settings-about' && (
           <section className="card settings-card">
-            <button type="button" className="quiet-button" onClick={() => setFilePage('settings')}>
+            <button type="button" className="btn btn-ghost" onClick={() => setFilePage('settings')}>
               Back to Settings
             </button>
             <h1>About Forma</h1>

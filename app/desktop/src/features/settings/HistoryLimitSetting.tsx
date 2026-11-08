@@ -14,7 +14,7 @@ export function HistoryLimitSetting() {
   const setError = useWorkspaceStore((state) => state.setError);
 
   return (
-    <fieldset className="history-limit-setting">
+    <fieldset className="setting-group history-limit-setting">
       <legend>Undo history</legend>
       <p>Choose how many actions Forma keeps available to undo and redo.</p>
       <label htmlFor="history-limit">Actions to keep</label>
