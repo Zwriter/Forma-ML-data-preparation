@@ -32,6 +32,8 @@ export function DataQualityTool() {
       : null,
   );
   const grid = useRef<HTMLDivElement>(null);
+  // Pressing the button moves focus off the grid, so remember the last problem visited.
+  const lastProblem = useRef<HTMLElement | null>(null);
   const [pendingFocus, setPendingFocus] = useState<'first' | 'last' | null>(null);
   const set = (key: string, value: unknown) =>
     useProfileToolStore.getState().setInput('data_quality', key, value);
@@ -44,15 +46,21 @@ export function DataQualityTool() {
   useEffect(() => {
     if (!pendingFocus || result?.offset !== offset) return;
     const cells = problemCells();
-    (pendingFocus === 'first' ? cells[0] : cells.at(-1))?.focus();
+    const target = pendingFocus === 'first' ? cells[0] : cells.at(-1);
+    target?.focus();
+    lastProblem.current = target ?? null;
     setPendingFocus(null);
   }, [result, offset, pendingFocus]);
 
   function moveProblem(step: 1 | -1) {
     const cells = problemCells();
-    const at = cells.indexOf(document.activeElement as HTMLElement);
+    const active = document.activeElement as HTMLElement;
+    const at = cells.indexOf(cells.includes(active) ? active : lastProblem.current!);
     const next = at === -1 ? (step === 1 ? 0 : cells.length - 1) : at + step;
-    if (cells[next]) return cells[next].focus();
+    if (cells[next]) {
+      lastProblem.current = cells[next];
+      return cells[next].focus();
+    }
     if (step === 1 && offset + PAGE_ROWS < total) {
       set('offset', offset + PAGE_ROWS);
       setPendingFocus('first');

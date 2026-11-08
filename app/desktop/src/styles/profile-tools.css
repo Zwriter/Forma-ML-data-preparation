@@ -17,6 +17,7 @@
 
 .card .profile-tool-header h2 {
   margin: 0;
+  font-size: 18px;
 }
 
 .profile-tool-back {
@@ -129,6 +130,8 @@
 
 /* Row grids scroll inside the tool; the header row stays visible. */
 .tool-table-wrap {
+  /* Holds the cells' absolutely placed screen-reader text, or it widens the page. */
+  position: relative;
   flex: 1 1 0;
   min-height: 0;
   overflow: auto;
@@ -235,7 +238,8 @@
 }
 
 .profile-tool-header button:disabled,
-.profile-tool-toolbar button:disabled {
+.profile-tool-toolbar button:disabled,
+.profile-tool-toolbar button[aria-disabled='true'] {
   color: var(--muted);
   background: #f7f8fb;
 }
@@ -243,10 +247,6 @@
 .workflow-card .profile-tool-toolbar select {
   padding: 5px 8px;
   font-size: 13px;
-}
-
-.card .profile-tool-header h2 {
-  font-size: 18px;
 }
 
 .profile-tool-toolbar [role='status'] {

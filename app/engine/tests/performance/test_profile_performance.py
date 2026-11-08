@@ -1,12 +1,15 @@
 import time
 
 import polars as pl
+import pytest
 
 from forma_engine.domain.entities import Dataset
 from forma_engine.jobs.manager import JobManager
 from forma_engine.profiling.statistics import profile
+from forma_engine.profiling.tools import TOOLS
 from forma_engine.services.dataset_service import DatasetService
 from forma_engine.services.profile_service import ProfileService
+from forma_engine.services.profile_tools_service import ProfileToolsService, ToolContext
 
 
 class Publisher:
@@ -77,3 +80,45 @@ def test_cancelling_a_10m_row_profile_takes_effect_within_2_seconds():
     jobs.shutdown()  # the worker stops at its next query and drops its work
     assert _state(jobs, job_id) == "cancelled"
     assert service.latest(datasets.history_id(dataset_id)) is None
+
+
+TOOL_PARAMS = {
+    "column_detail": {"column": "dec_0"},
+    "rows": {"filter": {"kind": "problems", "column": None}, "offset": 0, "limit": 100},
+    "distribution": {"column": "dec_0", "bins": 50},
+    "duplicates": {"columns": None},
+    "patterns": {},
+    "anomalies": {},
+    "suggestions": {},
+}
+
+
+@pytest.mark.parametrize("tool", sorted(TOOL_PARAMS))
+def test_each_tool_on_100k_rows_by_25_columns_within_3_seconds(tool):
+    frame = _wide_frame(100_000)
+    context = ToolContext(frame, lambda: False, profile(frame, "perf", "h", "v1"))
+    started = time.perf_counter()
+    TOOLS[tool](context, TOOL_PARAMS[tool])
+    assert time.perf_counter() - started < 3  # SC-010
+
+
+def test_cancelling_a_10m_row_duplicates_job_takes_effect_within_2_seconds():
+    datasets, dataset_id = _opened(_wide_frame(10_000_000))
+    jobs = JobManager(Publisher())
+    service = ProfileToolsService(datasets, jobs, dict(TOOLS), lambda history: None)
+    version = datasets.data_version(dataset_id)
+    job_id = service.submit("duplicates", dataset_id, version, {"columns": None})[
+        "job_id"
+    ]
+    while _state(jobs, job_id) != "running":
+        time.sleep(0.01)
+    time.sleep(0.5)  # inside the group-by
+
+    requested = time.perf_counter()
+    jobs.cancel(job_id)
+    while _state(jobs, job_id) == "running":
+        assert time.perf_counter() - requested < 2
+        time.sleep(0.01)
+    assert _state(jobs, job_id) == "cancelled"
+    jobs.shutdown()
+    assert jobs.status(job_id).get("result") is None

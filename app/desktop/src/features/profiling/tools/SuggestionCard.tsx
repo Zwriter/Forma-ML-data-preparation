@@ -64,8 +64,8 @@ export function SuggestionCard({
       <div className="suggestion-actions">
         <button
           type="button"
-          disabled={added}
-          onClick={() => addCleanSteps(suggestion.steps, suggestion.title)}
+          aria-disabled={added}
+          onClick={() => !added && addCleanSteps(suggestion.steps, suggestion.title)}
         >
           {added ? 'Added' : 'Add step'}
         </button>

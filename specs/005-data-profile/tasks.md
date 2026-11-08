@@ -776,17 +776,71 @@ Notes (Phase 13, 2026-11-08):
 
 ## Phase 14: Polish for the Profile Tools
 
-- [ ] T090 [P] Add tool timing to `tests/performance/test_profile_performance.py`: each tool on
+- [x] T090 [P] Add tool timing to `tests/performance/test_profile_performance.py`: each tool on
   100,000 × 25 within 3 s (SC-010), and cancel of a 10M-row Duplicates job within 2 s.
-- [ ] T091 [P] Extend `tests/ui/profile-dashboard.pw.ts`: every tool fits 1920×1040, 1536×816,
+- [x] T091 [P] Extend `tests/ui/profile-dashboard.pw.ts`: every tool fits 1920×1040, 1536×816,
   and 1180×820 with only its own list or grid scrolling; tools reflow at 900 and 600 px; every
   control has an accessible name; keyboard paths for Next problem, the Bars radio group, the
   correlation table, and Add step. Break the CSS once per new layout rule to confirm a failure.
-- [ ] T092 Check every new or changed file is ≤ 250 code lines (split by responsibility if not),
+- [x] T092 Check every new or changed file is ≤ 250 code lines (split by responsibility if not),
   run Ruff, Prettier on changed files only, and `tsc --noEmit`.
-- [ ] T093 Run the full gates from quickstart.md (engine pytest, Vitest exit code,
+- [x] T093 Run the full gates from quickstart.md (engine pytest, Vitest exit code,
   `npm run test:ui`) and record results and constitution compliance in a "Constitution review
   (T093)" section here.
+
+Notes (Phase 14, 2026-11-08):
+- T090: each tool takes 0.3–0.4 s on 100,000 × 25 (the timer leaves out the profile it needs).
+  The 10M-row Duplicates job shows `cancelled` within 2 s; its abandoned worker keeps running
+  until its group-by ends, so the test takes ~9 s overall.
+- T091: the tool checks live in a new `tests/ui/profile-tools.pw.ts` (the dashboard file was
+  already 331 lines). Writing them found and fixed four problems:
+  - Data quality widened the page by ~2,000 px: the cells' `.sr-only` marker text (absolutely
+    placed) escaped the scroll box. `.tool-table-wrap` is now `position: relative`.
+  - The correlation grid and the row grids scroll sideways but could not take keyboard focus;
+    their scroll boxes are now focusable regions ("Correlations, scrollable", "{label},
+    scrollable").
+  - "Add step" became `disabled` after a click, which dropped keyboard focus to the page; it now
+    uses `aria-disabled` (still reads "Added" and does nothing) in Recommendations, Creations,
+    and Duplicates.
+  - "Next problem" restarted from the first cell once focus was back on the button; Data quality
+    now remembers the last problem visited.
+  The CSS rules were broken once each: `position: relative` and the suggestion list's
+  `overflow: auto` (checked at 900×560 with a wheel scroll) fail their tests. The Anomalies
+  `max-height: 45%` rule is not exercised: the demo data has only 4 number columns.
+- T092: largest changed production file `profile-tools.css` at 249 code lines (a duplicated
+  `h2` rule merged to make room); Ruff, Prettier on changed files, and `tsc --noEmit` clean.
+
+### Constitution review (T093, 2026-11-08)
+
+Checks run (quickstart.md "Full gates"): engine pytest (539 passed, exit 0), Ruff lint and format
+check (clean), Vitest (364 passed, exit 0), `tsc --noEmit` (clean), Playwright `npm run test:ui`
+(40 passed, exit 0), Prettier on changed desktop files (clean), code lines of every production
+file changed in Phases 10–14 (largest `profile-tools.css` 249; none over 250). Demo mode does not
+run `cleaning.*`, so adding and applying suggested steps is covered by the engine integration test
+`test_every_suggestion_validates_and_applies` and Vitest, not by Playwright.
+
+- **I/II SOLID, OOP**: one `ProfileToolsService` runs every tool from an injected registry
+  (open/closed: tools were added in Phases 11–13 without changing it). Each tool is a function
+  over `ToolContext`; shared rules have one home (`box_summary`/`outside` for fences,
+  `type_detection` for types and invalid values, `dropped_columns` for drop suggestions). The
+  engine stays independent of React and Tauri.
+- **III TDD**: every engine tool, the `extract_date_parts` step, and the validators started from
+  failing tests; contract and integration tests cover the IPC boundary, including the 1M-row
+  cancel and applying every suggestion (SC-012). Performance tests cover SC-010 and tool cancel.
+- **IV Frontend**: all eight tools fit 1920×1040, 1536×816, and 1180×820 with only their own grid
+  or list scrolling, reflow at 900 and 600 px, name every control, and have keyboard paths for
+  Next problem, the Bars radio group, the correlation grid, and Add step (Playwright).
+  Strength words, markers, and badges are text as well as colour.
+- **Architecture**: tool results are bounded as FR-045 lists (50 values, 10 invalid values, 100
+  rows, 20 groups, 20 × 20 grid, 5 formats, 5 extremes, 3 examples); tool jobs only read data and
+  are abandoned on cancel; IPC parameters are validated in `profile_tool_handlers.py`.
+- **V Size and duplication**: all production files within 250 code lines. The demo answers in
+  `demoProfileInsights.ts` restate the engine's suggestion rules for demo mode only (accepted:
+  demo mode has no engine).
+- **VI/VII Formatting**: Ruff and Prettier clean on changed files; this tasks.md still fails
+  Prettier as noted in T063 and was left as is.
+- **TODO**: the row grids of Duplicates and Anomalies' summary table are not focusable scroll
+  regions; they only overflow with many key columns or wide values.
 
 ---
 

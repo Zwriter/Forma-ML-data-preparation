@@ -32,7 +32,13 @@ function Cell({ value, mark, reason }: { value: string | null; mark?: CellMark; 
 export const RowsGrid = forwardRef<HTMLDivElement, { page: RowsPage; label: string }>(
   function RowsGrid({ page, label }, ref) {
     return (
-      <div className="tool-table-wrap" ref={ref}>
+      <div
+        className="tool-table-wrap"
+        ref={ref}
+        tabIndex={0}
+        role="region"
+        aria-label={`${label}, scrollable`}
+      >
         <table className="tool-table" aria-label={label}>
           <thead>
             <tr>

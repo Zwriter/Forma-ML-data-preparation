@@ -61,8 +61,11 @@ describe('Recommendations', () => {
     expect(useWorkspaceStore.getState().notification?.message).toMatch(
       /^Added "Fill missing values in .+" to Clean steps\.$/,
     );
-    const added = within(fill).getByRole('button', { name: 'Added' }) as HTMLButtonElement;
-    expect(added.disabled).toBe(true);
+    const added = within(fill).getByRole('button', { name: 'Added' });
+    // aria-disabled, not disabled, so keyboard focus stays on the button
+    expect(added.getAttribute('aria-disabled')).toBe('true');
+    fireEvent.click(added);
+    expect(useCleaningStore.getState().drafts['file-1']).toHaveLength(steps.length);
     expect(useProfileToolStore.getState().tool).toBe('recommendations');
 
     act(() => useWorkspaceStore.getState().notification?.action?.run());

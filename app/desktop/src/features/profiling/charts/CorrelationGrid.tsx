@@ -21,7 +21,13 @@ export function CorrelationGrid({
   matrix: (number | null)[][];
 }) {
   return (
-    <div className="tool-table-wrap">
+    // Focusable so keyboard users can scroll a grid wider than its panel.
+    <div
+      className="tool-table-wrap"
+      tabIndex={0}
+      role="region"
+      aria-label="Correlations, scrollable"
+    >
       <table className="tool-table corr-grid" aria-label="Correlations">
         <thead>
           <tr>

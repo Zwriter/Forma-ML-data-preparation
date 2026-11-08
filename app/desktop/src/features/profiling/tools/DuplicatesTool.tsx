@@ -21,8 +21,7 @@ export function toggleKey(keys: string[] | null, name: string, all: string[]) {
 /** Duplicate finder (FR-040): duplicates for the chosen key columns. */
 export function DuplicatesTool() {
   const keys = (useProfileToolStore((state) => state.inputs.duplicates?.columns) ?? null) as
-    | string[]
-    | null;
+    string[] | null;
   const profile = useLatestProfile();
   const all = (profile?.columns ?? []).map((column) => column.name);
   const { result, view } = useTool<DuplicateGroups>(
@@ -58,8 +57,9 @@ export function DuplicatesTool() {
       <span className="tool-spacer" />
       <button
         type="button"
-        disabled={added || !result?.duplicate_rows}
-        onClick={() => addCleanSteps(step, 'Remove duplicate rows')}
+        disabled={!result?.duplicate_rows}
+        aria-disabled={added}
+        onClick={() => !added && addCleanSteps(step, 'Remove duplicate rows')}
       >
         {added ? 'Added' : 'Add step: Remove duplicates'}
       </button>

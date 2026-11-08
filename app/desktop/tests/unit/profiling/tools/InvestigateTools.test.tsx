@@ -151,7 +151,9 @@ describe('Duplicates', () => {
     expect(steps).toHaveLength(1);
     expect(steps[0]).toMatchObject({ type: 'drop_duplicates', parameters: { columns: null } });
     expect(useWorkspaceStore.getState().notification?.action?.label).toBe('Undo');
-    expect(screen.getByRole('button', { name: 'Added' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Added' }).getAttribute('aria-disabled')).toBe(
+      'true',
+    );
     expect(useProfileToolStore.getState().tool).toBe('duplicates');
 
     fireEvent.click(screen.getByRole('button', { name: 'Key columns' }));
